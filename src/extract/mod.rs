@@ -2,6 +2,9 @@ pub use crate::*;
 
 pub mod bottom_up;
 
+#[cfg(feature = "ilp-cbc")]
+pub mod ilp_cbc;
+
 pub trait Extractor {
     fn extract(&self, egraph: &SimpleEGraph, roots: &[Id]) -> ExtractionResult;
 

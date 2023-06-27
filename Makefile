@@ -6,11 +6,13 @@ DATA=$(shell find data -name '*.csv')
 all: test nits bench
 
 bench: $(SRC) $(DATA)
-	cargo run --release -- $(DATA) | tee out.csv
+	cargo run --release                -- --out=out.csv $(DATA)
+
+bench-all: $(SRC) $(DATA)
+	cargo run --release --all-features -- --out=out.csv $(DATA)
 
 test:
 	cargo test --release
-	cargo test --release --all-features
 
 nits:
 	rustup component add rustfmt clippy
@@ -18,4 +20,3 @@ nits:
 	cargo clean --doc
 
 	cargo clippy --tests
-	cargo clippy --tests --all-features

@@ -6,6 +6,11 @@ pub struct SimpleEGraph {
     pub roots: Vec<Id>,
     pub classes: IndexMap<String, Class>,
 }
+impl SimpleEGraph {
+    pub fn total_number_of_nodes(&self) -> usize {
+        self.classes.values().map(|c| c.nodes.len()).sum()
+    }
+}
 
 impl std::ops::Index<Id> for SimpleEGraph {
     type Output = Class;
@@ -17,6 +22,7 @@ impl std::ops::Index<Id> for SimpleEGraph {
 
 #[derive(Default)]
 pub struct Class {
+    pub id: Id,
     pub nodes: Vec<Node>,
 }
 
@@ -24,6 +30,11 @@ pub struct Node {
     pub op: String,
     pub cost: Cost,
     pub children: Vec<Id>,
+}
+impl Node {
+    pub fn is_leaf(&self) -> bool {
+        self.children.is_empty()
+    }
 }
 
 impl FromStr for SimpleEGraph {
@@ -90,7 +101,9 @@ impl FromStr for SimpleEGraph {
             classes.get_index_mut(class_i).unwrap().1.nodes.push(node);
         }
 
-        for (name, class) in &classes {
+        // set the ids and check for empty classes
+        for (i, (name, class)) in classes.iter_mut().enumerate() {
+            class.id = i;
             if class.nodes.is_empty() {
                 return Err(format!("class {name} is empty"));
             }

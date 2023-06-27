@@ -18,7 +18,7 @@ You can have multiple of these on separate lines.
 
 ### Example
 
-Here's an e-graph with `f(g(x)) = h(y)`, and everything has cost `1` except for `h` which has cost `7.5`:
+Here's an e-graph with `f(g(x)) = h(y, x)`, and everything has cost `1` except for `h` which has cost `7.5`:
 
 ```csv
 ## root: 2
@@ -27,5 +27,5 @@ Here's an e-graph with `f(g(x)) = h(y)`, and everything has cost `1` except for 
 2,   1, f, 1
 # this is a comment, starting the second "term"
 3,   1, y
-2, 7.5, h, 3
+2, 7.5, h, 3, 0
 ```

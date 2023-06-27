@@ -1,0 +1,17 @@
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: Swatinem/rust-cache@v2
+    - run: make test
+  nits:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: Swatinem/rust-cache@v2
+    - run: make nits

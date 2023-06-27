@@ -32,7 +32,8 @@ Here's an e-graph with `f(g(x)) = h(y, x)`, and everything has cost `1` except f
 
 ## Snippet
 
-Here's a snippet that you can base your csv printing code on if you want 
+Here's a snippet that you can base your csv printing code on if you want. 
+Make sure to also print the `## root:` directive to specify the roots!
 
 ```rust 
 pub fn write_to_csv<L, A>(egraph: &EGraph<L, A>, w: &mut impl std::io::Write) -> std::io::Result<()>

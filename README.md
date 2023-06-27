@@ -16,6 +16,8 @@ eclass:str, cost:float, node_name:str, eclass_children:str*
 There is a special `##` directive to specify the root(s) of the e-graph.
 You can have multiple of these on separate lines.
 
+Make sure all ids (including roots) are canonical!
+
 ### Example
 
 Here's an e-graph with `f(g(x)) = h(y, x)`, and everything has cost `1` except for `h` which has cost `7.5`:

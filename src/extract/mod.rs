@@ -5,7 +5,7 @@ pub mod bottom_up;
 #[cfg(feature = "ilp-cbc")]
 pub mod ilp_cbc;
 
-pub trait Extractor {
+pub trait Extractor: Sync {
     fn extract(&self, egraph: &SimpleEGraph, roots: &[Id]) -> ExtractionResult;
 
     fn boxed(self) -> Box<dyn Extractor>

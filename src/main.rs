@@ -7,6 +7,8 @@ pub use extract::*;
 use indexmap::IndexMap;
 use ordered_float::NotNan;
 
+use rayon::prelude::*;
+
 use std::io::Write;
 use std::{path::PathBuf, str::FromStr};
 
@@ -43,25 +45,35 @@ fn main() {
     .collect();
 
     writeln!(out_file, "file, extractor, tree, dag, time (us)").unwrap();
-    for filename in &filenames {
-        let contents = std::fs::read_to_string(filename)
-            .unwrap_or_else(|e| panic!("Failed to read {filename}: {e}"));
-        let egraph = contents.parse::<SimpleEGraph>().unwrap();
+    let rows = filenames
+        .par_iter()
+        .flat_map(|filename| {
+            let mut rows = vec![];
+            let contents = std::fs::read_to_string(filename)
+                .unwrap_or_else(|e| panic!("Failed to read {filename}: {e}"));
+            let egraph = contents.parse::<SimpleEGraph>().unwrap();
 
-        for (ext_name, extractor) in &extractors {
-            let start_time = std::time::Instant::now();
-            let result = extractor.extract(&egraph, &egraph.roots);
-            let elapsed = start_time.elapsed();
-            for &root in &egraph.roots {
-                let msg = format!(
-                    "{filename:40}, {ext_name:10}, {tree:4}, {dag:4}, {us:8}",
-                    tree = result.tree_cost(&egraph, root),
-                    dag = result.dag_cost(&egraph, root),
-                    us = elapsed.as_micros(),
-                );
-                writeln!(out_file, "{}", msg).unwrap();
-                log::info!("{}", msg);
+            for (ext_name, extractor) in &extractors {
+                let start_time = std::time::Instant::now();
+                let result = extractor.extract(&egraph, &egraph.roots);
+                let elapsed = start_time.elapsed();
+                for &root in &egraph.roots {
+                    let msg = format!(
+                        "{filename:40}, {ext_name:10}, {tree:4}, {dag:4}, {us:8}",
+                        tree = result.tree_cost(&egraph, root),
+                        dag = result.dag_cost(&egraph, root),
+                        us = elapsed.as_micros(),
+                    );
+                    log::info!("{}", msg);
+                    rows.push(msg);
+                }
             }
-        }
+
+            rows
+        })
+        .collect::<Vec<String>>();
+
+    for row in rows {
+        writeln!(out_file, "{}", row).unwrap();
     }
 }

@@ -7,6 +7,7 @@ pub use extract::*;
 use indexmap::IndexMap;
 use ordered_float::NotNan;
 
+use anyhow::Context;
 use rayon::prelude::*;
 
 use std::io::Write;
@@ -18,9 +19,7 @@ pub const INFINITY: Cost = unsafe { NotNan::new_unchecked(std::f64::INFINITY) };
 pub type Id = usize;
 
 fn main() {
-    env_logger::builder()
-        .filter_level(log::LevelFilter::Info)
-        .init();
+    env_logger::init();
 
     let mut args = pico_args::Arguments::from_env();
 
@@ -44,34 +43,39 @@ fn main() {
     .into_iter()
     .collect();
 
+    let go = |filename| {
+        let mut rows = vec![];
+        let contents = std::fs::read_to_string(filename)
+            .unwrap_or_else(|e| panic!("Failed to read {filename}: {e}"));
+        let egraph = contents
+            .parse::<SimpleEGraph>()
+            .with_context(|| format!("Failed to parse {filename}"))
+            .unwrap();
+
+        for (ext_name, extractor) in &extractors {
+            let start_time = std::time::Instant::now();
+            let result = extractor.extract(&egraph, &egraph.roots);
+            let elapsed = start_time.elapsed();
+            let msg = format!(
+                "{filename:40}, {ext_name:10}, {tree:4}, {dag:4}, {us:8}",
+                tree = result.tree_cost(&egraph, &egraph.roots),
+                dag = result.dag_cost(&egraph, &egraph.roots),
+                us = elapsed.as_micros(),
+            );
+            log::info!("{}", msg);
+            rows.push(msg);
+        }
+
+        rows
+    };
+
     writeln!(out_file, "file, extractor, tree, dag, time (us)").unwrap();
-    let rows = filenames
-        .par_iter()
-        .flat_map(|filename| {
-            let mut rows = vec![];
-            let contents = std::fs::read_to_string(filename)
-                .unwrap_or_else(|e| panic!("Failed to read {filename}: {e}"));
-            let egraph = contents.parse::<SimpleEGraph>().unwrap();
 
-            for (ext_name, extractor) in &extractors {
-                let start_time = std::time::Instant::now();
-                let result = extractor.extract(&egraph, &egraph.roots);
-                let elapsed = start_time.elapsed();
-                for &root in &egraph.roots {
-                    let msg = format!(
-                        "{filename:40}, {ext_name:10}, {tree:4}, {dag:4}, {us:8}",
-                        tree = result.tree_cost(&egraph, root),
-                        dag = result.dag_cost(&egraph, root),
-                        us = elapsed.as_micros(),
-                    );
-                    log::info!("{}", msg);
-                    rows.push(msg);
-                }
-            }
-
-            rows
-        })
-        .collect::<Vec<String>>();
+    // check if there is parallelism
+    let rows = match std::env::var("RAYON_NUM_THREADS") {
+        Ok(threads) if threads == "1" => filenames.iter().flat_map(go).collect::<Vec<String>>(),
+        _ => filenames.par_iter().flat_map(go).collect::<Vec<String>>(),
+    };
 
     for row in rows {
         writeln!(out_file, "{}", row).unwrap();

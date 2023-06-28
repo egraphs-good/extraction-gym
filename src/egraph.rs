@@ -38,7 +38,7 @@ impl Node {
 }
 
 impl FromStr for SimpleEGraph {
-    type Err = String;
+    type Err = anyhow::Error;
 
     fn from_str<'a>(s: &'a str) -> Result<Self, Self::Err> {
         let mut classes = IndexMap::<&'a str, Class>::new();
@@ -71,20 +71,20 @@ impl FromStr for SimpleEGraph {
             let mut parts = line.split(',');
             let class_name = parts
                 .next()
-                .ok_or_else(|| format!("missing class on line {i}"))?;
+                .with_context(|| format!("missing class on line {i}"))?;
 
             let class_i = get_index(&mut classes, class_name);
 
             let cost_str = parts
                 .next()
-                .ok_or_else(|| format!("missing cost on line {i}"))?;
+                .with_context(|| format!("missing cost on line {i}"))?;
             let cost = cost_str
                 .parse()
-                .map_err(|e| format!("invalid cost on line {i} '{cost_str}': {e}"))?;
+                .with_context(|| format!("invalid cost on line {i} '{cost_str}'"))?;
 
             let op = parts
                 .next()
-                .ok_or_else(|| format!("missing op on line {i}"))?;
+                .with_context(|| format!("missing op on line {i}"))?;
 
             let mut children = vec![];
             for child_name in parts {
@@ -105,7 +105,7 @@ impl FromStr for SimpleEGraph {
         for (i, (name, class)) in classes.iter_mut().enumerate() {
             class.id = i;
             if class.nodes.is_empty() {
-                return Err(format!("class {name} is empty"));
+                anyhow::bail!("class '{name}' is empty")
             }
         }
 

@@ -17,3 +17,4 @@ pico-args = {version = "0.5.0", features = ["eq-separator"]}
 rayon = "1.7.0"
 
 coin_cbc = {version = "0.1.6", optional = true}
+anyhow = "1.0.71"

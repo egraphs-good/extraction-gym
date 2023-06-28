@@ -28,19 +28,20 @@ impl ExtractionResult {
         }
     }
 
-    pub fn tree_cost(&self, egraph: &SimpleEGraph, root: Id) -> Cost {
-        let node = &egraph[root].nodes[self.choices[root]];
-        let mut cost = node.cost;
-        for &child in &node.children {
-            cost += self.tree_cost(egraph, child);
+    pub fn tree_cost(&self, egraph: &SimpleEGraph, roots: &[Id]) -> Cost {
+        let mut cost = Cost::default();
+        for &root in roots {
+            let node = &egraph[root].nodes[self.choices[root]];
+            cost += node.cost;
+            cost += self.tree_cost(egraph, &node.children);
         }
         cost
     }
 
     // this will loop if there are cycles
-    pub fn dag_cost(&self, egraph: &SimpleEGraph, root: Id) -> Cost {
+    pub fn dag_cost(&self, egraph: &SimpleEGraph, roots: &[Id]) -> Cost {
         let mut costs = vec![INFINITY; egraph.classes.len()];
-        let mut todo = vec![root];
+        let mut todo = roots.to_owned();
         while !todo.is_empty() {
             let i = todo.pop().unwrap();
             let node = &egraph[i].nodes[self.choices[i]];

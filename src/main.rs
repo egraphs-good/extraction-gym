@@ -8,7 +8,6 @@ use indexmap::IndexMap;
 use ordered_float::NotNan;
 
 use anyhow::Context;
-use rayon::prelude::*;
 
 use std::io::Write;
 use std::{path::PathBuf, str::FromStr};
@@ -21,20 +20,6 @@ pub type Id = usize;
 fn main() {
     env_logger::init();
 
-    let mut args = pico_args::Arguments::from_env();
-
-    let out_filename: PathBuf = args
-        .opt_value_from_str("--out")
-        .unwrap()
-        .unwrap_or_else(|| "out.csv".into());
-
-    let mut out_file = std::fs::File::create(&out_filename).unwrap();
-
-    let mut filenames: Vec<String> = vec![];
-    while let Some(filename) = args.opt_free_from_str().unwrap() {
-        filenames.push(filename);
-    }
-
     let extractors: IndexMap<&str, Box<dyn Extractor>> = [
         ("bottom-up", extract::bottom_up::BottomUpExtractor.boxed()),
         #[cfg(feature = "ilp-cbc")]
@@ -43,41 +28,61 @@ fn main() {
     .into_iter()
     .collect();
 
-    let go = |filename| {
-        let mut rows = vec![];
-        let contents = std::fs::read_to_string(filename)
-            .unwrap_or_else(|e| panic!("Failed to read {filename}: {e}"));
-        let egraph = contents
-            .parse::<SimpleEGraph>()
-            .with_context(|| format!("Failed to parse {filename}"))
-            .unwrap();
+    let mut args = pico_args::Arguments::from_env();
 
-        for (ext_name, extractor) in &extractors {
-            let start_time = std::time::Instant::now();
-            let result = extractor.extract(&egraph, &egraph.roots);
-            let elapsed = start_time.elapsed();
-            let msg = format!(
-                "{filename:40}, {ext_name:10}, {tree:4}, {dag:4}, {us:8}",
-                tree = result.tree_cost(&egraph, &egraph.roots),
-                dag = result.dag_cost(&egraph, &egraph.roots),
-                us = elapsed.as_micros(),
-            );
-            log::info!("{}", msg);
-            rows.push(msg);
+    let extractor_name: String = args
+        .opt_value_from_str("--extractor")
+        .unwrap()
+        .unwrap_or_else(|| "bottom-up".into());
+    if extractor_name == "print" {
+        for name in extractors.keys() {
+            println!("{}", name);
         }
-
-        rows
-    };
-
-    writeln!(out_file, "file, extractor, tree, dag, time (us)").unwrap();
-
-    // check if there is parallelism
-    let rows = match std::env::var("RAYON_NUM_THREADS") {
-        Ok(threads) if threads == "1" => filenames.iter().flat_map(go).collect::<Vec<String>>(),
-        _ => filenames.par_iter().flat_map(go).collect::<Vec<String>>(),
-    };
-
-    for row in rows {
-        writeln!(out_file, "{}", row).unwrap();
+        return;
     }
+
+    let out_filename: PathBuf = args
+        .opt_value_from_str("--out")
+        .unwrap()
+        .unwrap_or_else(|| "out.json".into());
+
+    let filename: String = args.free_from_str().unwrap();
+
+    let rest = args.finish();
+    if !rest.is_empty() {
+        panic!("Unknown arguments: {:?}", rest);
+    }
+
+    let mut out_file = std::fs::File::create(out_filename).unwrap();
+
+    let egraph = std::fs::read_to_string(&filename)
+        .unwrap_or_else(|e| panic!("Failed to read {filename}: {e}"))
+        .parse::<SimpleEGraph>()
+        .with_context(|| format!("Failed to parse {filename}"))
+        .unwrap();
+
+    let extractor = extractors
+        .get(extractor_name.as_str())
+        .with_context(|| format!("Unknown extractor: {extractor_name}"))
+        .unwrap();
+
+    let start_time = std::time::Instant::now();
+    let result = extractor.extract(&egraph, &egraph.roots);
+
+    let us = start_time.elapsed().as_micros();
+    let tree = result.tree_cost(&egraph, &egraph.roots);
+    let dag = result.dag_cost(&egraph, &egraph.roots);
+
+    log::info!("{filename:40}\t{extractor_name:10}\t{tree:5}\t{dag:5}\t{us:5}");
+    writeln!(
+        out_file,
+        r#"{{ 
+    "name": "{filename}",
+    "extractor": "{extractor_name}", 
+    "tree": {tree}, 
+    "dag": {dag}, 
+    "micros": {us}
+}}"#
+    )
+    .unwrap();
 }

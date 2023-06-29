@@ -1,6 +1,6 @@
 [package]
 edition = "2021"
-name = "egraph-extraction"
+name = "extraction-gym"
 version = "0.1.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -14,7 +14,6 @@ indexmap = "2.0.0"
 log = "0.4.19"
 ordered-float = "3"
 pico-args = {version = "0.5.0", features = ["eq-separator"]}
-rayon = "1.7.0"
 
-coin_cbc = {version = "0.1.6", optional = true}
 anyhow = "1.0.71"
+coin_cbc = {version = "0.1.6", optional = true}

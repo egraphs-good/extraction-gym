@@ -1,3 +1,5 @@
+use core::panic;
+
 use super::*;
 use coin_cbc::{Col, Model, Sense};
 use indexmap::IndexSet;
@@ -15,6 +17,8 @@ impl Extractor for CbcExtractor {
         let max_order = egraph.total_number_of_nodes() as f64 * 10.0;
 
         let mut model = Model::default();
+        // model.set_parameter("seconds", "30");
+        // model.set_parameter("allowableGap", "100000000");
 
         let vars: IndexMap<Id, ClassVars> = egraph
             .classes
@@ -30,11 +34,6 @@ impl Extractor for CbcExtractor {
             })
             .collect();
 
-        let mut cycles: IndexSet<(Id, usize)> = Default::default();
-        find_cycles(egraph, |id, i| {
-            cycles.insert((id, i));
-        });
-
         for (&id, class) in &vars {
             // class active == some node active
             // sum(for node_active in class) == class_active
@@ -46,12 +45,6 @@ impl Extractor for CbcExtractor {
             }
 
             for (i, (node, &node_active)) in egraph[id].nodes.iter().zip(&class.nodes).enumerate() {
-                if cycles.contains(&(id, i)) {
-                    model.set_col_upper(node_active, 0.0);
-                    model.set_col_lower(node_active, 0.0);
-                    continue;
-                }
-
                 for child in &node.children {
                     let child_active = vars[child].active;
                     // node active implies child active, encoded as:
@@ -83,28 +76,85 @@ impl Extractor for CbcExtractor {
             model.set_col_lower(vars[root].active, 1.0);
         }
 
-        let solution = model.solve();
-        log::info!(
-            "CBC status {:?}, {:?}",
-            solution.raw().status(),
-            solution.raw().secondary_status()
-        );
-
-        let mut result = ExtractionResult::new(egraph.classes.len());
-
-        for (id, var) in vars {
-            let active = solution.col(var.active) > 0.0;
-            if active {
-                let node_idx = var
-                    .nodes
-                    .iter()
-                    .position(|&n| solution.col(n) > 0.0)
-                    .unwrap();
-                result.choices[id] = node_idx;
+        // set initial solution based on bottom up extractor
+        let initial_result = super::bottom_up::BottomUpExtractor.extract(egraph, roots);
+        for (class, class_vars) in egraph.classes.values().zip(vars.values()) {
+            let node_idx = initial_result.choices[class.id];
+            if node_idx == usize::MAX {
+                model.set_col_initial_solution(class_vars.active, 0.0);
+            } else {
+                model.set_col_initial_solution(class_vars.active, 1.0);
+                for col in &class_vars.nodes {
+                    model.set_col_initial_solution(*col, 0.0);
+                }
+                model.set_col_initial_solution(class_vars.nodes[node_idx], 1.0);
             }
         }
 
-        result
+        let mut banned_cycles: IndexSet<(Id, usize)> = Default::default();
+        // find_cycles(egraph, |id, i| {
+        //     banned_cycles.insert((id, i));
+        // });
+
+        for iteration in 0.. {
+            if iteration == 0 {
+                find_cycles(egraph, |id, i| {
+                    banned_cycles.insert((id, i));
+                });
+            } else if iteration >= 2 {
+                panic!("Too many iterations");
+            }
+
+            for (&id, class) in &vars {
+                for (i, (_node, &node_active)) in
+                    egraph[id].nodes.iter().zip(&class.nodes).enumerate()
+                {
+                    if banned_cycles.contains(&(id, i)) {
+                        model.set_col_upper(node_active, 0.0);
+                        model.set_col_lower(node_active, 0.0);
+                    }
+                }
+            }
+
+            let solution = model.solve();
+            log::info!(
+                "CBC status {:?}, {:?}, obj = {}",
+                solution.raw().status(),
+                solution.raw().secondary_status(),
+                solution.raw().obj_value(),
+            );
+
+            let mut result = ExtractionResult::new(egraph.classes.len());
+
+            for (&id, var) in &vars {
+                let active = solution.col(var.active) > 0.0;
+                if active {
+                    let node_idx = var
+                        .nodes
+                        .iter()
+                        .position(|&n| solution.col(n) > 0.0)
+                        .unwrap();
+                    result.choices[id] = node_idx;
+                }
+            }
+
+            let cycles = result.find_cycles(egraph, roots);
+            if cycles.is_empty() {
+                return result;
+            } else {
+                log::info!("Found {} cycles", cycles.len());
+                // for id in cycles {
+                //     let class = &vars[&id];
+                //     let node_idx = class
+                //         .nodes
+                //         .iter()
+                //         .position(|&n| solution.col(n) > 0.0)
+                //         .unwrap();
+                //     banned_cycles.insert((id, node_idx));
+                // }
+            }
+        }
+        unreachable!()
     }
 }
 

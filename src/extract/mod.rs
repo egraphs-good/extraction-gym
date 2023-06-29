@@ -5,6 +5,9 @@ pub mod bottom_up;
 #[cfg(feature = "ilp-cbc")]
 pub mod ilp_cbc;
 
+#[cfg(feature = "maxsat")]
+pub mod maxsat;
+
 pub trait Extractor: Sync {
     fn extract(&self, egraph: &SimpleEGraph, roots: &[Id]) -> ExtractionResult;
 

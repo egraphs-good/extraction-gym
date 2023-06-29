@@ -7,6 +7,7 @@ version = "0.1.0"
 
 [features]
 ilp-cbc = ["coin_cbc"]
+maxsat = ["itertools"]
 
 [dependencies]
 env_logger = {version = "0.10.0", default-features = false}
@@ -17,3 +18,4 @@ pico-args = {version = "0.5.0", features = ["eq-separator"]}
 rayon = "1.7.0"
 
 coin_cbc = {version = "0.1.6", optional = true}
+itertools = {version = "0.10.5", optional = true}

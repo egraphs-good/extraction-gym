@@ -40,6 +40,8 @@ fn main() {
         ("bottom-up", extract::bottom_up::BottomUpExtractor.boxed()),
         #[cfg(feature = "ilp-cbc")]
         ("ilp-cbc", extract::ilp_cbc::CbcExtractor.boxed()),
+        #[cfg(feature = "maxsat")]
+        ("maxsat", extract::maxsat::MaxsatExtractor.boxed()),
     ]
     .into_iter()
     .collect();

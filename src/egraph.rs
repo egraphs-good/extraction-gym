@@ -26,6 +26,7 @@ pub struct Class {
     pub nodes: Vec<Node>,
 }
 
+#[derive(Hash, PartialEq, Eq, Clone)]
 pub struct Node {
     pub op: String,
     pub cost: Cost,

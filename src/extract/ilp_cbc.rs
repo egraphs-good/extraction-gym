@@ -44,7 +44,7 @@ impl Extractor for CbcExtractor {
                 model.set_weight(row, node_active, 1.0);
             }
 
-            for (i, (node, &node_active)) in egraph[id].nodes.iter().zip(&class.nodes).enumerate() {
+            for (node, &node_active) in egraph[id].nodes.iter().zip(&class.nodes) {
                 for child in &node.children {
                     let child_active = vars[child].active;
                     // node active implies child active, encoded as:

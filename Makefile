@@ -1,4 +1,7 @@
-EXTRACTORS=$(shell cargo run -q --release --all-features -- --extractor=print)
+FEATURES ?=
+FLAGS=--release --features=$(FEATURES)
+
+EXTRACTORS=$(shell cargo run -q $(FLAGS) -- --extractor=print)
 
 PROGRAM=target/release/extraction-gym
 
@@ -6,6 +9,9 @@ SRC=$(shell find . -name '.rs') Cargo.toml Cargo.lock
 DATA=$(shell find data -name '*.csv')
 
 TARGETS=
+
+.PHONY: all
+all: test nits bench
 
 define run-extraction
 TARGETS += $(1:data/%=output/%)-$(2).json
@@ -20,22 +26,12 @@ $(foreach ext,$(EXTRACTORS),\
     )\
 )
 
-.PHONY: new
-new: $(TARGETS)
-
-.PHONY: all
-all: test nits bench
+.PHONY: bench
+bench: plot.py $(TARGETS)
+	./$<
 
 $(PROGRAM): $(SRC)
-	cargo build --release --all-features
-
-.PHONY: bench
-bench: $(SRC) $(DATA)
-	$(PROGRAM)                -- --out=out.csv $(DATA)
-
-# .PHONY: bench-all
-# bench-all: $(SRC) $(DATA)
-# 	$(PROGRAM) --all-features -- --out=out.csv $(DATA)
+	cargo build $(FLAGS)
 
 .PHONY: test
 test:

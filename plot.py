@@ -58,6 +58,11 @@ def process(js, extractors=[]):
 
 
 if __name__ == "__main__":
+    print()
+    print(" ------------------------ ")
+    print(" ------- plotting ------- ")
+    print(" ------------------------ ")
+    print()
     files = sys.argv[1:] or glob.glob("output/**/*.json", recursive=True)
     js = load_jsons(files)
     print(f"Loaded {len(js)} jsons.")

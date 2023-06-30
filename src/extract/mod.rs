@@ -5,6 +5,9 @@ pub mod bottom_up;
 #[cfg(feature = "ilp-cbc")]
 pub mod ilp_cbc;
 
+#[cfg(feature = "asp")]
+pub mod asp;
+
 pub trait Extractor: Sync {
     fn extract(&self, egraph: &EGraph, roots: &[ClassId]) -> ExtractionResult;
 

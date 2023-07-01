@@ -38,6 +38,7 @@ fn main() {
 
     let extractors: IndexMap<&str, Box<dyn Extractor>> = [
         ("bottom-up", extract::bottom_up::BottomUpExtractor.boxed()),
+        ("asp", extract::asp::ClingoExtractor.boxed()),
         #[cfg(feature = "ilp-cbc")]
         ("ilp-cbc", extract::ilp_cbc::CbcExtractor.boxed()),
     ]

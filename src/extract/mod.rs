@@ -2,6 +2,8 @@ pub use crate::*;
 
 pub mod bottom_up;
 
+pub mod asp;
+
 #[cfg(feature = "ilp-cbc")]
 pub mod ilp_cbc;
 

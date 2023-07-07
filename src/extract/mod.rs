@@ -38,7 +38,7 @@ impl ExtractionResult {
         let mut cycles = vec![];
         for root in roots {
             // let root_index = egraph.classes().get_index_of(root).unwrap();
-            self.cycle_dfs(egraph, &root, &mut status, &mut cycles)
+            self.cycle_dfs(egraph, root, &mut status, &mut cycles)
         }
         cycles
     }

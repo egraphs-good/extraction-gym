@@ -6,7 +6,7 @@ pub mod bottom_up;
 pub mod ilp_cbc;
 
 pub trait Extractor: Sync {
-    fn extract(&self, egraph: &SimpleEGraph, roots: &[Id]) -> ExtractionResult;
+    fn extract(&self, egraph: &EGraph, roots: &[ClassId]) -> ExtractionResult;
 
     fn boxed(self) -> Box<dyn Extractor>
     where
@@ -16,81 +16,104 @@ pub trait Extractor: Sync {
     }
 }
 
-#[derive(Clone)]
+#[derive(Default, Clone)]
 pub struct ExtractionResult {
-    pub choices: Vec<Id>,
+    pub choices: IndexMap<ClassId, NodeId>,
 }
 
 #[derive(Clone, Copy)]
 enum Status {
-    Todo,
     Doing,
     Done,
 }
 
 impl ExtractionResult {
-    pub fn new(n_classes: usize) -> Self {
-        ExtractionResult {
-            choices: vec![usize::MAX; n_classes],
-        }
+    pub fn choose(&mut self, class_id: ClassId, node_id: NodeId) {
+        self.choices.insert(class_id, node_id);
     }
 
-    pub fn find_cycles(&self, egraph: &SimpleEGraph, roots: &[Id]) -> Vec<Id> {
-        let mut status = vec![Status::Todo; egraph.classes.len()];
+    pub fn find_cycles(&self, egraph: &EGraph, roots: &[ClassId]) -> Vec<ClassId> {
+        // let mut status = vec![Status::Todo; egraph.classes().len()];
+        let mut status = IndexMap::<ClassId, Status>::default();
         let mut cycles = vec![];
         for root in roots {
-            self.cycle_dfs(egraph, *root, &mut status, &mut cycles)
+            // let root_index = egraph.classes().get_index_of(root).unwrap();
+            self.cycle_dfs(egraph, &root, &mut status, &mut cycles)
         }
         cycles
     }
 
     fn cycle_dfs(
         &self,
-        egraph: &SimpleEGraph,
-        id: Id,
-        status: &mut [Status],
-        cycles: &mut Vec<Id>,
+        egraph: &EGraph,
+        class_id: &ClassId,
+        status: &mut IndexMap<ClassId, Status>,
+        cycles: &mut Vec<ClassId>,
     ) {
-        match status[id] {
-            Status::Done => (),
-            Status::Doing => cycles.push(id),
-            Status::Todo => {
-                status[id] = Status::Doing;
-                let node = &egraph[id].nodes[self.choices[id]];
-                for &child in &node.children {
-                    self.cycle_dfs(egraph, child, status, cycles)
+        match status.get(class_id).cloned() {
+            Some(Status::Done) => (),
+            Some(Status::Doing) => cycles.push(class_id.clone()),
+            None => {
+                status.insert(class_id.clone(), Status::Doing);
+                let node_id = &self.choices[class_id];
+                let node = &egraph[node_id];
+                for child in &node.children {
+                    let child_cid = egraph.nid_to_cid(child);
+                    self.cycle_dfs(egraph, child_cid, status, cycles)
                 }
-                status[id] = Status::Done;
+                status.insert(class_id.clone(), Status::Done);
             }
         }
     }
 
-    pub fn tree_cost(&self, egraph: &SimpleEGraph, roots: &[Id]) -> Cost {
+    pub fn tree_cost(&self, egraph: &EGraph, roots: &[ClassId]) -> Cost {
+        let node_roots = roots
+            .iter()
+            .map(|cid| self.choices[cid].clone())
+            .collect::<Vec<NodeId>>();
+        self.tree_cost_rec(egraph, &node_roots)
+    }
+
+    fn tree_cost_rec(&self, egraph: &EGraph, roots: &[NodeId]) -> Cost {
         let mut cost = Cost::default();
-        for &root in roots {
-            let node = &egraph[root].nodes[self.choices[root]];
+        for root in roots {
+            let class = egraph.nid_to_cid(root);
+            let node = &egraph[&self.choices[class]];
             cost += node.cost;
-            cost += self.tree_cost(egraph, &node.children);
+            cost += self.tree_cost_rec(egraph, &node.children);
         }
         cost
     }
 
     // this will loop if there are cycles
-    pub fn dag_cost(&self, egraph: &SimpleEGraph, roots: &[Id]) -> Cost {
-        let mut costs = vec![None; egraph.classes.len()];
-        let mut todo = roots.to_owned();
-        while !todo.is_empty() {
-            let i = todo.pop().unwrap();
-            let node = &egraph[i].nodes[self.choices[i]];
-            costs[i] = Some(node.cost);
-            for &child in &node.children {
-                todo.push(child);
+    pub fn dag_cost(&self, egraph: &EGraph, roots: &[ClassId]) -> Cost {
+        let mut costs: IndexMap<ClassId, Cost> = IndexMap::new();
+        let mut todo: Vec<ClassId> = roots.to_vec();
+        while let Some(cid) = todo.pop() {
+            let node_id = &self.choices[&cid];
+            let node = &egraph[node_id];
+            costs.insert(cid.clone(), node.cost);
+            for child in &node.children {
+                todo.push(egraph.nid_to_cid(child).clone());
             }
         }
-        costs.iter().filter_map(|c| *c).sum()
+        costs.values().sum()
     }
 
-    pub fn node_sum_cost(&self, node: &Node, costs: &[Cost]) -> Cost {
-        node.cost + node.children.iter().map(|&i| costs[i]).sum::<Cost>()
+    pub fn node_sum_cost(
+        &self,
+        egraph: &EGraph,
+        node: &Node,
+        costs: &IndexMap<ClassId, Cost>,
+    ) -> Cost {
+        node.cost
+            + node
+                .children
+                .iter()
+                .map(|n| {
+                    let cid = egraph.nid_to_cid(n);
+                    costs.get(cid).unwrap_or(&INFINITY)
+                })
+                .sum::<Cost>()
     }
 }

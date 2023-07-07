@@ -6,7 +6,7 @@ EXTRACTORS=$(shell cargo run -q $(FLAGS) -- --extractor=print)
 PROGRAM=target/release/extraction-gym
 
 SRC=$(shell find . -name '.rs') Cargo.toml Cargo.lock
-DATA=$(shell find data -name '*.csv')
+DATA=$(shell find data -name '*.json')
 
 TARGETS=
 

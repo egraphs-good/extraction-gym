@@ -1,8 +1,8 @@
-mod egraph;
 mod extract;
 
-pub use egraph::*;
 pub use extract::*;
+
+use egraph_serialize::*;
 
 use indexmap::IndexMap;
 use ordered_float::NotNan;
@@ -10,12 +10,10 @@ use ordered_float::NotNan;
 use anyhow::Context;
 
 use std::io::Write;
-use std::{path::PathBuf, str::FromStr};
+use std::path::PathBuf;
 
 pub type Cost = NotNan<f64>;
 pub const INFINITY: Cost = unsafe { NotNan::new_unchecked(std::f64::INFINITY) };
-
-pub type Id = usize;
 
 fn main() {
     env_logger::init();
@@ -55,9 +53,7 @@ fn main() {
 
     let mut out_file = std::fs::File::create(out_filename).unwrap();
 
-    let egraph = std::fs::read_to_string(&filename)
-        .unwrap_or_else(|e| panic!("Failed to read {filename}: {e}"))
-        .parse::<SimpleEGraph>()
+    let egraph = EGraph::from_json_file(&filename)
         .with_context(|| format!("Failed to parse {filename}"))
         .unwrap();
 
@@ -67,11 +63,11 @@ fn main() {
         .unwrap();
 
     let start_time = std::time::Instant::now();
-    let result = extractor.extract(&egraph, &egraph.roots);
+    let result = extractor.extract(&egraph, &egraph.root_eclasses);
 
     let us = start_time.elapsed().as_micros();
-    let tree = result.tree_cost(&egraph, &egraph.roots);
-    let dag = result.dag_cost(&egraph, &egraph.roots);
+    let tree = result.tree_cost(&egraph, &egraph.root_eclasses);
+    let dag = result.dag_cost(&egraph, &egraph.root_eclasses);
 
     log::info!("{filename:40}\t{extractor_name:10}\t{tree:5}\t{dag:5}\t{us:5}");
     writeln!(

@@ -47,14 +47,28 @@ def process(js, extractors=[]):
             print(f"Error processing {name}")
             raise e
 
+    print(f"{e1} / {e2}")
+
+    print("geo mean")
     tree_summary = statistics.geometric_mean(s["tree"] for s in summaries.values())
     dag_summary = statistics.geometric_mean(s["dag"] for s in summaries.values())
     micros_summary = statistics.geometric_mean(s["micros"] for s in summaries.values())
 
-    print(f"{e1} / {e2}")
     print(f"tree: {tree_summary:.4f}")
     print(f"dag: {dag_summary:.4f}")
     print(f"micros: {micros_summary:.4f}")
+
+    print("quantiles")
+
+    def quantiles(key):
+        xs = [s[key] for s in summaries.values()]
+        qs = statistics.quantiles(xs, n=4)
+        with_extremes = [min(xs)] + qs + [max(xs)]
+        return ", ".join(f"{x:.4f}" for x in with_extremes)
+
+    print(f"tree:   {quantiles('tree')}")
+    print(f"dag:    {quantiles('dag')}")
+    print(f"micros: {quantiles('micros')}")
 
 
 if __name__ == "__main__":

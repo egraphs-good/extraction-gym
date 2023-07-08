@@ -16,7 +16,7 @@ all: test nits bench
 define run-extraction
 TARGETS += $(1:data/%=output/%)-$(2).json
 $(1:data/%=output/%)-$(2).json: $(1)
-	mkdir -p $$(dir $$@)
+	@mkdir -p $$(dir $$@)
 	$(PROGRAM) $$< --extractor=$(2) --out=$$@
 endef
 
@@ -28,7 +28,7 @@ $(foreach ext,$(EXTRACTORS),\
 
 .PHONY: bench
 bench: plot.py $(TARGETS)
-	./$<
+	./$^
 
 $(PROGRAM): $(SRC)
 	cargo build $(FLAGS)

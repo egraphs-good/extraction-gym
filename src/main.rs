@@ -20,6 +20,10 @@ fn main() {
 
     let extractors: IndexMap<&str, Box<dyn Extractor>> = [
         ("bottom-up", extract::bottom_up::BottomUpExtractor.boxed()),
+        (
+            "greedy-dag",
+            extract::greedy_dag::GreedyDagExtractor.boxed(),
+        ),
         #[cfg(feature = "ilp-cbc")]
         ("ilp-cbc", extract::ilp_cbc::CbcExtractor.boxed()),
     ]
@@ -66,6 +70,9 @@ fn main() {
     let result = extractor.extract(&egraph, &egraph.root_eclasses);
 
     let us = start_time.elapsed().as_micros();
+    assert!(result
+        .find_cycles(&egraph, &egraph.root_eclasses)
+        .is_empty());
     let tree = result.tree_cost(&egraph, &egraph.root_eclasses);
     let dag = result.dag_cost(&egraph, &egraph.root_eclasses);
 

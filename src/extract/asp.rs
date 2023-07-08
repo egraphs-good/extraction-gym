@@ -10,74 +10,78 @@ use clingo::ToSymbol;
 // An enode is identified with the eclass id and then index in that eclasses enode list.
 #[derive(ToSymbol)]
 struct Enode {
-    eid: u32,
-    node_i: u32,
+    eid: String,
+    node_id: String,
     op: String,
     cost: i32,
 }
 
 #[derive(ToSymbol)]
 struct Root {
-    eid: u32,
+    eid: String,
 }
 
 #[derive(ToSymbol)]
 struct Child {
-    eid: u32,
-    node_i: u32,
-    child_eid: u32,
+    node_id: String,
+    child_id: String,
 }
 
 const ASP_PROGRAM: &str = "
-% we may choose to select this enode if we have selected that class of all it's children.
-{ sel(E,I) } :- enode(E,I,_,_), selclass(Ec) : child(E,I,Ec).
+% we may choose to select this enode if we have selected the classes of all it's children.
+{ selnode(I) } :- node(I), selclass(Ec) : echild(I,Ec).
 
 % if we select an enode in an eclass, we select that eclass
-selclass(E) :- sel(E,_).
+selclass(E) :- selnode(I), enode(E,I,_,_).
 
 % It is inconsistent for a eclass to be a root and not selected.
-% This is *not* the same as saying  selclass(E) :- root(E). 
+% This is *not* the same as saying selclass(E) :- root(E).
 :- root(E), not selclass(E).
 
-:- enode(E,_,_,_), #count { E,I : sel(E,I)} > 1.
+:- eclass(E), #count { I : selnode(I), enode(E,I,_,_)} > 1.
 
-#minimize { C,E,I : sel(E,I), enode(E,I,_,C) }.
+#minimize { C,E,I : selnode(I), enode(E,I,_,C) }.
 
 #show sel/2.
+
+eclass(E) :- enode(E,_,_,_).
+node(I) :- enode(_,I,_,_).
+echild(I,E) :- child(I,Ic), enode(E,Ic,_,_).
+sel(E,I) :- selnode(I), enode(E,I,_,_).
 ";
 
 pub struct AspExtractor;
 impl Extractor for AspExtractor {
-    fn extract(&self, egraph: &SimpleEGraph, _roots: &[Id]) -> ExtractionResult {
+    fn extract(&self, egraph: &EGraph, _roots: &[ClassId]) -> ExtractionResult {
         let mut ctl = control(vec![]).expect("REASON");
         // add a logic program to the base part
         ctl.add("base", &[], ASP_PROGRAM)
             .expect("Failed to add a logic program.");
 
         let mut fb = FactBase::new();
-        for eid in egraph.roots.iter() {
+        for eid in egraph.root_eclasses.iter() {
             let root = Root {
-                eid: (*eid).try_into().unwrap(),
+                eid: (*eid).to_string(),
             };
 
             //println!("{}.", root.symbol().expect("should be symbol"));
             fb.insert(&root);
         }
-        for (_i, class) in egraph.classes.values().enumerate() {
-            for (node_i, node) in class.nodes.iter().enumerate() {
+        for class in egraph.classes().values() {
+            for node_id in &class.nodes {
+                let node = &egraph[node_id];
                 let enode = Enode {
-                    eid: class.id.try_into().unwrap(),
-                    node_i: node_i.try_into().unwrap(),
+                    eid: class.id.to_string(),
+                    node_id: node_id.to_string(),
                     op: node.op.clone(),
                     cost: node.cost.round() as i32,
                 };
                 //println!("{}.", enode.symbol().expect("should be symbol"));
                 fb.insert(&enode);
-                for child_eid in node.children.iter() {
+                for child_id in node.children.iter() {
                     let child = Child {
-                        eid: class.id.try_into().unwrap(),
-                        node_i: node_i.try_into().unwrap(),
-                        child_eid: (*child_eid).try_into().unwrap(),
+                        node_id: node_id.to_string(),
+                        child_id: (*child_id).to_string(),
                     };
                     //println!("{}.", child.symbol().expect("should be symbol"));
                     fb.insert(&child);
@@ -92,8 +96,10 @@ impl Extractor for AspExtractor {
         let mut handle = ctl
             .solve(clingo::SolveMode::YIELD, &[]) // stl.optimal_models()
             .expect("Failed to solve");
-        let mut result = ExtractionResult::new(egraph.classes.len());
+        let mut result = ExtractionResult::default();
+        let mut ran_once = false;
         while let Some(model) = handle.model().expect("model failed") {
+            ran_once = true;
             let atoms = model
                 .symbols(ShowType::SHOWN)
                 .expect("Failed to retrieve symbols in the model.");
@@ -101,8 +107,10 @@ impl Extractor for AspExtractor {
             for symbol in atoms {
                 assert!(symbol.name().unwrap() == "sel");
                 let args = symbol.arguments().unwrap();
-                result.choices[args[0].number().unwrap() as usize] =
-                    args[1].number().unwrap() as usize;
+                result.choose(
+                    args[0].string().unwrap().into(),
+                    args[1].string().unwrap().into(),
+                );
                 //println!("{}", symbol);
             }
 
@@ -111,6 +119,7 @@ impl Extractor for AspExtractor {
             //}
             handle.resume().expect("Failed resume on solve handle.");
         }
+        assert!(ran_once);
         handle.close().expect("Failed to close solve handle.");
         result
     }

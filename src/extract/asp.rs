@@ -40,14 +40,21 @@ selclass(E) :- selnode(I), enode(E,I,_,_).
 
 :- eclass(E), #count { I : selnode(I), enode(E,I,_,_)} > 1.
 
-#minimize { C,E,I : selnode(I), enode(E,I,_,C) }.
+#minimize { C@4,E,I : selnode(I), enode(E,I,_,C) }.
 
 #show sel/2.
 
+% HELPER DEFINITIONS
 eclass(E) :- enode(E,_,_,_).
 node(I) :- enode(_,I,_,_).
 echild(I,E) :- child(I,Ic), enode(E,Ic,_,_).
 sel(E,I) :- selnode(I), enode(E,I,_,_).
+
+% HEURISTIC OBJECTIVES
+
+#minimize { 1@2,E : selclass(E) }. % minimizing number of eclasses is a decent heuristic
+#minimize { I@1,I : selnode(I) }.  % symmetry break to just prefer lower I?
+
 ";
 
 pub struct AspExtractor;
@@ -98,6 +105,8 @@ impl Extractor for AspExtractor {
             .expect("Failed to solve");
         let mut result = ExtractionResult::default();
         let mut ran_once = false;
+
+        let start_time = std::time::Instant::now();
         while let Some(model) = handle.model().expect("model failed") {
             ran_once = true;
             let atoms = model
@@ -117,6 +126,9 @@ impl Extractor for AspExtractor {
             //if !handle.wait(Duration::from_secs(30)) {
             //    break;
             //}
+            if start_time.elapsed().as_secs() > 15 {
+                break;
+            }
             handle.resume().expect("Failed resume on solve handle.");
         }
         assert!(ran_once);

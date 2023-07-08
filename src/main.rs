@@ -22,6 +22,8 @@ fn main() {
         ("bottom-up", extract::bottom_up::BottomUpExtractor.boxed()),
         #[cfg(feature = "ilp-cbc")]
         ("ilp-cbc", extract::ilp_cbc::CbcExtractor.boxed()),
+        #[cfg(feature = "asp")]
+        ("asp", extract::asp::AspExtractor.boxed()),
     ]
     .into_iter()
     .collect();

@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 pub use crate::*;
 
 pub mod bottom_up;
@@ -71,16 +73,26 @@ impl ExtractionResult {
             .iter()
             .map(|cid| self.choices[cid].clone())
             .collect::<Vec<NodeId>>();
-        self.tree_cost_rec(egraph, &node_roots)
+        self.tree_cost_rec(egraph, &node_roots, &mut HashMap::new())
     }
 
-    fn tree_cost_rec(&self, egraph: &EGraph, roots: &[NodeId]) -> Cost {
+    fn tree_cost_rec(
+        &self,
+        egraph: &EGraph,
+        roots: &[NodeId],
+        memo: &mut HashMap<NodeId, Cost>,
+    ) -> Cost {
         let mut cost = Cost::default();
         for root in roots {
+            if let Some(c) = memo.get(root) {
+                cost += *c;
+                continue;
+            }
             let class = egraph.nid_to_cid(root);
             let node = &egraph[&self.choices[class]];
-            cost += node.cost;
-            cost += self.tree_cost_rec(egraph, &node.children);
+            let inner = node.cost + self.tree_cost_rec(egraph, &node.children, memo);
+            memo.insert(root.clone(), inner);
+            cost += inner;
         }
         cost
     }
@@ -92,7 +104,9 @@ impl ExtractionResult {
         while let Some(cid) = todo.pop() {
             let node_id = &self.choices[&cid];
             let node = &egraph[node_id];
-            costs.insert(cid.clone(), node.cost);
+            if costs.insert(cid.clone(), node.cost).is_some() {
+                continue;
+            }
             for child in &node.children {
                 todo.push(egraph.nid_to_cid(child).clone());
             }

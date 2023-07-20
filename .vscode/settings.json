@@ -1,4 +1,8 @@
 {
     "rust-analyzer.cargo.features": "all",
-    "rust-analyzer.check.features": "all"
+    "rust-analyzer.check.features": "all",
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "python.formatting.provider": "none"
 }

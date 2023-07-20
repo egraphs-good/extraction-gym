@@ -1,43 +1,29 @@
-mod egraph;
 mod extract;
 
-pub use egraph::*;
 pub use extract::*;
+
+use egraph_serialize::*;
 
 use indexmap::IndexMap;
 use ordered_float::NotNan;
 
-use rayon::prelude::*;
+use anyhow::Context;
 
 use std::io::Write;
-use std::{path::PathBuf, str::FromStr};
+use std::path::PathBuf;
 
 pub type Cost = NotNan<f64>;
 pub const INFINITY: Cost = unsafe { NotNan::new_unchecked(std::f64::INFINITY) };
 
-pub type Id = usize;
-
 fn main() {
-    env_logger::builder()
-        .filter_level(log::LevelFilter::Info)
-        .init();
-
-    let mut args = pico_args::Arguments::from_env();
-
-    let out_filename: PathBuf = args
-        .opt_value_from_str("--out")
-        .unwrap()
-        .unwrap_or_else(|| "out.csv".into());
-
-    let mut out_file = std::fs::File::create(&out_filename).unwrap();
-
-    let mut filenames: Vec<String> = vec![];
-    while let Some(filename) = args.opt_free_from_str().unwrap() {
-        filenames.push(filename);
-    }
+    env_logger::init();
 
     let extractors: IndexMap<&str, Box<dyn Extractor>> = [
         ("bottom-up", extract::bottom_up::BottomUpExtractor.boxed()),
+        (
+            "greedy-dag",
+            extract::greedy_dag::GreedyDagExtractor.boxed(),
+        ),
         #[cfg(feature = "ilp-cbc")]
         ("ilp-cbc", extract::ilp_cbc::CbcExtractor.boxed()),
         #[cfg(feature = "maxsat")]
@@ -46,36 +32,62 @@ fn main() {
     .into_iter()
     .collect();
 
-    writeln!(out_file, "file, extractor, tree, dag, time (us)").unwrap();
-    let rows = filenames
-        .par_iter()
-        .flat_map(|filename| {
-            let mut rows = vec![];
-            let contents = std::fs::read_to_string(filename)
-                .unwrap_or_else(|e| panic!("Failed to read {filename}: {e}"));
-            let egraph = contents.parse::<SimpleEGraph>().unwrap();
+    let mut args = pico_args::Arguments::from_env();
 
-            for (ext_name, extractor) in &extractors {
-                let start_time = std::time::Instant::now();
-                let result = extractor.extract(&egraph, &egraph.roots);
-                let elapsed = start_time.elapsed();
-                for &root in &egraph.roots {
-                    let msg = format!(
-                        "{filename:40}, {ext_name:10}, {tree:4}, {dag:4}, {us:8}",
-                        tree = result.tree_cost(&egraph, root),
-                        dag = result.dag_cost(&egraph, root),
-                        us = elapsed.as_micros(),
-                    );
-                    log::info!("{}", msg);
-                    rows.push(msg);
-                }
-            }
-
-            rows
-        })
-        .collect::<Vec<String>>();
-
-    for row in rows {
-        writeln!(out_file, "{}", row).unwrap();
+    let extractor_name: String = args
+        .opt_value_from_str("--extractor")
+        .unwrap()
+        .unwrap_or_else(|| "bottom-up".into());
+    if extractor_name == "print" {
+        for name in extractors.keys() {
+            println!("{}", name);
+        }
+        return;
     }
+
+    let out_filename: PathBuf = args
+        .opt_value_from_str("--out")
+        .unwrap()
+        .unwrap_or_else(|| "out.json".into());
+
+    let filename: String = args.free_from_str().unwrap();
+
+    let rest = args.finish();
+    if !rest.is_empty() {
+        panic!("Unknown arguments: {:?}", rest);
+    }
+
+    let mut out_file = std::fs::File::create(out_filename).unwrap();
+
+    let egraph = EGraph::from_json_file(&filename)
+        .with_context(|| format!("Failed to parse {filename}"))
+        .unwrap();
+
+    let extractor = extractors
+        .get(extractor_name.as_str())
+        .with_context(|| format!("Unknown extractor: {extractor_name}"))
+        .unwrap();
+
+    let start_time = std::time::Instant::now();
+    let result = extractor.extract(&egraph, &egraph.root_eclasses);
+
+    let us = start_time.elapsed().as_micros();
+    assert!(result
+        .find_cycles(&egraph, &egraph.root_eclasses)
+        .is_empty());
+    let tree = result.tree_cost(&egraph, &egraph.root_eclasses);
+    let dag = result.dag_cost(&egraph, &egraph.root_eclasses);
+
+    log::info!("{filename:40}\t{extractor_name:10}\t{tree:5}\t{dag:5}\t{us:5}");
+    writeln!(
+        out_file,
+        r#"{{ 
+    "name": "{filename}",
+    "extractor": "{extractor_name}", 
+    "tree": {tree}, 
+    "dag": {dag}, 
+    "micros": {us}
+}}"#
+    )
+    .unwrap();
 }

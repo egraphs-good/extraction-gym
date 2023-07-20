@@ -2,18 +2,18 @@ use super::*;
 
 pub struct BottomUpExtractor;
 impl Extractor for BottomUpExtractor {
-    fn extract(&self, egraph: &SimpleEGraph, _roots: &[Id]) -> ExtractionResult {
-        let mut result = ExtractionResult::new(egraph.classes.len());
-        let mut costs = vec![INFINITY; egraph.classes.len()];
+    fn extract(&self, egraph: &EGraph, _roots: &[ClassId]) -> ExtractionResult {
+        let mut result = ExtractionResult::default();
+        let mut costs = IndexMap::<ClassId, Cost>::default();
         let mut did_something = false;
 
         loop {
-            for (i, class) in egraph.classes.values().enumerate() {
-                for (node_i, node) in class.nodes.iter().enumerate() {
-                    let cost = result.node_sum_cost(node, &costs);
-                    if cost < costs[i] {
-                        result.choices[i] = node_i;
-                        costs[i] = cost;
+            for class in egraph.classes().values() {
+                for node in &class.nodes {
+                    let cost = result.node_sum_cost(egraph, &egraph[node], &costs);
+                    if &cost < costs.get(&class.id).unwrap_or(&INFINITY) {
+                        result.choose(class.id.clone(), node.clone());
+                        costs.insert(class.id.clone(), cost);
                         did_something = true;
                     }
                 }

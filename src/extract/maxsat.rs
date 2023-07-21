@@ -1,4 +1,5 @@
-use crate::{ExtractionResult, Extractor, Id, Node, SimpleEGraph};
+use crate::{ClassId, EGraph, ExtractionResult, Extractor, Node};
+use egraph_serialize::NodeId;
 use itertools::Itertools;
 
 use self::cycles::*;
@@ -7,7 +8,9 @@ use std::process::Command;
 use std::time::Instant;
 
 mod cycles {
-    use crate::{Id, Node, PathBuf, SimpleEGraph};
+    use egraph_serialize::NodeId;
+
+    use crate::{ClassId, EGraph, Node, PathBuf};
     use std::collections::{HashMap, HashSet, VecDeque};
 
     pub struct HyperGraph {
@@ -17,8 +20,8 @@ mod cycles {
         /// e-nodes (as usize, representing the variables in the MAXSAT problem)
         edges: HashMap<usize, HashMap<usize, HashSet<usize>>>,
         nodes: HashSet<usize>,
-        ids_to_nodes: HashMap<Id, usize>,
-        nodes_to_ids: HashMap<usize, Id>,
+        ids_to_nodes: HashMap<ClassId, usize>,
+        nodes_to_ids: HashMap<usize, ClassId>,
         num_nodes: usize,
     }
 
@@ -33,15 +36,15 @@ mod cycles {
             }
         }
 
-        pub fn contains(&self, eclass: &Id) -> bool {
+        pub fn contains(&self, eclass: &ClassId) -> bool {
             self.ids_to_nodes.contains_key(eclass)
         }
 
-        pub fn edges(&self, eclass: &Id) -> Option<HashMap<Id, &HashSet<usize>>> {
+        pub fn edges(&self, eclass: &ClassId) -> Option<HashMap<ClassId, &HashSet<usize>>> {
             if self.contains(eclass) {
                 let mut result = HashMap::new();
                 for (to, enodes) in self.edges[&self.ids_to_nodes[eclass]].iter() {
-                    result.insert(self.nodes_to_ids[to], enodes);
+                    result.insert(self.nodes_to_ids[to].clone(), enodes);
                 }
                 Some(result)
             } else {
@@ -49,8 +52,11 @@ mod cycles {
             }
         }
 
-        pub fn nodes(&self) -> HashSet<Id> {
-            self.nodes.iter().map(|x| self.nodes_to_ids[x]).collect()
+        pub fn nodes(&self) -> HashSet<ClassId> {
+            self.nodes
+                .iter()
+                .map(|x| self.nodes_to_ids[x].clone())
+                .collect()
         }
 
         pub fn dump(&self, path: PathBuf) {
@@ -65,21 +71,21 @@ mod cycles {
             std::fs::write(path, graph_str);
         }
 
-        fn add_node(&mut self, k: Id) {
+        fn add_node(&mut self, k: ClassId) {
             let node_id = self.num_nodes;
-            self.ids_to_nodes.insert(k, node_id);
+            self.ids_to_nodes.insert(k.clone(), node_id);
             self.nodes_to_ids.insert(node_id, k);
             self.edges.insert(node_id, HashMap::new());
             self.nodes.insert(node_id);
             self.num_nodes += 1;
         }
 
-        fn connect(&mut self, from: &Id, to: &Id, enode: usize) {
+        fn connect(&mut self, from: &ClassId, to: &ClassId, enode: usize) {
             if !self.contains(from) {
-                self.add_node(*from);
+                self.add_node(from.clone());
             }
             if !self.contains(to) {
-                self.add_node(*to);
+                self.add_node(to.clone());
             }
             let from = &self.ids_to_nodes[from];
             let to = &self.ids_to_nodes[to];
@@ -106,7 +112,7 @@ mod cycles {
             );
         }
 
-        pub fn neighbors(&self, u: &Id) -> Vec<&Id> {
+        pub fn neighbors(&self, u: &ClassId) -> Vec<&ClassId> {
             if self.contains(u) {
                 self.edges[&self.ids_to_nodes[u]]
                     .keys()
@@ -117,12 +123,12 @@ mod cycles {
             }
         }
 
-        pub fn get_node_by_id(&self, id: &Id) -> usize {
+        pub fn get_node_by_id(&self, id: &ClassId) -> usize {
             self.ids_to_nodes[id]
         }
 
-        pub fn get_id_by_node(&self, node: usize) -> Id {
-            self.nodes_to_ids[&node]
+        pub fn get_id_by_node(&self, node: usize) -> ClassId {
+            self.nodes_to_ids[&node].clone()
         }
 
         pub fn remove_node_raw(&mut self, node: usize) {
@@ -135,7 +141,7 @@ mod cycles {
             }
         }
 
-        pub fn remove_node(&mut self, node: &Id) {
+        pub fn remove_node(&mut self, node: &ClassId) {
             let node_id = &self.ids_to_nodes[node];
             if self.contains(node) {
                 self.edges.remove(node_id);
@@ -150,9 +156,9 @@ mod cycles {
             self.nodes.len()
         }
 
-        pub fn subgraph<'a, T: Iterator<Item = &'a Id>>(&self, nodes: T) -> Self {
+        pub fn subgraph<'a, T: Iterator<Item = &'a ClassId>>(&self, nodes: T) -> Self {
             let mut graph = HyperGraph::new();
-            let node_set: HashSet<&Id> = nodes.collect();
+            let node_set: HashSet<&ClassId> = nodes.collect();
             for &n in node_set.iter() {
                 assert!(self.contains(n));
                 let edges = self.edges(n).unwrap();
@@ -170,23 +176,27 @@ mod cycles {
     }
 
     pub fn to_hypergraph(
-        root: &Id,
-        egraph: &SimpleEGraph,
-        node_vars: &HashMap<Node, usize>,
+        root: &ClassId,
+        egraph: &EGraph,
+        node_vars: &HashMap<NodeId, usize>,
         hgraph: &mut HyperGraph,
     ) {
         let mut visited = HashSet::new();
         let mut queue = VecDeque::new();
-        queue.push_front(*root);
-        visited.insert(*root);
+        queue.push_front(root.clone());
+        visited.insert(root.clone());
         while !queue.is_empty() {
             let front = queue.pop_front().unwrap();
-            for node in egraph[front].nodes.iter() {
-                for ch in node.children.iter() {
-                    let canonical = *ch;
+            for node in egraph.classes()[&front].nodes.iter() {
+                for ch in egraph.nodes[node]
+                    .children
+                    .iter()
+                    .map(|x| egraph.nid_to_cid(x))
+                {
+                    let canonical = ch.clone();
                     hgraph.connect(&front, &canonical, node_vars[node]);
                     if !visited.contains(&canonical) {
-                        visited.insert(canonical);
+                        visited.insert(canonical.clone());
                         queue.push_back(canonical);
                     }
                 }
@@ -200,34 +210,34 @@ mod cycles {
         use super::*;
 
         fn scc_impl(
-            v: &Id,
+            v: &ClassId,
             graph: &HyperGraph,
-            num: &mut HashMap<Id, usize>,
-            low: &mut HashMap<Id, usize>,
-            stack: &mut Vec<Id>,
-            visited: &mut HashSet<Id>,
-            onstack: &mut HashSet<Id>,
+            num: &mut HashMap<ClassId, usize>,
+            low: &mut HashMap<ClassId, usize>,
+            stack: &mut Vec<ClassId>,
+            visited: &mut HashSet<ClassId>,
+            onstack: &mut HashSet<ClassId>,
             idx: &mut usize,
-            scc: &mut Vec<Vec<Id>>,
+            scc: &mut Vec<Vec<ClassId>>,
         ) {
-            num.insert(*v, *idx);
-            low.insert(*v, *idx);
+            num.insert(v.clone(), *idx);
+            low.insert(v.clone(), *idx);
             *idx += 1;
-            visited.insert(*v);
-            stack.push(*v);
-            onstack.insert(*v);
+            visited.insert(v.clone());
+            stack.push(v.clone());
+            onstack.insert(v.clone());
 
             for u in graph.neighbors(v) {
                 if !visited.contains(u) {
                     // a tree edge
                     scc_impl(u, graph, num, low, stack, visited, onstack, idx, scc);
                     if low[v] > low[u] {
-                        low.insert(*v, low[u]);
+                        low.insert(v.clone(), low[u]);
                     }
                 } else if onstack.contains(u) {
                     // back edge
                     if low[v] > num[u] {
-                        low.insert(*v, num[u]);
+                        low.insert(v.clone(), num[u]);
                     }
                 }
             }
@@ -246,7 +256,7 @@ mod cycles {
             }
         }
 
-        pub fn scc(graph: &HyperGraph) -> Vec<Vec<Id>> {
+        pub fn scc(graph: &HyperGraph) -> Vec<Vec<ClassId>> {
             let mut num = HashMap::new();
             let mut low = HashMap::new();
             let mut visited = HashSet::new();
@@ -278,7 +288,11 @@ mod cycles {
 
         use super::*;
 
-        fn unblock(v: Id, blocked: &mut HashSet<Id>, blocked_map: &mut HashMap<Id, HashSet<Id>>) {
+        fn unblock(
+            v: ClassId,
+            blocked: &mut HashSet<ClassId>,
+            blocked_map: &mut HashMap<ClassId, HashSet<ClassId>>,
+        ) {
             blocked.remove(&v);
             if let Some(blocked_set) = blocked_map.get_mut(&v) {
                 let worklist = blocked_set.drain().collect_vec();
@@ -291,23 +305,31 @@ mod cycles {
         }
 
         fn johnson_alg_impl(
-            s: Id,
-            v: Id,
+            s: ClassId,
+            v: ClassId,
             graph: &HyperGraph,
-            blocked: &mut HashSet<Id>,
-            stack: &mut Vec<Id>,
-            block_map: &mut HashMap<Id, HashSet<Id>>,
-            cycles: &mut Vec<Vec<Id>>,
+            blocked: &mut HashSet<ClassId>,
+            stack: &mut Vec<ClassId>,
+            block_map: &mut HashMap<ClassId, HashSet<ClassId>>,
+            cycles: &mut Vec<Vec<ClassId>>,
         ) -> bool {
             let mut f = true;
-            blocked.insert(v);
-            stack.push(v);
+            blocked.insert(v.clone());
+            stack.push(v.clone());
             for w in graph.neighbors(&v) {
                 if *w == s {
                     f = true;
                     cycles.push(stack.clone());
                 } else if !blocked.contains(w) {
-                    f = johnson_alg_impl(s, *w, graph, blocked, stack, block_map, cycles) || f;
+                    f = johnson_alg_impl(
+                        s.clone(),
+                        w.clone(),
+                        graph,
+                        blocked,
+                        stack,
+                        block_map,
+                        cycles,
+                    ) || f;
                 }
             }
 
@@ -316,16 +338,16 @@ mod cycles {
             } else {
                 for w in graph.neighbors(&v) {
                     if !block_map.contains_key(w) {
-                        block_map.insert(*w, HashSet::new());
+                        block_map.insert(w.clone(), HashSet::new());
                     }
-                    block_map.get_mut(w).unwrap().insert(v);
+                    block_map.get_mut(w).unwrap().insert(v.clone());
                 }
             }
             stack.pop();
             f
         }
 
-        pub fn find_cycles(hgraph: &HyperGraph) -> Vec<Vec<Id>> {
+        pub fn find_cycles(hgraph: &HyperGraph) -> Vec<Vec<ClassId>> {
             let mut scc = scc::scc(hgraph)
                 .into_iter()
                 .filter(|c| c.len() > 1)
@@ -347,7 +369,7 @@ mod cycles {
                     block_map.clear();
                     let v = subgraph.get_id_by_node(i);
                     johnson_alg_impl(
-                        v,
+                        v.clone(),
                         v,
                         &subgraph,
                         &mut blocked,
@@ -477,7 +499,7 @@ impl ProblemWriter {
 /// the Extractor that constructs the constraint problem
 struct MaxsatExtractorImpl<'a> {
     /// EGraph to extract
-    pub egraph: &'a SimpleEGraph,
+    pub egraph: &'a EGraph,
     writer: ProblemWriter,
 }
 
@@ -485,11 +507,11 @@ struct MaxsatExtractorImpl<'a> {
 struct WeightedPartialMaxsatProblem<'a> {
     // pub class_vars: HashMap<Id, i32>,
     /// a map from enodes to maxsat variables (starting from 1)
-    pub node_vars: HashMap<Node, usize>,
+    pub node_vars: HashMap<NodeId, usize>,
     /// root eclass Id
-    pub roots: Vec<Id>,
+    pub roots: Vec<ClassId>,
     /// EGraph to extract
-    pub egraph: &'a SimpleEGraph,
+    pub egraph: &'a EGraph,
     top: f64,
     problem_writer: ProblemWriter,
 }
@@ -541,22 +563,36 @@ impl<'a> WeightedPartialMaxsatProblem<'a> {
                 let mut worklist = Vec::new();
                 let mut selected = HashSet::new();
                 worklist.extend(self.roots.clone());
-                let mut result = ExtractionResult::new(self.egraph.classes.len());
-                while let Some(&id) = worklist.last() {
+                let mut result = ExtractionResult::default();
+                while let Some(id) = worklist.last() {
+                    let id = id.clone();
                     if selected.contains(&id) {
                         worklist.pop();
                         continue;
                     }
                     let mut not_found = true;
-                    for (i, n) in self.egraph.classes[id].nodes.iter().enumerate() {
+                    for (_, n) in self.egraph.classes()[&id].nodes.iter().enumerate() {
                         if sat_map.contains(&self.node_vars[&n]) {
                             not_found = false;
-                            if n.children.iter().all(|ch| selected.contains(ch)) {
-                                result.choices[id] = i;
-                                selected.insert(id);
+                            if self.egraph.nodes[n]
+                                .children
+                                .iter()
+                                .all(|ch| selected.contains(self.egraph.nid_to_cid(ch)))
+                            {
+                                // result.choices[id] = i;
+                                result.choose(id.clone(), n.clone());
+                                selected.insert(id.clone());
                                 worklist.pop();
                             } else {
-                                worklist.extend_from_slice(n.children.as_slice());
+                                worklist.extend_from_slice(
+                                    self.egraph.nodes[n]
+                                        .children
+                                        .iter()
+                                        .map(|x| self.egraph.nid_to_cid(x))
+                                        .cloned()
+                                        .collect::<Vec<_>>()
+                                        .as_slice(),
+                                );
                             }
                             break;
                         }
@@ -584,7 +620,7 @@ impl<'a> WeightedPartialMaxsatProblem<'a> {
 
 impl<'a> MaxsatExtractorImpl<'a> {
     /// create a new maxsat extractor
-    pub fn new(egraph: &'a SimpleEGraph, path: String) -> Self {
+    pub fn new(egraph: &'a EGraph, path: String) -> Self {
         Self {
             egraph,
             writer: ProblemWriter::new(path.clone()),
@@ -594,7 +630,7 @@ impl<'a> MaxsatExtractorImpl<'a> {
     /// create a maxsat problem
     pub fn create_problem(
         &mut self,
-        roots: Vec<Id>,
+        roots: Vec<ClassId>,
         name: &str,
         no_cycle: bool,
     ) -> WeightedPartialMaxsatProblem<'a> {
@@ -608,12 +644,12 @@ impl<'a> MaxsatExtractorImpl<'a> {
         let mut top = 0 as f64;
         let mut node_vars = HashMap::default();
         let mut node_weight_map = HashMap::new();
-        for (_, c) in self.egraph.classes.iter() {
+        for (_, c) in self.egraph.classes().iter() {
             for n in c.nodes.iter() {
                 node_vars.insert(n.clone(), self.writer.new_var());
 
-                node_weight_map.insert(n.clone(), n.cost);
-                top += f64::from(n.cost);
+                node_weight_map.insert(n.clone(), self.egraph[n].cost);
+                top += f64::from(self.egraph[n].cost);
             }
         }
 
@@ -623,7 +659,7 @@ impl<'a> MaxsatExtractorImpl<'a> {
         let mut hard_clauses = Vec::new();
         // root constraint
         for root in roots.iter() {
-            let root_clause = self.egraph[*root]
+            let root_clause = self.egraph.classes()[root]
                 .nodes
                 .iter()
                 .map(|n| node_vars[n])
@@ -635,15 +671,19 @@ impl<'a> MaxsatExtractorImpl<'a> {
 
         let mut node_to_children = HashMap::new();
         // children constraint
-        for (_, c) in self.egraph.classes.iter() {
+        for (_, c) in self.egraph.classes().iter() {
             for n in c.nodes.iter() {
                 // v_n -> \bigvee_cN v_cN forall C
                 let mut node_children = HashSet::new();
-                for ch in n.children.iter() {
-                    node_children.insert(*ch);
+                for ch in self.egraph.nodes[n]
+                    .children
+                    .iter()
+                    .map(|x| self.egraph.nid_to_cid(x))
+                {
+                    node_children.insert(ch.clone());
                     let mut clause = String::new();
                     clause.push_str(&format!("-{}", node_vars[n]));
-                    for ch_node in self.egraph[*ch].nodes.iter() {
+                    for ch_node in self.egraph.classes()[ch].nodes.iter() {
                         clause.push_str(&format!(" {}", node_vars[ch_node]));
                     }
                     hard_clauses.push(clause);
@@ -661,8 +701,13 @@ impl<'a> MaxsatExtractorImpl<'a> {
             let class_cycles = cycles::johnson::find_cycles(&hgraph);
             for c in class_cycles {
                 if c.len() == 1 {
-                    for n in self.egraph[c[0]].nodes.iter() {
-                        if n.children.contains(&c[0]) {
+                    for n in self.egraph.classes()[&c[0]].nodes.iter() {
+                        if self.egraph.nodes[n]
+                            .children
+                            .iter()
+                            .map(|x| self.egraph.nid_to_cid(x))
+                            .contains(&c[0])
+                        {
                             self.writer.hard_clause(&format!("-{}", node_vars[n]), top);
                         }
                     }
@@ -681,7 +726,7 @@ impl<'a> MaxsatExtractorImpl<'a> {
 
         // soft clauses (i.e. not all nodes need to be picked)
         let mut soft_clauses = HashMap::new();
-        for (_, c) in self.egraph.classes.iter() {
+        for (_, c) in self.egraph.classes().iter() {
             for n in c.nodes.iter() {
                 soft_clauses.insert(n.clone(), format!("-{}", node_vars[n]));
             }
@@ -712,7 +757,7 @@ impl<'a> MaxsatExtractorImpl<'a> {
     }
 }
 
-fn maxsat_extract(egraph: &SimpleEGraph, path: String, roots: Vec<Id>) -> ExtractionResult {
+fn maxsat_extract(egraph: &EGraph, path: String, roots: Vec<ClassId>) -> ExtractionResult {
     let mut extractor = MaxsatExtractorImpl::new(egraph, path);
     let problem = extractor.create_problem(roots, "maxsat_ext", true);
     problem.solve().2
@@ -721,7 +766,7 @@ fn maxsat_extract(egraph: &SimpleEGraph, path: String, roots: Vec<Id>) -> Extrac
 pub struct MaxsatExtractor;
 
 impl Extractor for MaxsatExtractor {
-    fn extract(&self, egraph: &SimpleEGraph, roots: &[Id]) -> ExtractionResult {
+    fn extract(&self, egraph: &EGraph, roots: &[ClassId]) -> ExtractionResult {
         maxsat_extract(egraph, "maxsat_extract.txt".into(), roots.to_vec())
     }
 }

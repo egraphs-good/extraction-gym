@@ -1,0 +1,31 @@
+(datatype Term (f Term) (x i64) (A) (Cons Term Term) (Nil))
+
+(rewrite (x n) (f (A)))
+
+; At every node, we have a binary choice of (x n) : cost 1 or (f A) : cost 2
+; Tree extraction would pick (x n)
+; Dag extraction notices the shared subterm a and makes the opposite choice.
+(define t
+    (Cons (x 0)
+    (Cons (x 1)
+    (Cons (x 2)
+    (Cons (x 3)
+    (Cons (x 4)
+    (Cons (x 5)
+    (Cons (x 6)
+    (Cons (x 7)
+    (Cons (x 8)
+    (Cons (x 9)
+    (Cons (x 10)
+    (Cons (x 11)
+    (Cons (x 12)
+    (Cons (x 13)
+    (Cons (x 14)
+    (Cons (x 15)
+    (Cons (x 16)
+    (Nil)
+))))))))))))))))))
+(run 1)
+
+
+

@@ -1,31 +1,32 @@
-(datatype Term (f Term) (x i64) (A) (Cons Term Term) (Nil))
+(datatype Term (f i64 Term Term) (g Term) (x i64) (A) (B) (Cons Term Term) (Nil))
 
-(rewrite (x n) (f (A)))
+(rewrite (g (x n)) (f n (A) (B)))
 
-; At every node, we have a binary choice of (x n) : cost 1 or (f A) : cost 2
-; Tree extraction would pick (x n)
-; Dag extraction notices the shared subterm a and makes the opposite choice.
+; At every node, we have a binary choice of (g (x n)) : cost 2 or (f n A B) : cost 3 (integers have cost 0)
+; Tree extraction would pick (g (x n))
+; Dag extraction notices the shared subterm A B across choices and makes the opposite choice.
+; A and B are amoritized across uses, so cost (f n A B) ~ 1
 (define t
-    (Cons (x 0)
-    (Cons (x 1)
-    (Cons (x 2)
-    (Cons (x 3)
-    (Cons (x 4)
-    (Cons (x 5)
-    (Cons (x 6)
-    (Cons (x 7)
-    (Cons (x 8)
-    (Cons (x 9)
-    (Cons (x 10)
-    (Cons (x 11)
-    (Cons (x 12)
-    (Cons (x 13)
-    (Cons (x 14)
-    (Cons (x 15)
-    (Cons (x 16)
+    (Cons  (g (x 0))
+    (Cons  (g (x 1))
+    (Cons  (g (x 2))
+    (Cons  (g (x 3))
+    (Cons  (g (x 4))
+    (Cons  (g (x 5))
+    (Cons  (g (x 6))
+    (Cons  (g (x 7))
+    (Cons  (g (x 8))
+    (Cons  (g (x 9))
+    (Cons  (g (x 10))
+    (Cons  (g (x 11))
+    (Cons  (g (x 12))
+    (Cons  (g (x 13))
+    (Cons  (g (x 14))
+    (Cons  (g (x 15))
+    (Cons  (g (x 16))
     (Nil)
 ))))))))))))))))))
-(run 1)
+(run 10)
 
 
 

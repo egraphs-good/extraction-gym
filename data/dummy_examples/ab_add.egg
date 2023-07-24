@@ -6,6 +6,7 @@
 ; Tree extraction does not care about associativity or ordering
 ; DAG extraction notices that balanced trees are much cheaper
 ; Optimal tree is (let t1 (a + b) in let t2 = (t1 + t1) in (t2 + t2)
+; Which is cost 5 and proportional to the logarithm of the number of nodes
 (define A2 (Add (A) (A)))
 (define A4 (Add A2 A2))
 (define B2 (Add (B) (B)))

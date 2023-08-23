@@ -17,7 +17,7 @@ impl Extractor for CbcExtractor {
         let max_order = egraph.nodes.len() as f64 * 10.0;
 
         let mut model = Model::default();
-        // model.set_parameter("seconds", "30");
+        model.set_parameter("seconds", "30");
         // model.set_parameter("allowableGap", "100000000");
 
         let vars: IndexMap<ClassId, ClassVars> = egraph

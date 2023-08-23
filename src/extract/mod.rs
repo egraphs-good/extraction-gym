@@ -7,6 +7,8 @@ pub mod greedy_dag;
 
 #[cfg(feature = "ilp-cbc")]
 pub mod ilp_cbc;
+#[cfg(feature = "ilp-cbc-prune")]
+pub mod ilp_cbc_prune;
 
 pub trait Extractor: Sync {
     fn extract(&self, egraph: &EGraph, roots: &[ClassId]) -> ExtractionResult;

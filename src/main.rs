@@ -26,6 +26,11 @@ fn main() {
         ),
         #[cfg(feature = "ilp-cbc")]
         ("ilp-cbc", extract::ilp_cbc::CbcExtractor.boxed()),
+        #[cfg(feature = "ilp-cbc-prune")]
+        (
+            "ilp-cbc-prune",
+            extract::ilp_cbc_prune::CbcPruneExtractor.boxed(),
+        ),
     ]
     .into_iter()
     .collect();

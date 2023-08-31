@@ -3,6 +3,7 @@ use std::collections::HashMap;
 pub use crate::*;
 
 pub mod bottom_up;
+pub mod bottom_up_analysis;
 pub mod greedy_dag;
 
 #[cfg(feature = "ilp-cbc")]

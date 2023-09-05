@@ -1,0 +1,14 @@
+(datatype Math (One) (Mul Math Math) (foo Math))
+
+(rewrite (Mul One x) x)
+
+; An example to demonstrate loop breaking.
+; Without loop constraint, recursive term 1*1*1*1*.... is best.
+; We pick enode e = (Mul (One) e)  
+
+
+(define t 
+    (Mul (One) (foo (foo (foo (foo (One))))
+)))
+(run 1)
+

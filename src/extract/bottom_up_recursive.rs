@@ -48,16 +48,14 @@ impl BottomUpRecursiveExtractor {
         egraph: &EGraph,
         costs: &mut IndexMap<ClassId, Cost>,
         result: &mut ExtractionResult,
-        path: &mut HashSet<ClassId>,
         worklist: &mut HashSet<NodeId>,
     ) {
         if costs.contains_key(class_id) {
-            // We don't update values until we have a worklist.
+            // We don't update costs until we have a worklist.
             return;
         }
 
-        assert!(!path.contains(&class_id.clone()));
-        path.insert(class_id.clone());
+        costs.insert(class_id.clone(), INFINITY);
 
         let class = egraph.classes().get(class_id).unwrap();
 
@@ -72,21 +70,16 @@ impl BottomUpRecursiveExtractor {
                 let child_class_id = egraph.nid_to_cid(child_id);
 
                 let mut child_cost = costs.get(child_class_id);
-                if child_cost.is_none() {
-                    if path.contains(child_class_id) {
-                        // Cycle - need to reprocess it later.
-                        worklist.insert(node_id.clone());
-                    } else {
-                        Self::depth_first(child_class_id, egraph, costs, result, path, worklist);
-                        child_cost = costs.get(child_class_id);
-                    }
-                }
 
                 if child_cost.is_none() {
-                    cost += INFINITY;
-                } else {
-                    cost += child_cost.unwrap();
+                    Self::depth_first(child_class_id, egraph, costs, result, worklist);
+                    child_cost = costs.get(child_class_id);
+                } else if child_cost.unwrap() == &INFINITY {
+                    worklist.insert(node_id.clone());
                 }
+
+                assert!(!child_cost.is_none());
+                cost += child_cost.unwrap();
             }
 
             if cost < best_cost {
@@ -97,7 +90,6 @@ impl BottomUpRecursiveExtractor {
 
         result.choose(class_id.clone(), best_node_id.clone());
         costs.insert(class_id.clone(), best_cost);
-        path.remove(class_id);
     }
 
     // builds back links. Maps from a class to it's parents.
@@ -129,20 +121,11 @@ impl Extractor for BottomUpRecursiveExtractor {
     fn extract(&self, egraph: &EGraph, _roots: &[ClassId]) -> ExtractionResult {
         let mut costs = IndexMap::<ClassId, Cost>::with_capacity(egraph.classes().len());
         let mut result = ExtractionResult::default();
-        let mut path = HashSet::<ClassId>::default(); // Stack of visited classes, used to detect cycles.
         let mut worklist = HashSet::<NodeId>::default(); // Nodes we need to reprocess.
 
         for class in egraph.classes().values() {
-            Self::depth_first(
-                &class.id,
-                egraph,
-                &mut costs,
-                &mut result,
-                &mut path,
-                &mut worklist,
-            );
+            Self::depth_first(&class.id, egraph, &mut costs, &mut result, &mut worklist);
         }
-        assert!(path.is_empty());
 
         if worklist.is_empty() {
             //Self::check_finished(egraph, &mut costs, &mut result);

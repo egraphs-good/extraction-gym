@@ -2,6 +2,10 @@ use super::*;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
+// calculates a local cost for each node, where the local cost is:
+// The cost of the node, plus the sum on it's children's cost.
+// A class gets the cost of the chepest node it contains.
+
 pub struct BottomUpRecursiveExtractor;
 
 impl BottomUpRecursiveExtractor {
@@ -11,6 +15,7 @@ impl BottomUpRecursiveExtractor {
         costs: &mut IndexMap<ClassId, Cost>,
         result: &mut ExtractionResult,
     ) {
+        println!("checking");
         for class in egraph.classes().values() {
             for node in &class.nodes {
                 // NB this sometimes fails because there are tiny differences between floating point numbers.
@@ -46,6 +51,12 @@ impl BottomUpRecursiveExtractor {
         path: &mut HashSet<ClassId>,
         worklist: &mut HashSet<NodeId>,
     ) {
+        if costs.contains_key(class_id) {
+            // We don't update values until we have a worklist.
+            return;
+        }
+
+        assert!(!path.contains(&class_id.clone()));
         path.insert(class_id.clone());
 
         let class = egraph.classes().get(class_id).unwrap();
@@ -57,7 +68,6 @@ impl BottomUpRecursiveExtractor {
             let node = &egraph[node_id];
             let mut cost = node.cost;
 
-            let mut cycle = false;
             for child_id in &node.children {
                 let child_class_id = egraph.nid_to_cid(child_id);
 
@@ -65,22 +75,21 @@ impl BottomUpRecursiveExtractor {
                 if child_cost.is_none() {
                     if path.contains(child_class_id) {
                         // Cycle - need to reprocess it later.
-                        worklist.insert(child_id.clone());
-                        cycle = true;
+                        worklist.insert(node_id.clone());
                     } else {
                         Self::depth_first(child_class_id, egraph, costs, result, path, worklist);
                         child_cost = costs.get(child_class_id);
                     }
                 }
-                if child_cost.is_some() {
+
+                if child_cost.is_none() {
+                    cost += INFINITY;
+                } else {
                     cost += child_cost.unwrap();
-                    if *child_cost.unwrap() == INFINITY {
-                        worklist.insert(node_id.clone());
-                    }
                 }
             }
 
-            if !cycle && cost < best_cost {
+            if cost < best_cost {
                 best_cost = cost;
                 best_node_id = node_id.clone();
             }
@@ -136,7 +145,7 @@ impl Extractor for BottomUpRecursiveExtractor {
         assert!(path.is_empty());
 
         if worklist.is_empty() {
-            //Self::check_finised(egraph, &mut costs, &mut result);
+            //Self::check_finished(egraph, &mut costs, &mut result);
             return result; // no cycle. all done.
         }
 

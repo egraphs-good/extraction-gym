@@ -26,7 +26,7 @@ fn main() {
         (
             "faster-greedy-dag",
             extract::greedy_dag_1::FasterGreedyDagExtractor.boxed(),
-        )
+        ),
     ]
     .into_iter()
     .collect();

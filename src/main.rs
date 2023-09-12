@@ -20,22 +20,22 @@ fn main() {
 
     let extractors: IndexMap<&str, Box<dyn Extractor>> = [
         //("bottom-up", extract::bottom_up::BottomUpExtractor.boxed()),
-        (
-            "bottom-up-recursive",
-            extract::bottom_up_recursive::BottomUpRecursiveExtractor.boxed(),
-        ),
-        (
-            "bottom-up-analysis",
-            extract::bottom_up_analysis::BottomUpAnalysisExtractor.boxed(),
-        ),
-        //        (
-        //           "greedy-dag",
-        //           extract::greedy_dag::GreedyDagExtractor.boxed(),
-        //       ),
         //(
-        //    "greedy-dag",
-        //    extract::greedy_dag::GreedyDagExtractor.boxed(),
+        //"bottom-up-recursive",
+        //extract::bottom_up_recursive::BottomUpRecursiveExtractor.boxed(),
         //),
+        //(
+        //  "bottom-up-analysis",
+        //            extract::bottom_up_analysis::BottomUpAnalysisExtractor.boxed(),
+        //      ),
+        (
+            "greedy-dag",
+            extract::greedy_dag::GreedyDagExtractor.boxed(),
+        ),
+        (
+            "faster-greedy-dag",
+            extract::greedy_dag_1::FasterGreedyDagExtractor.boxed(),
+        ),
         #[cfg(feature = "ilp-cbc")]
         ("ilp-cbc", extract::ilp_cbc::CbcExtractor.boxed()),
         #[cfg(feature = "ilp-cbc-prune")]

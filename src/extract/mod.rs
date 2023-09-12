@@ -6,6 +6,7 @@ pub mod bottom_up;
 pub mod bottom_up_analysis;
 pub mod bottom_up_recursive;
 pub mod greedy_dag;
+pub mod greedy_dag_1;
 
 #[cfg(feature = "ilp-cbc")]
 pub mod ilp_cbc;

@@ -39,7 +39,8 @@ def process(js, extractors=[]):
     for name, d in by_name.items():
         try:
             if d[e1]["tree"] !=  d[e2]["tree"]:
-                print(name);
+                print(name, d[e1]["tree"], d[e2]["tree"]);
+                
             tree_ratio = d[e1]["tree"] / d[e2]["tree"]
             dag_ratio = d[e1]["dag"] / d[e2]["dag"]
             micros_ratio = max(1, d[e1]["micros"]) / max(1, d[e2]["micros"])

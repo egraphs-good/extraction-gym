@@ -1,7 +1,7 @@
 use super::*;
 
 struct CostSet {
-    costs: im_rc::HashMap<ClassId, Cost>,
+    costs: std::collections::HashMap<ClassId, Cost>,
     total: Cost,
     choice: NodeId,
 }
@@ -25,7 +25,7 @@ impl Extractor for GreedyDagExtractor {
             'node_loop: for (node_id, node) in &nodes {
                 let cid = egraph.nid_to_cid(node_id);
                 let mut cost_set = CostSet {
-                    costs: im_rc::HashMap::new(),
+                    costs: std::collections::HashMap::new(),
                     total: Cost::default(),
                     choice: node_id.clone(),
                 };

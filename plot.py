@@ -31,13 +31,23 @@ def process(js, extractors=[]):
     assert len(extractors) == 2
     e1, e2 = extractors
 
+    e1_cummulative=0
+    e2_cummulative=0
+
     summaries = {}
 
     for name, d in by_name.items():
         try:
+            if d[e1]["tree"] !=  d[e2]["tree"]:
+                print(name, d[e1]["tree"], d[e2]["tree"]);
+                
             tree_ratio = d[e1]["tree"] / d[e2]["tree"]
             dag_ratio = d[e1]["dag"] / d[e2]["dag"]
             micros_ratio = max(1, d[e1]["micros"]) / max(1, d[e2]["micros"])
+            
+            e1_cummulative += d[e1]["micros"];
+            e2_cummulative += d[e2]["micros"];
+            
             summaries[name] = {
                 "tree": tree_ratio,
                 "dag": dag_ratio,
@@ -46,6 +56,9 @@ def process(js, extractors=[]):
         except Exception as e:
             print(f"Error processing {name}")
             raise e
+
+    print(f"Cummulative time for {e1}: {e1_cummulative/1000:.0f}ms")
+    print(f"Cummulative time for {e2}: {e2_cummulative/1000:.0f}ms")
 
     print(f"{e1} / {e2}")
 

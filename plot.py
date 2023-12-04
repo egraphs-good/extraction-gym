@@ -60,6 +60,11 @@ def process(js, extractors):
     print(f"cumulative time for {e1}: {e1_cumulative/1000:.0f}ms")
     print(f"cumulative time for {e2}: {e2_cumulative/1000:.0f}ms")
 
+    print(f"cumulative tree cost for {e1}: {sum(d[e1]['tree'] for d in by_name.values()):.0f}")
+    print(f"cumulative tree cost for {e2}: {sum(d[e2]['tree'] for d in by_name.values()):.0f}")
+    print(f"cumulative dag cost for {e1}: {sum(d[e1]['dag'] for d in by_name.values()):.0f}")
+    print(f"cumulative dag cost for {e2}: {sum(d[e2]['dag'] for d in by_name.values()):.0f}")
+
     print(f"{e1} / {e2}")
 
     print("geo mean")

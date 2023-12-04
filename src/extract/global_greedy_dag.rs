@@ -1,4 +1,4 @@
-use rpds::HashTrieSet;
+use rpds::{HashTrieMap, HashTrieSet};
 
 use super::*;
 
@@ -10,11 +10,16 @@ struct Term {
     children: Vec<TermId>,
 }
 
+type Reachable = HashTrieSet<ClassId>;
+
 struct TermInfo {
     node: NodeId,
+    eclass: ClassId,
     node_cost: NotNan<f64>,
     total_cost: NotNan<f64>,
-    reachable: HashTrieSet<TermId>,
+    // store the set of reachable terms from this term
+    reachable: Reachable,
+    size: usize,
 }
 
 // A TermDag needs to store terms that share common
@@ -31,75 +36,89 @@ pub struct TermDag {
 }
 
 impl TermDag {
-    pub fn make(
-        &mut self,
-        node: NodeId,
-        op: String,
-        children: Vec<TermId>,
-        node_cost: NotNan<f64>,
-    ) -> TermId {
+    // Makes a new term using a node and children terms
+    // Correctly computes total_cost with sharing
+    // If this term contains itself, returns None
+    pub fn make(&mut self, node_id: NodeId, node: &Node, children: Vec<TermId>) -> Option<TermId> {
         let term = Term {
-            op,
+            op: node.op.clone(),
             children: children.clone(),
         };
 
         if let Some(id) = self.hash_cons.get(&term) {
-            return *id;
+            return Some(*id);
         }
+
+        let node_cost = node.cost;
 
         if children.is_empty() {
             let next_id = self.nodes.len();
             self.nodes.push(term.clone());
             self.info.push(TermInfo {
-                node,
+                node: node_id,
+                eclass: node.eclass.clone(),
                 node_cost,
                 total_cost: node_cost,
-                reachable: [next_id].iter().cloned().collect(),
+                reachable: [node.eclass.clone()].into_iter().collect(),
+                size: 1,
             });
             self.hash_cons.insert(term, next_id);
-            next_id
+            Some(next_id)
         } else {
-            let mut cost = node_cost + self.total_cost(children[0]);
-            let mut reachable = Box::new(self.info[children[0]].reachable.clone());
-            let next_id = self.nodes.len();
-            self.nodes.push(term.clone());
+            // check if children contains this node
+            for child in &children {
+                if self.info[*child].reachable.contains(&node.eclass) {
+                    return None;
+                }
+            }
 
-            for child in children.iter().skip(1) {
+            let biggest_child = (0..children.len())
+                .max_by_key(|i| self.info[children[*i]].size)
+                .unwrap();
+
+            let mut cost = node_cost + self.total_cost(children[biggest_child]);
+            let mut reachable = Box::new(self.info[children[biggest_child]].reachable.clone());
+            let next_id = self.nodes.len();
+
+            for child in children.iter() {
                 let child_cost = self.get_cost(&mut reachable, *child);
                 cost += child_cost;
             }
 
-            // also can reach self
-            *reachable = reachable.insert(next_id);
+            *reachable = reachable.insert(node.eclass.clone());
 
             self.info.push(TermInfo {
-                node,
+                node: node_id,
                 node_cost,
+                eclass: node.eclass.clone(),
                 total_cost: cost,
                 reachable: *reachable,
+                size: 1 + children.iter().map(|c| self.info[*c].size).sum::<usize>(),
             });
+            self.nodes.push(term.clone());
             self.hash_cons.insert(term, next_id);
-            next_id
+            Some(next_id)
         }
     }
 
-    // Recompute the cost of this term, but don't count shared
-    // subterms.
-    fn get_cost(&self, shared: &mut Box<HashTrieSet<TermId>>, id: TermId) -> NotNan<f64> {
-        if shared.contains(&id) {
+    // Return a new term, like this one but making use of shared terms.
+    // Also return the cost of the new nodes.
+    fn get_cost(&self, shared: &mut Box<Reachable>, id: TermId) -> NotNan<f64> {
+        let eclass = self.info[id].eclass.clone();
+        if shared.contains(&eclass) {
             NotNan::<f64>::new(0.0).unwrap()
         } else {
-            let mut cost = self.term_cost(id);
+            let mut cost = self.node_cost(id);
             for child in &self.nodes[id].children {
-                cost += self.get_cost(shared, *child);
+                let child_cost = self.get_cost(shared, *child);
+                cost += child_cost;
             }
-            **shared = shared.insert(id);
-
+            **shared = shared.insert(eclass);
             cost
         }
     }
 
-    pub fn term_cost(&self, id: TermId) -> NotNan<f64> {
+    pub fn node_cost(&self, id: TermId) -> NotNan<f64> {
         self.info[id].node_cost
     }
 
@@ -124,7 +143,6 @@ impl Extractor for GlobalGreedyDagExtractor {
             keep_going = false;
 
             'node_loop: for (node_id, node) in &nodes {
-                let node_cost = node.cost;
                 let mut children: Vec<TermId> = vec![];
                 // compute the cost set from the children
                 for child in &node.children {
@@ -136,18 +154,19 @@ impl Extractor for GlobalGreedyDagExtractor {
                     }
                 }
 
-                let candidate = termdag.make(node_id.clone(), node.op.clone(), children, node_cost);
-                let cadidate_cost = termdag.total_cost(candidate);
+                if let Some(candidate) = termdag.make(node_id.clone(), node, children) {
+                    let cadidate_cost = termdag.total_cost(candidate);
 
-                if let Some(old_term) = best_in_class.get(&node.eclass) {
-                    let old_cost = termdag.total_cost(*old_term);
-                    if cadidate_cost < old_cost {
+                    if let Some(old_term) = best_in_class.get(&node.eclass) {
+                        let old_cost = termdag.total_cost(*old_term);
+                        if cadidate_cost < old_cost {
+                            best_in_class.insert(node.eclass.clone(), candidate);
+                            keep_going = true;
+                        }
+                    } else {
                         best_in_class.insert(node.eclass.clone(), candidate);
                         keep_going = true;
                     }
-                } else {
-                    best_in_class.insert(node.eclass.clone(), candidate);
-                    keep_going = true;
                 }
             }
         }

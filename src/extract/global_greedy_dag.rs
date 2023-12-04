@@ -47,7 +47,6 @@ impl TermDag {
             return *id;
         }
 
-        let next_id = self.nodes.len();
         if children.is_empty() {
             let next_id = self.nodes.len();
             self.nodes.push(term.clone());
@@ -70,6 +69,9 @@ impl TermDag {
                 cost += child_cost;
             }
 
+            // also can reach self
+            *reachable = reachable.insert(next_id);
+
             self.info.push(TermInfo {
                 node,
                 node_cost,
@@ -83,7 +85,7 @@ impl TermDag {
 
     // Recompute the cost of this term, but don't count shared
     // subterms.
-    fn get_cost(&self, shared: &HashTrieSet<TermId>, id: TermId) -> NotNan<f64> {
+    fn get_cost(&self, shared: &mut Box<HashTrieSet<TermId>>, id: TermId) -> NotNan<f64> {
         if shared.contains(&id) {
             NotNan::<f64>::new(0.0).unwrap()
         } else {
@@ -91,6 +93,8 @@ impl TermDag {
             for child in &self.nodes[id].children {
                 cost += self.get_cost(shared, *child);
             }
+            **shared = shared.insert(id);
+
             cost
         }
     }
@@ -104,12 +108,12 @@ impl TermDag {
     }
 }
 
-pub struct GreedyDagExtractor;
-impl Extractor for GreedyDagExtractor {
+pub struct GlobalGreedyDagExtractor;
+impl Extractor for GlobalGreedyDagExtractor {
     fn extract(&self, egraph: &EGraph, _roots: &[ClassId]) -> ExtractionResult {
         let mut keep_going = true;
 
-        let mut nodes = egraph.nodes.clone();
+        let nodes = egraph.nodes.clone();
         let mut termdag = TermDag::default();
         let mut best_in_class: HashMap<ClassId, TermId> = HashMap::default();
 

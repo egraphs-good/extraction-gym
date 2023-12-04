@@ -20,7 +20,6 @@ coin_cbc = { version = "0.1.6", optional = true }
 im-rc = "15.1.0"
 
 rpds = "1.1.0"
-
 [dependencies.egraph-serialize]
 git = "https://github.com/egraphs-good/egraph-serialize"
 rev = "951b829a434f4008c7b45ba4ac0da1037d2da90"

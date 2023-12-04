@@ -96,8 +96,9 @@ if __name__ == "__main__":
 
     extractors = sorted(set(j["extractor"] for j in js))
 
-    for ex1 in extractors:
-        for ex2 in extractors:
+    for i in range(len(extractors)):
+        for j in range(i + 1, len(extractors)):
+            ex1, ex2 = extractors[i], extractors[j]
             if ex1 == ex2:
                 continue
             print(f"###################################################\n{ex1} vs {ex2}\n\n")

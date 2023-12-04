@@ -39,7 +39,14 @@ impl TermDag {
     // Makes a new term using a node and children terms
     // Correctly computes total_cost with sharing
     // If this term contains itself, returns None
-    pub fn make(&mut self, node_id: NodeId, node: &Node, children: Vec<TermId>) -> Option<TermId> {
+    // If this term costs more than target, returns None
+    pub fn make(
+        &mut self,
+        node_id: NodeId,
+        node: &Node,
+        children: Vec<TermId>,
+        target: NotNan<f64>,
+    ) -> Option<TermId> {
         let term = Term {
             op: node.op.clone(),
             children: children.clone(),
@@ -81,8 +88,15 @@ impl TermDag {
             let next_id = self.nodes.len();
 
             for child in children.iter() {
+                if cost > target {
+                    return None;
+                }
                 let child_cost = self.get_cost(&mut reachable, *child);
                 cost += child_cost;
+            }
+
+            if cost > target {
+                return None;
             }
 
             *reachable = reachable.insert(node.eclass.clone());
@@ -154,16 +168,15 @@ impl Extractor for GlobalGreedyDagExtractor {
                     }
                 }
 
-                if let Some(candidate) = termdag.make(node_id.clone(), node, children) {
+                let old_cost = best_in_class
+                    .get(&node.eclass)
+                    .map(|id| termdag.total_cost(*id))
+                    .unwrap_or(INFINITY);
+
+                if let Some(candidate) = termdag.make(node_id.clone(), node, children, old_cost) {
                     let cadidate_cost = termdag.total_cost(candidate);
 
-                    if let Some(old_term) = best_in_class.get(&node.eclass) {
-                        let old_cost = termdag.total_cost(*old_term);
-                        if cadidate_cost < old_cost {
-                            best_in_class.insert(node.eclass.clone(), candidate);
-                            keep_going = true;
-                        }
-                    } else {
+                    if cadidate_cost < old_cost {
                         best_in_class.insert(node.eclass.clone(), candidate);
                         keep_going = true;
                     }

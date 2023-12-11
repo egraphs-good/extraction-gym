@@ -16,22 +16,22 @@ pub struct BottomUpExtractor;
 
 impl Extractor for BottomUpExtractor {
     fn extract(&self, egraph: &EGraph, _roots: &[ClassId]) -> ExtractionResult {
-        // 1. build map from class to parent nodes
         let mut parents = IndexMap::<ClassId, Vec<NodeId>>::default();
         let n2c = |nid: &NodeId| egraph.nid_to_cid(nid);
         let mut analysis_pending = UniqueQueue::default();
 
         for class in egraph.classes().values() {
+            parents.insert(class.id.clone(), Vec::new());
+        }
+
+        for class in egraph.classes().values() {
             for node in &class.nodes {
                 for c in &egraph[node].children {
                     // compute parents of this enode
-                    parents
-                        .entry(n2c(c).clone())
-                        .or_default()
-                        .push(node.clone());
+                    parents[n2c(c)].push(node.clone());
                 }
 
-                // also, start the analysis from leaves
+                // start the analysis from leaves
                 if egraph[node].is_leaf() {
                     analysis_pending.insert(node.clone());
                 }

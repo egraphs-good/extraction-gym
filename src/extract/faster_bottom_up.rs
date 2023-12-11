@@ -1,6 +1,17 @@
 use super::*;
 
 /// A faster bottom up extractor inspired by the faster-greedy-dag extractor.
+/// It should return an extraction result with the same cost as the bottom-up extractor.
+///
+/// Bottom-up extraction works by iteratively computing the current best cost of each
+/// node in the e-graph based on the current best costs of its children.
+/// Extraction terminates when our estimates of the best cost for each node
+/// reach a fixed point.
+/// The baseline bottom-up implementation visits every node during each iteration
+/// of the fixed point.
+/// This algorithm instead only visits the nodes whose current cost estimate may change:
+/// it does this by tracking parent-child relationships and storing relevant nodes
+/// in a work list (UniqueQueue).
 pub struct BottomUpExtractor;
 
 impl Extractor for BottomUpExtractor {
@@ -8,23 +19,19 @@ impl Extractor for BottomUpExtractor {
         // 1. build map from class to parent nodes
         let mut parents = IndexMap::<ClassId, Vec<NodeId>>::default();
         let n2c = |nid: &NodeId| egraph.nid_to_cid(nid);
-
-        for class in egraph.classes().values() {
-            parents.insert(class.id.clone(), Vec::new());
-        }
-        for class in egraph.classes().values() {
-            for node in &class.nodes {
-                for c in &egraph[node].children {
-                    parents[n2c(c)].push(node.clone());
-                }
-            }
-        }
-
-        // 2. start analysis from leaves
         let mut analysis_pending = UniqueQueue::default();
 
         for class in egraph.classes().values() {
             for node in &class.nodes {
+                for c in &egraph[node].children {
+                    // compute parents of this enode
+                    parents
+                        .entry(n2c(c).clone())
+                        .or_default()
+                        .push(node.clone());
+                }
+
+                // also, start the analysis from leaves
                 if egraph[node].is_leaf() {
                     analysis_pending.insert(node.clone());
                 }
@@ -46,8 +53,6 @@ impl Extractor for BottomUpExtractor {
                     costs.insert(class_id.clone(), cost);
                     analysis_pending.extend(parents[class_id].iter().cloned());
                 }
-            } else {
-                analysis_pending.insert(node_id.clone());
             }
         }
 

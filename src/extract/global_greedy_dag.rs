@@ -88,6 +88,7 @@ impl TermDag {
                 .unwrap();
 
             let mut cost = node_cost + self.total_cost(children[biggest_child]);
+            // wrap in a box so that we can mutate it during the loop
             let mut reachable = Box::new(self.info[children[biggest_child]].reachable.clone());
             let next_id = self.nodes.len();
 

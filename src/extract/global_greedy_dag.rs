@@ -88,8 +88,7 @@ impl TermDag {
                 .unwrap();
 
             let mut cost = node_cost + self.total_cost(children[biggest_child]);
-            // wrap in a box so that we can mutate it during the loop
-            let mut reachable = Box::new(self.info[children[biggest_child]].reachable.clone());
+            let mut reachable = self.info[children[biggest_child]].reachable.clone();
             let next_id = self.nodes.len();
 
             for child in children.iter() {
@@ -104,14 +103,14 @@ impl TermDag {
                 return None;
             }
 
-            *reachable = reachable.insert(node.eclass.clone());
+            reachable = reachable.insert(node.eclass.clone());
 
             self.info.push(TermInfo {
                 node: node_id,
                 node_cost,
                 eclass: node.eclass.clone(),
                 total_cost: cost,
-                reachable: *reachable,
+                reachable,
                 size: 1 + children.iter().map(|c| self.info[*c].size).sum::<usize>(),
             });
             self.nodes.push(term.clone());
@@ -122,7 +121,7 @@ impl TermDag {
 
     /// Return a new term, like this one but making use of shared terms.
     /// Also return the cost of the new nodes.
-    fn get_cost(&self, shared: &mut Box<Reachable>, id: TermId) -> Cost {
+    fn get_cost(&self, shared: &mut Reachable, id: TermId) -> Cost {
         let eclass = self.info[id].eclass.clone();
 
         // This is the key to why this algorithm is faster than greedy_dag.
@@ -138,7 +137,7 @@ impl TermDag {
                 let child_cost = self.get_cost(shared, *child);
                 cost += child_cost;
             }
-            **shared = shared.insert(eclass);
+            *shared = shared.insert(eclass);
             cost
         }
     }

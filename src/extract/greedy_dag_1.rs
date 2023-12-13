@@ -141,8 +141,6 @@ impl Extractor for FasterGreedyDagExtractor {
                     costs.insert(class_id.clone(), cost_set);
                     analysis_pending.extend(parents[class_id].iter().cloned());
                 }
-            } else {
-                analysis_pending.insert(node_id.clone());
             }
         }
 

@@ -1,0 +1,2510 @@
+{
+  "nodes": {
+    "VecOperand-length-16835915594115655756-value": {
+      "op": "1",
+      "children": [],
+      "eclass": "VecOperand-length-16835915594115655756-value",
+      "cost": 0.0
+    },
+    "VecOperand-length-16835915594115655756": {
+      "op": "VecOperand-length",
+      "children": [
+        "VO-17615343019692007359"
+      ],
+      "eclass": "VecOperand-length-16835915594115655756-value",
+      "cost": 1.0
+    },
+    "VecOperand-length-9353306107957757443-value": {
+      "op": "0",
+      "children": [],
+      "eclass": "VecOperand-length-9353306107957757443-value",
+      "cost": 0.0
+    },
+    "VecOperand-length-9353306107957757443": {
+      "op": "VecOperand-length",
+      "children": [
+        "VO-5871781006564002453"
+      ],
+      "eclass": "VecOperand-length-9353306107957757443-value",
+      "cost": 1.0
+    },
+    "badd-610665960731685746": {
+      "op": "badd",
+      "children": [
+        "IntT-0",
+        "Node-1714775736476281168",
+        "Node-6755155689022739364"
+      ],
+      "eclass": "22",
+      "cost": 1.0
+    },
+    "badd-11127230520737543987": {
+      "op": "badd",
+      "children": [
+        "IntT-0",
+        "Node-6755155689022739364",
+        "Node-1714775736476281168"
+      ],
+      "eclass": "22",
+      "cost": 1.0
+    },
+    "Body-contains-Operand-9429017154749228772-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Body-contains-Operand-9429017154749228772-value",
+      "cost": 0.0
+    },
+    "i64-0": {
+      "op": "0",
+      "children": [],
+      "eclass": "i64-0",
+      "cost": 0.0
+    },
+    "Body-contains-Operand-9429017154749228772": {
+      "op": "Body-contains-Operand",
+      "children": [
+        "PureOp-51973628441192654",
+        "i64-0",
+        "Node-1714775736476281168"
+      ],
+      "eclass": "Body-contains-Operand-9429017154749228772-value",
+      "cost": 1.0
+    },
+    "Body-contains-Operand-4388637202202770576-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Body-contains-Operand-4388637202202770576-value",
+      "cost": 0.0
+    },
+    "Body-contains-Operand-4388637202202770576": {
+      "op": "Body-contains-Operand",
+      "children": [
+        "PureOp-51973628441192654",
+        "i64-0",
+        "Node-6755155689022739364"
+      ],
+      "eclass": "Body-contains-Operand-4388637202202770576-value",
+      "cost": 1.0
+    },
+    "Body-contains-Operand-1392261258909198668-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Body-contains-Operand-1392261258909198668-value",
+      "cost": 0.0
+    },
+    "Body-contains-Operand-1392261258909198668": {
+      "op": "Body-contains-Operand",
+      "children": [
+        "PureOp-17667316648133200013",
+        "i64-0",
+        "Node-5923754635005195107"
+      ],
+      "eclass": "Body-contains-Operand-1392261258909198668-value",
+      "cost": 1.0
+    },
+    "Body-contains-Operand-8043469691049552724-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Body-contains-Operand-8043469691049552724-value",
+      "cost": 0.0
+    },
+    "Body-contains-Operand-8043469691049552724": {
+      "op": "Body-contains-Operand",
+      "children": [
+        "PureOp-17667316648133200013",
+        "i64-0",
+        "Arg-0"
+      ],
+      "eclass": "Body-contains-Operand-8043469691049552724-value",
+      "cost": 1.0
+    },
+    "Body-contains-Operand-15630026434089836345-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Body-contains-Operand-15630026434089836345-value",
+      "cost": 0.0
+    },
+    "Body-contains-Operand-15630026434089836345": {
+      "op": "Body-contains-Operand",
+      "children": [
+        "PureOp-17667316648133200013",
+        "i64-0",
+        "Node-1714775736476281168"
+      ],
+      "eclass": "Body-contains-Operand-15630026434089836345-value",
+      "cost": 1.0
+    },
+    "Body-contains-Operand-10589646481543378149-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Body-contains-Operand-10589646481543378149-value",
+      "cost": 0.0
+    },
+    "Body-contains-Operand-10589646481543378149": {
+      "op": "Body-contains-Operand",
+      "children": [
+        "PureOp-17667316648133200013",
+        "i64-0",
+        "Node-6755155689022739364"
+      ],
+      "eclass": "Body-contains-Operand-10589646481543378149-value",
+      "cost": 1.0
+    },
+    "ExtractedExpr-10912160959110460649": {
+      "op": "ExtractedExpr",
+      "children": [
+        "Const-13702715391897792713"
+      ],
+      "eclass": "37",
+      "cost": 1.0
+    },
+    "ExtractedExpr-15952540911656918845": {
+      "op": "ExtractedExpr",
+      "children": [
+        "Const-296351270734699293"
+      ],
+      "eclass": "38",
+      "cost": 1.0
+    },
+    "ExtractedExpr-883374682458736911": {
+      "op": "ExtractedExpr",
+      "children": [
+        "Const-5981234252888316682"
+      ],
+      "eclass": "39",
+      "cost": 1.0
+    },
+    "ExtractedExpr-14289738803621830331": {
+      "op": "ExtractedExpr",
+      "children": [
+        "Const-4370405773294420822"
+      ],
+      "eclass": "40",
+      "cost": 1.0
+    },
+    "ExtractedExpr-51973628441192654": {
+      "op": "ExtractedExpr",
+      "children": [
+        "badd-610665960731685746"
+      ],
+      "eclass": "65",
+      "cost": 1.0
+    },
+    "ExtractedExpr-17667316648133200013": {
+      "op": "ExtractedExpr",
+      "children": [
+        "PRINT-3984406874221510308"
+      ],
+      "eclass": "78",
+      "cost": 1.0
+    },
+    "const-0": {
+      "op": "const",
+      "children": [],
+      "eclass": "3",
+      "cost": 1.0
+    },
+    "IntT-0": {
+      "op": "IntT",
+      "children": [],
+      "eclass": "13",
+      "cost": 1.0
+    },
+    "PRINT-3984406874221510308": {
+      "op": "PRINT",
+      "children": [
+        "Node-5923754635005195107",
+        "Arg-0"
+      ],
+      "eclass": "25",
+      "cost": 1.0
+    },
+    "Node-16783941965674463102": {
+      "op": "Node",
+      "children": [
+        "PureOp-10912160959110460649"
+      ],
+      "eclass": "7",
+      "cost": 1.0
+    },
+    "Node-3377577844511369682": {
+      "op": "Node",
+      "children": [
+        "PureOp-15952540911656918845"
+      ],
+      "eclass": "11",
+      "cost": 1.0
+    },
+    "Node-1714775736476281168": {
+      "op": "Node",
+      "children": [
+        "PureOp-14289738803621830331"
+      ],
+      "eclass": "17",
+      "cost": 1.0
+    },
+    "Node-6755155689022739364": {
+      "op": "Node",
+      "children": [
+        "PureOp-883374682458736911"
+      ],
+      "eclass": "21",
+      "cost": 1.0
+    },
+    "Node-5923754635005195107": {
+      "op": "Node",
+      "children": [
+        "PureOp-51973628441192654"
+      ],
+      "eclass": "24",
+      "cost": 1.0
+    },
+    "Node-5092353580987650850": {
+      "op": "Node",
+      "children": [
+        "PureOp-17667316648133200013"
+      ],
+      "eclass": "30",
+      "cost": 1.0
+    },
+    "Smaller-9416217116652213907": {
+      "op": "Smaller",
+      "children": [
+        "Smaller-12354652189409874138",
+        "ExprAndCost-1240431884175383679"
+      ],
+      "eclass": "65",
+      "cost": 1.0
+    },
+    "Smaller-2972903198276630467": {
+      "op": "Smaller",
+      "children": [
+        "ExtractedExpr-51973628441192654",
+        "Smaller-9416217116652213907"
+      ],
+      "eclass": "65",
+      "cost": 1.0
+    },
+    "Smaller-12354652189409874138": {
+      "op": "Smaller",
+      "children": [
+        "ExprAndCost-1240431884175383679",
+        "Smaller-12354652189409874138"
+      ],
+      "eclass": "65",
+      "cost": 1.0
+    },
+    "Smaller-3960971166307175483": {
+      "op": "Smaller",
+      "children": [
+        "BodyAndCost-8899900912771221575",
+        "ExtractedBody-5923754635005195107"
+      ],
+      "eclass": "70",
+      "cost": 1.0
+    },
+    "Smaller-12167696332759465143": {
+      "op": "Smaller",
+      "children": [
+        "BodyAndCost-15603082973352768285",
+        "Smaller-12167696332759465143"
+      ],
+      "eclass": "70",
+      "cost": 1.0
+    },
+    "Smaller-9396947517958236087": {
+      "op": "Smaller",
+      "children": [
+        "OperandAndCost-9856187880785512761",
+        "ExtractedOperand-11795535641569197560"
+      ],
+      "eclass": "74",
+      "cost": 1.0
+    },
+    "Smaller-1328447659204558769": {
+      "op": "Smaller",
+      "children": [
+        "OperandAndCost-3153005820203966051",
+        "Smaller-1328447659204558769"
+      ],
+      "eclass": "74",
+      "cost": 1.0
+    },
+    "Smaller-13949549187150559780": {
+      "op": "Smaller",
+      "children": [
+        "ExprAndCost-17515656909381350657",
+        "ExtractedExpr-17667316648133200013"
+      ],
+      "eclass": "78",
+      "cost": 1.0
+    },
+    "Smaller-7636956350412464075": {
+      "op": "Smaller",
+      "children": [
+        "ExprAndCost-5772094896253345751",
+        "Smaller-7636956350412464075"
+      ],
+      "eclass": "78",
+      "cost": 1.0
+    },
+    "Smaller-5095786735179790053": {
+      "op": "Smaller",
+      "children": [
+        "BodyAndCost-1636028283279986087",
+        "ExtractedBody-5092353580987650850"
+      ],
+      "eclass": "82",
+      "cost": 1.0
+    },
+    "Smaller-5163691845474192925": {
+      "op": "Smaller",
+      "children": [
+        "BodyAndCost-13379590296407990993",
+        "Smaller-5163691845474192925"
+      ],
+      "eclass": "82",
+      "cost": 1.0
+    },
+    "Smaller-10531763086830850657": {
+      "op": "Smaller",
+      "children": [
+        "OperandAndCost-14606587749530137658",
+        "ExtractedOperand-10132733533534109046"
+      ],
+      "eclass": "86",
+      "cost": 1.0
+    },
+    "Smaller-11679918049405330640": {
+      "op": "Smaller",
+      "children": [
+        "OperandAndCost-7903405688948590948",
+        "Smaller-11679918049405330640"
+      ],
+      "eclass": "86",
+      "cost": 1.0
+    },
+    "Smaller-13738316556545021562": {
+      "op": "Smaller",
+      "children": [
+        "VecOperandAndCost-17786367394489206136",
+        "ExtractedVecOperand-16835915594115655756"
+      ],
+      "eclass": "92",
+      "cost": 1.0
+    },
+    "Smaller-18088207888275264249": {
+      "op": "Smaller",
+      "children": [
+        "ExtractedVecOperandHelper-4380003273326112716",
+        "Smaller-13738316556545021562"
+      ],
+      "eclass": "92",
+      "cost": 1.0
+    },
+    "i64-5871781006564002453": {
+      "op": "1",
+      "children": [],
+      "eclass": "i64-5871781006564002453",
+      "cost": 0.0
+    },
+    "ExprAndCost-7223664373682896047": {
+      "op": "ExprAndCost",
+      "children": [
+        "Const-13702715391897792713",
+        "i64-5871781006564002453"
+      ],
+      "eclass": "37",
+      "cost": 1.0
+    },
+    "ExprAndCost-1747479766223496002": {
+      "op": "ExprAndCost",
+      "children": [
+        "Const-296351270734699293",
+        "i64-5871781006564002453"
+      ],
+      "eclass": "38",
+      "cost": 1.0
+    },
+    "ExprAndCost-9335705567684163424": {
+      "op": "ExprAndCost",
+      "children": [
+        "Const-5981234252888316682",
+        "i64-5871781006564002453"
+      ],
+      "eclass": "39",
+      "cost": 1.0
+    },
+    "ExprAndCost-18241441648096125805": {
+      "op": "ExprAndCost",
+      "children": [
+        "Const-4370405773294420822",
+        "i64-5871781006564002453"
+      ],
+      "eclass": "40",
+      "cost": 1.0
+    },
+    "i64-17615343019692007359": {
+      "op": "3",
+      "children": [],
+      "eclass": "i64-17615343019692007359",
+      "cost": 0.0
+    },
+    "ExprAndCost-1240431884175383679": {
+      "op": "ExprAndCost",
+      "children": [
+        "badd-11127230520737543987",
+        "i64-17615343019692007359"
+      ],
+      "eclass": "49",
+      "cost": 1.0
+    },
+    "i64-10912160959110460649": {
+      "op": "5",
+      "children": [],
+      "eclass": "i64-10912160959110460649",
+      "cost": 0.0
+    },
+    "ExprAndCost-5772094896253345751": {
+      "op": "ExprAndCost",
+      "children": [
+        "PRINT-3984406874221510308",
+        "i64-10912160959110460649"
+      ],
+      "eclass": "52",
+      "cost": 1.0
+    },
+    "ExprAndCost-7943613944756930389": {
+      "op": "ExprAndCost",
+      "children": [
+        "Const-5929260624447124028",
+        "i64-5871781006564002453"
+      ],
+      "eclass": "65",
+      "cost": 1.0
+    },
+    "ExprAndCost-17515656909381350657": {
+      "op": "ExprAndCost",
+      "children": [
+        "PRINT-3984406874221510308",
+        "i64-17615343019692007359"
+      ],
+      "eclass": "78",
+      "cost": 1.0
+    },
+    "OperandAndCost-5871781006564002453": {
+      "op": "OperandAndCost",
+      "children": [
+        "Arg-0",
+        "i64-5871781006564002453"
+      ],
+      "eclass": "36",
+      "cost": 1.0
+    },
+    "OperandAndCost-10852683104608143388": {
+      "op": "OperandAndCost",
+      "children": [
+        "Node-1714775736476281168",
+        "i64-5871781006564002453"
+      ],
+      "eclass": "45",
+      "cost": 1.0
+    },
+    "OperandAndCost-18281649903904465246": {
+      "op": "OperandAndCost",
+      "children": [
+        "Node-16783941965674463102",
+        "i64-5871781006564002453"
+      ],
+      "eclass": "46",
+      "cost": 1.0
+    },
+    "OperandAndCost-11248279503712745796": {
+      "op": "OperandAndCost",
+      "children": [
+        "Node-6755155689022739364",
+        "i64-5871781006564002453"
+      ],
+      "eclass": "47",
+      "cost": 1.0
+    },
+    "OperandAndCost-17845845248991523397": {
+      "op": "OperandAndCost",
+      "children": [
+        "Node-3377577844511369682",
+        "i64-5871781006564002453"
+      ],
+      "eclass": "48",
+      "cost": 1.0
+    },
+    "OperandAndCost-3153005820203966051": {
+      "op": "OperandAndCost",
+      "children": [
+        "Node-5923754635005195107",
+        "i64-17615343019692007359"
+      ],
+      "eclass": "51",
+      "cost": 1.0
+    },
+    "OperandAndCost-7903405688948590948": {
+      "op": "OperandAndCost",
+      "children": [
+        "Node-5092353580987650850",
+        "i64-10912160959110460649"
+      ],
+      "eclass": "54",
+      "cost": 1.0
+    },
+    "OperandAndCost-9856187880785512761": {
+      "op": "OperandAndCost",
+      "children": [
+        "Node-5923754635005195107",
+        "i64-5871781006564002453"
+      ],
+      "eclass": "74",
+      "cost": 1.0
+    },
+    "OperandAndCost-14606587749530137658": {
+      "op": "OperandAndCost",
+      "children": [
+        "VecOperand-get-10251784279890115169",
+        "i64-17615343019692007359"
+      ],
+      "eclass": "86",
+      "cost": 1.0
+    },
+    "ExtractedVecOperandCtx-5871781006564002453": {
+      "op": "ExtractedVecOperandCtx",
+      "children": [
+        "VOC-5871781006564002453"
+      ],
+      "eclass": "57",
+      "cost": 1.0
+    },
+    "IntI-6828067974578293639": {
+      "op": "IntI",
+      "children": [
+        "i64-5871781006564002453",
+        "i64-5871781006564002453"
+      ],
+      "eclass": "31",
+      "cost": 1.0
+    },
+    "i64-11743562013128004906": {
+      "op": "2",
+      "children": [],
+      "eclass": "i64-11743562013128004906",
+      "cost": 0.0
+    },
+    "IntI-13656135949156587278": {
+      "op": "IntI",
+      "children": [
+        "i64-11743562013128004906",
+        "i64-11743562013128004906"
+      ],
+      "eclass": "32",
+      "cost": 1.0
+    },
+    "IntI-15443823971188422721": {
+      "op": "IntI",
+      "children": [
+        "i64-17615343019692007359",
+        "i64-17615343019692007359"
+      ],
+      "eclass": "35",
+      "cost": 1.0
+    },
+    "VecOperandCtx-pure-prefix-5871781006564002453-value": {
+      "op": "0",
+      "children": [],
+      "eclass": "VecOperandCtx-pure-prefix-5871781006564002453-value",
+      "cost": 0.0
+    },
+    "VecOperandCtx-pure-prefix-5871781006564002453": {
+      "op": "VecOperandCtx-pure-prefix",
+      "children": [
+        "VOC-5871781006564002453"
+      ],
+      "eclass": "VecOperandCtx-pure-prefix-5871781006564002453-value",
+      "cost": 1.0
+    },
+    "ExtractedVecOperand-9353306107957757443": {
+      "op": "ExtractedVecOperand",
+      "children": [
+        "VO-5871781006564002453"
+      ],
+      "eclass": "56",
+      "cost": 1.0
+    },
+    "ExtractedVecOperand-16835915594115655756": {
+      "op": "ExtractedVecOperand",
+      "children": [
+        "VO-17615343019692007359"
+      ],
+      "eclass": "92",
+      "cost": 1.0
+    },
+    "nontrivial-arg-10251784279890115169-value": {
+      "op": "true",
+      "children": [],
+      "eclass": "nontrivial-arg-10251784279890115169-value",
+      "cost": 0.0
+    },
+    "nontrivial-arg-10251784279890115169": {
+      "op": "nontrivial-arg",
+      "children": [
+        "VO-17615343019692007359",
+        "i64-0"
+      ],
+      "eclass": "nontrivial-arg-10251784279890115169-value",
+      "cost": 1.0
+    },
+    "ExtractedVecOperandCtxHelper-956286968014291186": {
+      "op": "ExtractedVecOperandCtxHelper",
+      "children": [
+        "VOC-5871781006564002453",
+        "i64-0"
+      ],
+      "eclass": "57",
+      "cost": 1.0
+    },
+    "refers-to-branch-4208978898528913939-value": {
+      "op": "0",
+      "children": [],
+      "eclass": "refers-to-branch-4208978898528913939-value",
+      "cost": 0.0
+    },
+    "refers-to-branch-4208978898528913939": {
+      "op": "refers-to-branch",
+      "children": [
+        "Node-16783941965674463102"
+      ],
+      "eclass": "refers-to-branch-4208978898528913939-value",
+      "cost": 1.0
+    },
+    "refers-to-branch-9249358851075372135-value": {
+      "op": "1",
+      "children": [],
+      "eclass": "refers-to-branch-9249358851075372135-value",
+      "cost": 0.0
+    },
+    "refers-to-branch-9249358851075372135": {
+      "op": "refers-to-branch",
+      "children": [
+        "Node-3377577844511369682"
+      ],
+      "eclass": "refers-to-branch-9249358851075372135-value",
+      "cost": 1.0
+    },
+    "refers-to-branch-7586556743040283621-value": {
+      "op": "1",
+      "children": [],
+      "eclass": "refers-to-branch-7586556743040283621-value",
+      "cost": 0.0
+    },
+    "refers-to-branch-7586556743040283621": {
+      "op": "refers-to-branch",
+      "children": [
+        "Node-1714775736476281168"
+      ],
+      "eclass": "refers-to-branch-7586556743040283621-value",
+      "cost": 1.0
+    },
+    "refers-to-branch-12626936695586741817-value": {
+      "op": "2",
+      "children": [],
+      "eclass": "refers-to-branch-12626936695586741817-value",
+      "cost": 0.0
+    },
+    "refers-to-branch-12626936695586741817": {
+      "op": "refers-to-branch",
+      "children": [
+        "Node-6755155689022739364"
+      ],
+      "eclass": "refers-to-branch-12626936695586741817-value",
+      "cost": 1.0
+    },
+    "refers-to-branch-11795535641569197560-value": {
+      "op": "3",
+      "children": [],
+      "eclass": "refers-to-branch-11795535641569197560-value",
+      "cost": 0.0
+    },
+    "refers-to-branch-11795535641569197560": {
+      "op": "refers-to-branch",
+      "children": [
+        "Node-5923754635005195107"
+      ],
+      "eclass": "refers-to-branch-11795535641569197560-value",
+      "cost": 1.0
+    },
+    "VecOperand-get-10251784279890115169": {
+      "op": "VecOperand-get",
+      "children": [
+        "VO-17615343019692007359",
+        "i64-0"
+      ],
+      "eclass": "30",
+      "cost": 1.0
+    },
+    "PrintState-0": {
+      "op": "PrintState",
+      "children": [],
+      "eclass": "12",
+      "cost": 1.0
+    },
+    "bool-0": {
+      "op": "false",
+      "children": [],
+      "eclass": "bool-0",
+      "cost": 0.0
+    },
+    "Bool-0": {
+      "op": "Bool",
+      "children": [
+        "bool-0"
+      ],
+      "eclass": "4",
+      "cost": 1.0
+    },
+    "bool-5871781006564002453": {
+      "op": "true",
+      "children": [],
+      "eclass": "bool-5871781006564002453",
+      "cost": 0.0
+    },
+    "Bool-5871781006564002453": {
+      "op": "Bool",
+      "children": [
+        "bool-5871781006564002453"
+      ],
+      "eclass": "8",
+      "cost": 1.0
+    },
+    "Operand-contains-Body-10397608851001223719-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Operand-contains-Body-10397608851001223719-value",
+      "cost": 0.0
+    },
+    "Operand-contains-Body-10397608851001223719": {
+      "op": "Operand-contains-Body",
+      "children": [
+        "VecOperand-get-10251784279890115169",
+        "PureOp-17667316648133200013"
+      ],
+      "eclass": "Operand-contains-Body-10397608851001223719-value",
+      "cost": 1.0
+    },
+    "Operand-contains-Body-17932191965600314686-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Operand-contains-Body-17932191965600314686-value",
+      "cost": 0.0
+    },
+    "Operand-contains-Body-17932191965600314686": {
+      "op": "Operand-contains-Body",
+      "children": [
+        "Node-5092353580987650850",
+        "PureOp-51973628441192654"
+      ],
+      "eclass": "Operand-contains-Body-17932191965600314686-value",
+      "cost": 1.0
+    },
+    "Operand-contains-Body-7020031006489854037-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Operand-contains-Body-7020031006489854037-value",
+      "cost": 0.0
+    },
+    "Operand-contains-Body-7020031006489854037": {
+      "op": "Operand-contains-Body",
+      "children": [
+        "VecOperand-get-10251784279890115169",
+        "PureOp-14289738803621830331"
+      ],
+      "eclass": "Operand-contains-Body-7020031006489854037-value",
+      "cost": 1.0
+    },
+    "Operand-contains-Body-12060410959036312233-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Operand-contains-Body-12060410959036312233-value",
+      "cost": 0.0
+    },
+    "Operand-contains-Body-12060410959036312233": {
+      "op": "Operand-contains-Body",
+      "children": [
+        "Node-5092353580987650850",
+        "PureOp-883374682458736911"
+      ],
+      "eclass": "Operand-contains-Body-12060410959036312233-value",
+      "cost": 1.0
+    },
+    "unroll_count-0-value": {
+      "op": "0",
+      "children": [],
+      "eclass": "unroll_count-0-value",
+      "cost": 0.0
+    },
+    "unroll_count-0": {
+      "op": "unroll_count",
+      "children": [
+        "i64-0"
+      ],
+      "eclass": "unroll_count-0-value",
+      "cost": 1.0
+    },
+    "Arg-0": {
+      "op": "Arg",
+      "children": [
+        "i64-0"
+      ],
+      "eclass": "0",
+      "cost": 1.0
+    },
+    "VecOperandBase-17615343019692007359": {
+      "op": "VecOperandBase",
+      "children": [
+        "VecOperand-get-10251784279890115169"
+      ],
+      "eclass": "VecOperandBase-17615343019692007359",
+      "cost": 0.0
+    },
+    "VO-17615343019692007359": {
+      "op": "VO",
+      "children": [
+        "VecOperandBase-17615343019692007359"
+      ],
+      "eclass": "28",
+      "cost": 1.0
+    },
+    "VecOperandBase-5871781006564002453": {
+      "op": "VecOperandBase",
+      "children": [],
+      "eclass": "VecOperandBase-5871781006564002453",
+      "cost": 0.0
+    },
+    "VO-5871781006564002453": {
+      "op": "VO",
+      "children": [
+        "VecOperandBase-5871781006564002453"
+      ],
+      "eclass": "55",
+      "cost": 1.0
+    },
+    "Const-13702715391897792713": {
+      "op": "Const",
+      "children": [
+        "BoolT-0",
+        "const-0",
+        "Bool-0"
+      ],
+      "eclass": "5",
+      "cost": 1.0
+    },
+    "Const-296351270734699293": {
+      "op": "Const",
+      "children": [
+        "BoolT-0",
+        "const-0",
+        "Bool-5871781006564002453"
+      ],
+      "eclass": "9",
+      "cost": 1.0
+    },
+    "Const-4370405773294420822": {
+      "op": "Const",
+      "children": [
+        "IntT-0",
+        "const-0",
+        "Num-5871781006564002453"
+      ],
+      "eclass": "15",
+      "cost": 1.0
+    },
+    "Const-5981234252888316682": {
+      "op": "Const",
+      "children": [
+        "IntT-0",
+        "const-0",
+        "Num-11743562013128004906"
+      ],
+      "eclass": "19",
+      "cost": 1.0
+    },
+    "Const-5929260624447124028": {
+      "op": "Const",
+      "children": [
+        "IntT-0",
+        "const-0",
+        "Num-17615343019692007359"
+      ],
+      "eclass": "22",
+      "cost": 1.0
+    },
+    "ExtractedOperand-0": {
+      "op": "ExtractedOperand",
+      "children": [
+        "Arg-0"
+      ],
+      "eclass": "36",
+      "cost": 1.0
+    },
+    "ExtractedOperand-7586556743040283621": {
+      "op": "ExtractedOperand",
+      "children": [
+        "Node-1714775736476281168"
+      ],
+      "eclass": "45",
+      "cost": 1.0
+    },
+    "ExtractedOperand-4208978898528913939": {
+      "op": "ExtractedOperand",
+      "children": [
+        "Node-16783941965674463102"
+      ],
+      "eclass": "46",
+      "cost": 1.0
+    },
+    "ExtractedOperand-12626936695586741817": {
+      "op": "ExtractedOperand",
+      "children": [
+        "Node-6755155689022739364"
+      ],
+      "eclass": "47",
+      "cost": 1.0
+    },
+    "ExtractedOperand-9249358851075372135": {
+      "op": "ExtractedOperand",
+      "children": [
+        "Node-3377577844511369682"
+      ],
+      "eclass": "48",
+      "cost": 1.0
+    },
+    "ExtractedOperand-11795535641569197560": {
+      "op": "ExtractedOperand",
+      "children": [
+        "Node-5923754635005195107"
+      ],
+      "eclass": "74",
+      "cost": 1.0
+    },
+    "ExtractedOperand-10132733533534109046": {
+      "op": "ExtractedOperand",
+      "children": [
+        "Node-5092353580987650850"
+      ],
+      "eclass": "86",
+      "cost": 1.0
+    },
+    "BodyAndCost-2308170335133184780": {
+      "op": "BodyAndCost",
+      "children": [
+        "PureOp-10912160959110460649",
+        "i64-5871781006564002453"
+      ],
+      "eclass": "41",
+      "cost": 1.0
+    },
+    "BodyAndCost-15768177143157854655": {
+      "op": "BodyAndCost",
+      "children": [
+        "PureOp-14289738803621830331",
+        "i64-5871781006564002453"
+      ],
+      "eclass": "42",
+      "cost": 1.0
+    },
+    "BodyAndCost-17720959334994776468": {
+      "op": "BodyAndCost",
+      "children": [
+        "PureOp-15952540911656918845",
+        "i64-5871781006564002453"
+      ],
+      "eclass": "43",
+      "cost": 1.0
+    },
+    "BodyAndCost-10291992535698454610": {
+      "op": "BodyAndCost",
+      "children": [
+        "PureOp-883374682458736911",
+        "i64-5871781006564002453"
+      ],
+      "eclass": "44",
+      "cost": 1.0
+    },
+    "BodyAndCost-15603082973352768285": {
+      "op": "BodyAndCost",
+      "children": [
+        "PureOp-51973628441192654",
+        "i64-17615343019692007359"
+      ],
+      "eclass": "50",
+      "cost": 1.0
+    },
+    "BodyAndCost-13379590296407990993": {
+      "op": "BodyAndCost",
+      "children": [
+        "PureOp-17667316648133200013",
+        "i64-10912160959110460649"
+      ],
+      "eclass": "53",
+      "cost": 1.0
+    },
+    "BodyAndCost-8899900912771221575": {
+      "op": "BodyAndCost",
+      "children": [
+        "PureOp-51973628441192654",
+        "i64-5871781006564002453"
+      ],
+      "eclass": "70",
+      "cost": 1.0
+    },
+    "BodyAndCost-1636028283279986087": {
+      "op": "BodyAndCost",
+      "children": [
+        "PureOp-17667316648133200013",
+        "i64-17615343019692007359"
+      ],
+      "eclass": "82",
+      "cost": 1.0
+    },
+    "Operand-contains-demand-10132733533534109046-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Operand-contains-demand-10132733533534109046-value",
+      "cost": 0.0
+    },
+    "Operand-contains-demand-10132733533534109046": {
+      "op": "Operand-contains-demand",
+      "children": [
+        "VecOperand-get-10251784279890115169"
+      ],
+      "eclass": "Operand-contains-demand-10132733533534109046-value",
+      "cost": 1.0
+    },
+    "Body-contains-Body-15300798161313231225-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Body-contains-Body-15300798161313231225-value",
+      "cost": 0.0
+    },
+    "Body-contains-Body-15300798161313231225": {
+      "op": "Body-contains-Body",
+      "children": [
+        "PureOp-51973628441192654",
+        "i64-0",
+        "PureOp-14289738803621830331"
+      ],
+      "eclass": "Body-contains-Body-15300798161313231225-value",
+      "cost": 1.0
+    },
+    "Body-contains-Body-10260418208766773029-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Body-contains-Body-10260418208766773029-value",
+      "cost": 0.0
+    },
+    "Body-contains-Body-10260418208766773029": {
+      "op": "Body-contains-Body",
+      "children": [
+        "PureOp-51973628441192654",
+        "i64-0",
+        "PureOp-883374682458736911"
+      ],
+      "eclass": "Body-contains-Body-10260418208766773029-value",
+      "cost": 1.0
+    },
+    "Body-contains-Body-3886464420961831439-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Body-contains-Body-3886464420961831439-value",
+      "cost": 0.0
+    },
+    "Body-contains-Body-3886464420961831439": {
+      "op": "Body-contains-Body",
+      "children": [
+        "PureOp-17667316648133200013",
+        "i64-0",
+        "PureOp-51973628441192654"
+      ],
+      "eclass": "Body-contains-Body-3886464420961831439-value",
+      "cost": 1.0
+    },
+    "Body-contains-Body-9758245427525833892-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Body-contains-Body-9758245427525833892-value",
+      "cost": 0.0
+    },
+    "Body-contains-Body-9758245427525833892": {
+      "op": "Body-contains-Body",
+      "children": [
+        "PureOp-17667316648133200013",
+        "i64-0",
+        "PureOp-14289738803621830331"
+      ],
+      "eclass": "Body-contains-Body-9758245427525833892-value",
+      "cost": 1.0
+    },
+    "Body-contains-Body-4717865474979375696-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Body-contains-Body-4717865474979375696-value",
+      "cost": 0.0
+    },
+    "Body-contains-Body-4717865474979375696": {
+      "op": "Body-contains-Body",
+      "children": [
+        "PureOp-17667316648133200013",
+        "i64-0",
+        "PureOp-883374682458736911"
+      ],
+      "eclass": "Body-contains-Body-4717865474979375696-value",
+      "cost": 1.0
+    },
+    "Operand-contains-Operand-15437988803547681915-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Operand-contains-Operand-15437988803547681915-value",
+      "cost": 0.0
+    },
+    "Operand-contains-Operand-15437988803547681915": {
+      "op": "Operand-contains-Operand",
+      "children": [
+        "Node-5092353580987650850",
+        "VecOperand-get-10251784279890115169"
+      ],
+      "eclass": "Operand-contains-Operand-15437988803547681915-value",
+      "cost": 1.0
+    },
+    "Operand-contains-Operand-17100790911582770429-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Operand-contains-Operand-17100790911582770429-value",
+      "cost": 0.0
+    },
+    "Operand-contains-Operand-17100790911582770429": {
+      "op": "Operand-contains-Operand",
+      "children": [
+        "Node-5092353580987650850",
+        "Node-5923754635005195107"
+      ],
+      "eclass": "Operand-contains-Operand-17100790911582770429-value",
+      "cost": 1.0
+    },
+    "Operand-contains-Operand-8734806742966135205-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Operand-contains-Operand-8734806742966135205-value",
+      "cost": 0.0
+    },
+    "Operand-contains-Operand-8734806742966135205": {
+      "op": "Operand-contains-Operand",
+      "children": [
+        "VecOperand-get-10251784279890115169",
+        "Arg-0"
+      ],
+      "eclass": "Operand-contains-Operand-8734806742966135205-value",
+      "cost": 1.0
+    },
+    "Operand-contains-Operand-1148249999925851584-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Operand-contains-Operand-1148249999925851584-value",
+      "cost": 0.0
+    },
+    "Operand-contains-Operand-1148249999925851584": {
+      "op": "Operand-contains-Operand",
+      "children": [
+        "Node-5092353580987650850",
+        "Node-1714775736476281168"
+      ],
+      "eclass": "Operand-contains-Operand-1148249999925851584-value",
+      "cost": 1.0
+    },
+    "Operand-contains-Operand-6188629952472309780-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Operand-contains-Operand-6188629952472309780-value",
+      "cost": 0.0
+    },
+    "Operand-contains-Operand-6188629952472309780": {
+      "op": "Operand-contains-Operand",
+      "children": [
+        "VecOperand-get-10251784279890115169",
+        "Node-6755155689022739364"
+      ],
+      "eclass": "Operand-contains-Operand-6188629952472309780-value",
+      "cost": 1.0
+    },
+    "VOC-5871781006564002453": {
+      "op": "VOC",
+      "children": [
+        "VecOperandBase-5871781006564002453"
+      ],
+      "eclass": "1",
+      "cost": 1.0
+    },
+    "Num-5871781006564002453": {
+      "op": "Num",
+      "children": [
+        "i64-5871781006564002453"
+      ],
+      "eclass": "14",
+      "cost": 1.0
+    },
+    "Num-11743562013128004906": {
+      "op": "Num",
+      "children": [
+        "i64-11743562013128004906"
+      ],
+      "eclass": "18",
+      "cost": 1.0
+    },
+    "Num-17615343019692007359": {
+      "op": "Num",
+      "children": [
+        "i64-17615343019692007359"
+      ],
+      "eclass": "60",
+      "cost": 1.0
+    },
+    "String-1845757586690957117": {
+      "op": "\"main\"",
+      "children": [],
+      "eclass": "String-1845757586690957117",
+      "cost": 0.0
+    },
+    "FuncSigs-0": {
+      "op": "FuncSigs",
+      "children": [
+        "PrintState-0"
+      ],
+      "eclass": "FuncSigs-0",
+      "cost": 0.0
+    },
+    "Func-14292536930565803216": {
+      "op": "Func",
+      "children": [
+        "String-1845757586690957117",
+        "FuncSigs-0",
+        "FuncSigs-0",
+        "VO-17615343019692007359"
+      ],
+      "eclass": "29",
+      "cost": 1.0
+    },
+    "arg-used-Operand-10132733533534109046-value": {
+      "op": "SetIntBase",
+      "children": [
+        "i64-0"
+      ],
+      "eclass": "arg-used-Operand-10132733533534109046-value",
+      "cost": 0.0
+    },
+    "arg-used-Operand-10132733533534109046": {
+      "op": "arg-used-Operand",
+      "children": [
+        "Node-5092353580987650850"
+      ],
+      "eclass": "arg-used-Operand-10132733533534109046-value",
+      "cost": 1.0
+    },
+    "Body-contains-Expr-7264042265473201121-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Body-contains-Expr-7264042265473201121-value",
+      "cost": 0.0
+    },
+    "Body-contains-Expr-7264042265473201121": {
+      "op": "Body-contains-Expr",
+      "children": [
+        "PureOp-17667316648133200013",
+        "i64-0",
+        "PRINT-3984406874221510308"
+      ],
+      "eclass": "Body-contains-Expr-7264042265473201121-value",
+      "cost": 1.0
+    },
+    "Body-contains-Expr-608918799359241499-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Body-contains-Expr-608918799359241499-value",
+      "cost": 0.0
+    },
+    "Body-contains-Expr-608918799359241499": {
+      "op": "Body-contains-Expr",
+      "children": [
+        "PureOp-883374682458736911",
+        "i64-0",
+        "Const-5981234252888316682"
+      ],
+      "eclass": "Body-contains-Expr-608918799359241499-value",
+      "cost": 1.0
+    },
+    "Body-contains-Expr-3792192767063198471-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Body-contains-Expr-3792192767063198471-value",
+      "cost": 0.0
+    },
+    "Body-contains-Expr-3792192767063198471": {
+      "op": "Body-contains-Expr",
+      "children": [
+        "PureOp-10912160959110460649",
+        "i64-0",
+        "Const-13702715391897792713"
+      ],
+      "eclass": "Body-contains-Expr-3792192767063198471-value",
+      "cost": 1.0
+    },
+    "Body-contains-Expr-11963506675562261430-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Body-contains-Expr-11963506675562261430-value",
+      "cost": 0.0
+    },
+    "Body-contains-Expr-11963506675562261430": {
+      "op": "Body-contains-Expr",
+      "children": [
+        "PureOp-14289738803621830331",
+        "i64-0",
+        "Const-4370405773294420822"
+      ],
+      "eclass": "Body-contains-Expr-11963506675562261430-value",
+      "cost": 1.0
+    },
+    "Body-contains-Expr-3557236148185226319-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Body-contains-Expr-3557236148185226319-value",
+      "cost": 0.0
+    },
+    "Body-contains-Expr-3557236148185226319": {
+      "op": "Body-contains-Expr",
+      "children": [
+        "PureOp-51973628441192654",
+        "i64-0",
+        "badd-11127230520737543987"
+      ],
+      "eclass": "Body-contains-Expr-3557236148185226319-value",
+      "cost": 1.0
+    },
+    "Body-contains-Expr-9465388479536023093-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Body-contains-Expr-9465388479536023093-value",
+      "cost": 0.0
+    },
+    "Body-contains-Expr-9465388479536023093": {
+      "op": "Body-contains-Expr",
+      "children": [
+        "PureOp-15952540911656918845",
+        "i64-0",
+        "Const-296351270734699293"
+      ],
+      "eclass": "Body-contains-Expr-9465388479536023093-value",
+      "cost": 1.0
+    },
+    "Body-contains-Expr-6051439310237859090-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Body-contains-Expr-6051439310237859090-value",
+      "cost": 0.0
+    },
+    "Body-contains-Expr-6051439310237859090": {
+      "op": "Body-contains-Expr",
+      "children": [
+        "PureOp-51973628441192654",
+        "i64-0",
+        "Const-4370405773294420822"
+      ],
+      "eclass": "Body-contains-Expr-6051439310237859090-value",
+      "cost": 1.0
+    },
+    "Body-contains-Expr-2725835094167682062-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Body-contains-Expr-2725835094167682062-value",
+      "cost": 0.0
+    },
+    "Body-contains-Expr-2725835094167682062": {
+      "op": "Body-contains-Expr",
+      "children": [
+        "PureOp-51973628441192654",
+        "i64-0",
+        "Const-5981234252888316682"
+      ],
+      "eclass": "Body-contains-Expr-2725835094167682062-value",
+      "cost": 1.0
+    },
+    "Body-contains-Expr-16461427488107380602-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Body-contains-Expr-16461427488107380602-value",
+      "cost": 0.0
+    },
+    "Body-contains-Expr-16461427488107380602": {
+      "op": "Body-contains-Expr",
+      "children": [
+        "PureOp-17667316648133200013",
+        "i64-0",
+        "Const-5929260624447124028"
+      ],
+      "eclass": "Body-contains-Expr-16461427488107380602-value",
+      "cost": 1.0
+    },
+    "Body-contains-Expr-12252448589578466663-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Body-contains-Expr-12252448589578466663-value",
+      "cost": 0.0
+    },
+    "Body-contains-Expr-12252448589578466663": {
+      "op": "Body-contains-Expr",
+      "children": [
+        "PureOp-17667316648133200013",
+        "i64-0",
+        "Const-4370405773294420822"
+      ],
+      "eclass": "Body-contains-Expr-12252448589578466663-value",
+      "cost": 1.0
+    },
+    "Body-contains-Expr-8926844373508289635-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Body-contains-Expr-8926844373508289635-value",
+      "cost": 0.0
+    },
+    "Body-contains-Expr-8926844373508289635": {
+      "op": "Body-contains-Expr",
+      "children": [
+        "PureOp-17667316648133200013",
+        "i64-0",
+        "Const-5981234252888316682"
+      ],
+      "eclass": "Body-contains-Expr-8926844373508289635-value",
+      "cost": 1.0
+    },
+    "Operand-contains-Expr-11229009905018767976-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Operand-contains-Expr-11229009905018767976-value",
+      "cost": 0.0
+    },
+    "Operand-contains-Expr-11229009905018767976": {
+      "op": "Operand-contains-Expr",
+      "children": [
+        "VecOperand-get-10251784279890115169",
+        "PRINT-3984406874221510308"
+      ],
+      "eclass": "Operand-contains-Expr-11229009905018767976-value",
+      "cost": 1.0
+    },
+    "Operand-contains-Expr-5357228898454765523-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Operand-contains-Expr-5357228898454765523-value",
+      "cost": 0.0
+    },
+    "Operand-contains-Expr-5357228898454765523": {
+      "op": "Operand-contains-Expr",
+      "children": [
+        "Node-5092353580987650850",
+        "badd-610665960731685746"
+      ],
+      "eclass": "Operand-contains-Expr-5357228898454765523-value",
+      "cost": 1.0
+    },
+    "Operand-contains-Expr-11280983533459960630-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Operand-contains-Expr-11280983533459960630-value",
+      "cost": 0.0
+    },
+    "Operand-contains-Expr-11280983533459960630": {
+      "op": "Operand-contains-Expr",
+      "children": [
+        "VecOperand-get-10251784279890115169",
+        "Const-4370405773294420822"
+      ],
+      "eclass": "Operand-contains-Expr-11280983533459960630-value",
+      "cost": 1.0
+    },
+    "Operand-contains-Expr-12891812013053856490-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Operand-contains-Expr-12891812013053856490-value",
+      "cost": 0.0
+    },
+    "Operand-contains-Expr-12891812013053856490": {
+      "op": "Operand-contains-Expr",
+      "children": [
+        "Node-5092353580987650850",
+        "Const-5981234252888316682"
+      ],
+      "eclass": "Operand-contains-Expr-12891812013053856490-value",
+      "cost": 1.0
+    },
+    "ExtractedBody-16783941965674463102": {
+      "op": "ExtractedBody",
+      "children": [
+        "PureOp-10912160959110460649"
+      ],
+      "eclass": "41",
+      "cost": 1.0
+    },
+    "ExtractedBody-1714775736476281168": {
+      "op": "ExtractedBody",
+      "children": [
+        "PureOp-14289738803621830331"
+      ],
+      "eclass": "42",
+      "cost": 1.0
+    },
+    "ExtractedBody-3377577844511369682": {
+      "op": "ExtractedBody",
+      "children": [
+        "PureOp-15952540911656918845"
+      ],
+      "eclass": "43",
+      "cost": 1.0
+    },
+    "ExtractedBody-6755155689022739364": {
+      "op": "ExtractedBody",
+      "children": [
+        "PureOp-883374682458736911"
+      ],
+      "eclass": "44",
+      "cost": 1.0
+    },
+    "ExtractedBody-5923754635005195107": {
+      "op": "ExtractedBody",
+      "children": [
+        "PureOp-51973628441192654"
+      ],
+      "eclass": "70",
+      "cost": 1.0
+    },
+    "ExtractedBody-5092353580987650850": {
+      "op": "ExtractedBody",
+      "children": [
+        "PureOp-17667316648133200013"
+      ],
+      "eclass": "82",
+      "cost": 1.0
+    },
+    "VecOperandAndCost-16117730118813376816": {
+      "op": "VecOperandAndCost",
+      "children": [
+        "VO-5871781006564002453",
+        "i64-0"
+      ],
+      "eclass": "56",
+      "cost": 1.0
+    },
+    "VecOperandAndCost-17786367394489206136": {
+      "op": "VecOperandAndCost",
+      "children": [
+        "VO-17615343019692007359",
+        "i64-10912160959110460649"
+      ],
+      "eclass": "58",
+      "cost": 1.0
+    },
+    "VecOperandAndCost-16123565286454117622": {
+      "op": "VecOperandAndCost",
+      "children": [
+        "VO-17615343019692007359",
+        "i64-17615343019692007359"
+      ],
+      "eclass": "92",
+      "cost": 1.0
+    },
+    "BoolT-0": {
+      "op": "BoolT",
+      "children": [],
+      "eclass": "2",
+      "cost": 1.0
+    },
+    "PureOp-10912160959110460649": {
+      "op": "PureOp",
+      "children": [
+        "Const-13702715391897792713"
+      ],
+      "eclass": "6",
+      "cost": 1.0
+    },
+    "PureOp-15952540911656918845": {
+      "op": "PureOp",
+      "children": [
+        "Const-296351270734699293"
+      ],
+      "eclass": "10",
+      "cost": 1.0
+    },
+    "PureOp-14289738803621830331": {
+      "op": "PureOp",
+      "children": [
+        "Const-4370405773294420822"
+      ],
+      "eclass": "16",
+      "cost": 1.0
+    },
+    "PureOp-883374682458736911": {
+      "op": "PureOp",
+      "children": [
+        "Const-5981234252888316682"
+      ],
+      "eclass": "20",
+      "cost": 1.0
+    },
+    "PureOp-51973628441192654": {
+      "op": "PureOp",
+      "children": [
+        "badd-11127230520737543987"
+      ],
+      "eclass": "23",
+      "cost": 1.0
+    },
+    "PureOp-17667316648133200013": {
+      "op": "PureOp",
+      "children": [
+        "PRINT-3984406874221510308"
+      ],
+      "eclass": "26",
+      "cost": 1.0
+    },
+    "VecOperandCtx-length-5871781006564002453-value": {
+      "op": "0",
+      "children": [],
+      "eclass": "VecOperandCtx-length-5871781006564002453-value",
+      "cost": 0.0
+    },
+    "VecOperandCtx-length-5871781006564002453": {
+      "op": "VecOperandCtx-length",
+      "children": [
+        "VOC-5871781006564002453"
+      ],
+      "eclass": "VecOperandCtx-length-5871781006564002453-value",
+      "cost": 1.0
+    },
+    "VecOperand-pure-prefix-16835915594115655756-value": {
+      "op": "0",
+      "children": [],
+      "eclass": "VecOperand-pure-prefix-16835915594115655756-value",
+      "cost": 0.0
+    },
+    "VecOperand-pure-prefix-16835915594115655756": {
+      "op": "VecOperand-pure-prefix",
+      "children": [
+        "VO-17615343019692007359"
+      ],
+      "eclass": "VecOperand-pure-prefix-16835915594115655756-value",
+      "cost": 1.0
+    },
+    "VecOperand-pure-prefix-9353306107957757443-value": {
+      "op": "0",
+      "children": [],
+      "eclass": "VecOperand-pure-prefix-9353306107957757443-value",
+      "cost": 0.0
+    },
+    "VecOperand-pure-prefix-9353306107957757443": {
+      "op": "VecOperand-pure-prefix",
+      "children": [
+        "VO-5871781006564002453"
+      ],
+      "eclass": "VecOperand-pure-prefix-9353306107957757443-value",
+      "cost": 1.0
+    },
+    "VecOperandCtx-is-pure-5871781006564002453-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "VecOperandCtx-is-pure-5871781006564002453-value",
+      "cost": 0.0
+    },
+    "VecOperandCtx-is-pure-5871781006564002453": {
+      "op": "VecOperandCtx-is-pure",
+      "children": [
+        "VOC-5871781006564002453"
+      ],
+      "eclass": "VecOperandCtx-is-pure-5871781006564002453-value",
+      "cost": 1.0
+    },
+    "VecOperandCtxAndCost-956286968014291186": {
+      "op": "VecOperandCtxAndCost",
+      "children": [
+        "VOC-5871781006564002453",
+        "i64-0"
+      ],
+      "eclass": "57",
+      "cost": 1.0
+    },
+    "BoolI-0": {
+      "op": "BoolI",
+      "children": [
+        "bool-0",
+        "bool-0"
+      ],
+      "eclass": "33",
+      "cost": 1.0
+    },
+    "BoolI-6828067974578293639": {
+      "op": "BoolI",
+      "children": [
+        "bool-5871781006564002453",
+        "bool-5871781006564002453"
+      ],
+      "eclass": "34",
+      "cost": 1.0
+    },
+    "Body-is-pure-16783941965674463102-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Body-is-pure-16783941965674463102-value",
+      "cost": 0.0
+    },
+    "Body-is-pure-16783941965674463102": {
+      "op": "Body-is-pure",
+      "children": [
+        "PureOp-10912160959110460649"
+      ],
+      "eclass": "Body-is-pure-16783941965674463102-value",
+      "cost": 1.0
+    },
+    "Body-is-pure-1714775736476281168-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Body-is-pure-1714775736476281168-value",
+      "cost": 0.0
+    },
+    "Body-is-pure-1714775736476281168": {
+      "op": "Body-is-pure",
+      "children": [
+        "PureOp-14289738803621830331"
+      ],
+      "eclass": "Body-is-pure-1714775736476281168-value",
+      "cost": 1.0
+    },
+    "Body-is-pure-3377577844511369682-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Body-is-pure-3377577844511369682-value",
+      "cost": 0.0
+    },
+    "Body-is-pure-3377577844511369682": {
+      "op": "Body-is-pure",
+      "children": [
+        "PureOp-15952540911656918845"
+      ],
+      "eclass": "Body-is-pure-3377577844511369682-value",
+      "cost": 1.0
+    },
+    "Body-is-pure-6755155689022739364-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Body-is-pure-6755155689022739364-value",
+      "cost": 0.0
+    },
+    "Body-is-pure-6755155689022739364": {
+      "op": "Body-is-pure",
+      "children": [
+        "PureOp-883374682458736911"
+      ],
+      "eclass": "Body-is-pure-6755155689022739364-value",
+      "cost": 1.0
+    },
+    "Body-is-pure-5923754635005195107-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Body-is-pure-5923754635005195107-value",
+      "cost": 0.0
+    },
+    "Body-is-pure-5923754635005195107": {
+      "op": "Body-is-pure",
+      "children": [
+        "PureOp-51973628441192654"
+      ],
+      "eclass": "Body-is-pure-5923754635005195107-value",
+      "cost": 1.0
+    },
+    "Operand-is-pure-0-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Operand-is-pure-0-value",
+      "cost": 0.0
+    },
+    "Operand-is-pure-0": {
+      "op": "Operand-is-pure",
+      "children": [
+        "Arg-0"
+      ],
+      "eclass": "Operand-is-pure-0-value",
+      "cost": 1.0
+    },
+    "Operand-is-pure-12626936695586741817-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Operand-is-pure-12626936695586741817-value",
+      "cost": 0.0
+    },
+    "Operand-is-pure-12626936695586741817": {
+      "op": "Operand-is-pure",
+      "children": [
+        "Node-6755155689022739364"
+      ],
+      "eclass": "Operand-is-pure-12626936695586741817-value",
+      "cost": 1.0
+    },
+    "Operand-is-pure-4208978898528913939-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Operand-is-pure-4208978898528913939-value",
+      "cost": 0.0
+    },
+    "Operand-is-pure-4208978898528913939": {
+      "op": "Operand-is-pure",
+      "children": [
+        "Node-16783941965674463102"
+      ],
+      "eclass": "Operand-is-pure-4208978898528913939-value",
+      "cost": 1.0
+    },
+    "Operand-is-pure-7586556743040283621-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Operand-is-pure-7586556743040283621-value",
+      "cost": 0.0
+    },
+    "Operand-is-pure-7586556743040283621": {
+      "op": "Operand-is-pure",
+      "children": [
+        "Node-1714775736476281168"
+      ],
+      "eclass": "Operand-is-pure-7586556743040283621-value",
+      "cost": 1.0
+    },
+    "Operand-is-pure-9249358851075372135-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Operand-is-pure-9249358851075372135-value",
+      "cost": 0.0
+    },
+    "Operand-is-pure-9249358851075372135": {
+      "op": "Operand-is-pure",
+      "children": [
+        "Node-3377577844511369682"
+      ],
+      "eclass": "Operand-is-pure-9249358851075372135-value",
+      "cost": 1.0
+    },
+    "Operand-is-pure-11795535641569197560-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Operand-is-pure-11795535641569197560-value",
+      "cost": 0.0
+    },
+    "Operand-is-pure-11795535641569197560": {
+      "op": "Operand-is-pure",
+      "children": [
+        "Node-5923754635005195107"
+      ],
+      "eclass": "Operand-is-pure-11795535641569197560-value",
+      "cost": 1.0
+    },
+    "ival-7586556743040283621": {
+      "op": "ival",
+      "children": [
+        "Node-1714775736476281168"
+      ],
+      "eclass": "31",
+      "cost": 1.0
+    },
+    "ival-12626936695586741817": {
+      "op": "ival",
+      "children": [
+        "Node-6755155689022739364"
+      ],
+      "eclass": "32",
+      "cost": 1.0
+    },
+    "ival-4208978898528913939": {
+      "op": "ival",
+      "children": [
+        "Node-16783941965674463102"
+      ],
+      "eclass": "33",
+      "cost": 1.0
+    },
+    "ival-9249358851075372135": {
+      "op": "ival",
+      "children": [
+        "Node-3377577844511369682"
+      ],
+      "eclass": "34",
+      "cost": 1.0
+    },
+    "ival-11795535641569197560": {
+      "op": "ival",
+      "children": [
+        "Node-5923754635005195107"
+      ],
+      "eclass": "35",
+      "cost": 1.0
+    },
+    "ExtractedVecOperandHelper-10251784279890115169": {
+      "op": "ExtractedVecOperandHelper",
+      "children": [
+        "VO-17615343019692007359",
+        "i64-0"
+      ],
+      "eclass": "56",
+      "cost": 1.0
+    },
+    "ExtractedVecOperandHelper-16117730118813376816": {
+      "op": "ExtractedVecOperandHelper",
+      "children": [
+        "VO-5871781006564002453",
+        "i64-0"
+      ],
+      "eclass": "56",
+      "cost": 1.0
+    },
+    "ExtractedVecOperandHelper-4380003273326112716": {
+      "op": "ExtractedVecOperandHelper",
+      "children": [
+        "VO-17615343019692007359",
+        "i64-5871781006564002453"
+      ],
+      "eclass": "92",
+      "cost": 1.0
+    },
+    "Expr-is-pure-10912160959110460649-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Expr-is-pure-10912160959110460649-value",
+      "cost": 0.0
+    },
+    "Expr-is-pure-10912160959110460649": {
+      "op": "Expr-is-pure",
+      "children": [
+        "Const-13702715391897792713"
+      ],
+      "eclass": "Expr-is-pure-10912160959110460649-value",
+      "cost": 1.0
+    },
+    "Expr-is-pure-14289738803621830331-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Expr-is-pure-14289738803621830331-value",
+      "cost": 0.0
+    },
+    "Expr-is-pure-14289738803621830331": {
+      "op": "Expr-is-pure",
+      "children": [
+        "Const-4370405773294420822"
+      ],
+      "eclass": "Expr-is-pure-14289738803621830331-value",
+      "cost": 1.0
+    },
+    "Expr-is-pure-15952540911656918845-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Expr-is-pure-15952540911656918845-value",
+      "cost": 0.0
+    },
+    "Expr-is-pure-15952540911656918845": {
+      "op": "Expr-is-pure",
+      "children": [
+        "Const-296351270734699293"
+      ],
+      "eclass": "Expr-is-pure-15952540911656918845-value",
+      "cost": 1.0
+    },
+    "Expr-is-pure-883374682458736911-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Expr-is-pure-883374682458736911-value",
+      "cost": 0.0
+    },
+    "Expr-is-pure-883374682458736911": {
+      "op": "Expr-is-pure",
+      "children": [
+        "Const-5981234252888316682"
+      ],
+      "eclass": "Expr-is-pure-883374682458736911-value",
+      "cost": 1.0
+    },
+    "Expr-is-pure-51973628441192654-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "Expr-is-pure-51973628441192654-value",
+      "cost": 0.0
+    },
+    "Expr-is-pure-51973628441192654": {
+      "op": "Expr-is-pure",
+      "children": [
+        "Const-5929260624447124028"
+      ],
+      "eclass": "Expr-is-pure-51973628441192654-value",
+      "cost": 1.0
+    },
+    "VecOperand-is-pure-9353306107957757443-value": {
+      "op": "()",
+      "children": [],
+      "eclass": "VecOperand-is-pure-9353306107957757443-value",
+      "cost": 0.0
+    },
+    "VecOperand-is-pure-9353306107957757443": {
+      "op": "VecOperand-is-pure",
+      "children": [
+        "VO-5871781006564002453"
+      ],
+      "eclass": "VecOperand-is-pure-9353306107957757443-value",
+      "cost": 1.0
+    }
+  },
+  "root_eclasses": [
+    "29"
+  ],
+  "class_data": {
+    "VecOperand-length-16835915594115655756-value": {
+      "type": "i64"
+    },
+    "28": {
+      "type": "VecOperand"
+    },
+    "VecOperand-length-9353306107957757443-value": {
+      "type": "i64"
+    },
+    "55": {
+      "type": "VecOperand"
+    },
+    "22": {
+      "type": "Expr"
+    },
+    "13": {
+      "type": "Type"
+    },
+    "17": {
+      "type": "Operand"
+    },
+    "21": {
+      "type": "Operand"
+    },
+    "Body-contains-Operand-9429017154749228772-value": {
+      "type": "Unit"
+    },
+    "23": {
+      "type": "Body"
+    },
+    "i64-0": {
+      "type": "i64"
+    },
+    "Body-contains-Operand-4388637202202770576-value": {
+      "type": "Unit"
+    },
+    "Body-contains-Operand-1392261258909198668-value": {
+      "type": "Unit"
+    },
+    "26": {
+      "type": "Body"
+    },
+    "24": {
+      "type": "Operand"
+    },
+    "Body-contains-Operand-8043469691049552724-value": {
+      "type": "Unit"
+    },
+    "0": {
+      "type": "Operand"
+    },
+    "Body-contains-Operand-15630026434089836345-value": {
+      "type": "Unit"
+    },
+    "Body-contains-Operand-10589646481543378149-value": {
+      "type": "Unit"
+    },
+    "37": {
+      "type": "TermAndCost"
+    },
+    "5": {
+      "type": "Expr"
+    },
+    "38": {
+      "type": "TermAndCost"
+    },
+    "9": {
+      "type": "Expr"
+    },
+    "39": {
+      "type": "TermAndCost"
+    },
+    "19": {
+      "type": "Expr"
+    },
+    "40": {
+      "type": "TermAndCost"
+    },
+    "15": {
+      "type": "Expr"
+    },
+    "65": {
+      "type": "TermAndCost"
+    },
+    "78": {
+      "type": "TermAndCost"
+    },
+    "25": {
+      "type": "Expr"
+    },
+    "3": {
+      "type": "ConstOps"
+    },
+    "7": {
+      "type": "Operand"
+    },
+    "6": {
+      "type": "Body"
+    },
+    "11": {
+      "type": "Operand"
+    },
+    "10": {
+      "type": "Body"
+    },
+    "16": {
+      "type": "Body"
+    },
+    "20": {
+      "type": "Body"
+    },
+    "30": {
+      "type": "Operand"
+    },
+    "49": {
+      "type": "TermAndCost"
+    },
+    "70": {
+      "type": "TermAndCost"
+    },
+    "50": {
+      "type": "TermAndCost"
+    },
+    "74": {
+      "type": "TermAndCost"
+    },
+    "51": {
+      "type": "TermAndCost"
+    },
+    "52": {
+      "type": "TermAndCost"
+    },
+    "82": {
+      "type": "TermAndCost"
+    },
+    "53": {
+      "type": "TermAndCost"
+    },
+    "86": {
+      "type": "TermAndCost"
+    },
+    "54": {
+      "type": "TermAndCost"
+    },
+    "92": {
+      "type": "TermAndCost"
+    },
+    "58": {
+      "type": "TermAndCost"
+    },
+    "i64-5871781006564002453": {
+      "type": "i64"
+    },
+    "i64-17615343019692007359": {
+      "type": "i64"
+    },
+    "i64-10912160959110460649": {
+      "type": "i64"
+    },
+    "36": {
+      "type": "TermAndCost"
+    },
+    "45": {
+      "type": "TermAndCost"
+    },
+    "46": {
+      "type": "TermAndCost"
+    },
+    "47": {
+      "type": "TermAndCost"
+    },
+    "48": {
+      "type": "TermAndCost"
+    },
+    "57": {
+      "type": "TermAndCost"
+    },
+    "1": {
+      "type": "VecOperandCtx"
+    },
+    "31": {
+      "type": "Interval"
+    },
+    "32": {
+      "type": "Interval"
+    },
+    "i64-11743562013128004906": {
+      "type": "i64"
+    },
+    "35": {
+      "type": "Interval"
+    },
+    "VecOperandCtx-pure-prefix-5871781006564002453-value": {
+      "type": "i64"
+    },
+    "56": {
+      "type": "TermAndCost"
+    },
+    "nontrivial-arg-10251784279890115169-value": {
+      "type": "bool"
+    },
+    "refers-to-branch-4208978898528913939-value": {
+      "type": "i64"
+    },
+    "refers-to-branch-9249358851075372135-value": {
+      "type": "i64"
+    },
+    "refers-to-branch-7586556743040283621-value": {
+      "type": "i64"
+    },
+    "refers-to-branch-12626936695586741817-value": {
+      "type": "i64"
+    },
+    "refers-to-branch-11795535641569197560-value": {
+      "type": "i64"
+    },
+    "12": {
+      "type": "EffectType"
+    },
+    "4": {
+      "type": "Literal"
+    },
+    "bool-0": {
+      "type": "bool"
+    },
+    "8": {
+      "type": "Literal"
+    },
+    "bool-5871781006564002453": {
+      "type": "bool"
+    },
+    "Operand-contains-Body-10397608851001223719-value": {
+      "type": "Unit"
+    },
+    "Operand-contains-Body-17932191965600314686-value": {
+      "type": "Unit"
+    },
+    "Operand-contains-Body-7020031006489854037-value": {
+      "type": "Unit"
+    },
+    "Operand-contains-Body-12060410959036312233-value": {
+      "type": "Unit"
+    },
+    "unroll_count-0-value": {
+      "type": "i64"
+    },
+    "VecOperandBase-17615343019692007359": {
+      "type": "VecOperandBase"
+    },
+    "VecOperandBase-5871781006564002453": {
+      "type": "VecOperandBase"
+    },
+    "2": {
+      "type": "Type"
+    },
+    "14": {
+      "type": "Literal"
+    },
+    "18": {
+      "type": "Literal"
+    },
+    "60": {
+      "type": "Literal"
+    },
+    "41": {
+      "type": "TermAndCost"
+    },
+    "42": {
+      "type": "TermAndCost"
+    },
+    "43": {
+      "type": "TermAndCost"
+    },
+    "44": {
+      "type": "TermAndCost"
+    },
+    "Operand-contains-demand-10132733533534109046-value": {
+      "type": "Unit"
+    },
+    "Body-contains-Body-15300798161313231225-value": {
+      "type": "Unit"
+    },
+    "Body-contains-Body-10260418208766773029-value": {
+      "type": "Unit"
+    },
+    "Body-contains-Body-3886464420961831439-value": {
+      "type": "Unit"
+    },
+    "Body-contains-Body-9758245427525833892-value": {
+      "type": "Unit"
+    },
+    "Body-contains-Body-4717865474979375696-value": {
+      "type": "Unit"
+    },
+    "Operand-contains-Operand-15437988803547681915-value": {
+      "type": "Unit"
+    },
+    "Operand-contains-Operand-17100790911582770429-value": {
+      "type": "Unit"
+    },
+    "Operand-contains-Operand-8734806742966135205-value": {
+      "type": "Unit"
+    },
+    "Operand-contains-Operand-1148249999925851584-value": {
+      "type": "Unit"
+    },
+    "Operand-contains-Operand-6188629952472309780-value": {
+      "type": "Unit"
+    },
+    "29": {
+      "type": "Function"
+    },
+    "String-1845757586690957117": {
+      "type": "String"
+    },
+    "FuncSigs-0": {
+      "type": "FuncSigs"
+    },
+    "arg-used-Operand-10132733533534109046-value": {
+      "type": "SetIntBase"
+    },
+    "Body-contains-Expr-7264042265473201121-value": {
+      "type": "Unit"
+    },
+    "Body-contains-Expr-608918799359241499-value": {
+      "type": "Unit"
+    },
+    "Body-contains-Expr-3792192767063198471-value": {
+      "type": "Unit"
+    },
+    "Body-contains-Expr-11963506675562261430-value": {
+      "type": "Unit"
+    },
+    "Body-contains-Expr-3557236148185226319-value": {
+      "type": "Unit"
+    },
+    "Body-contains-Expr-9465388479536023093-value": {
+      "type": "Unit"
+    },
+    "Body-contains-Expr-6051439310237859090-value": {
+      "type": "Unit"
+    },
+    "Body-contains-Expr-2725835094167682062-value": {
+      "type": "Unit"
+    },
+    "Body-contains-Expr-16461427488107380602-value": {
+      "type": "Unit"
+    },
+    "Body-contains-Expr-12252448589578466663-value": {
+      "type": "Unit"
+    },
+    "Body-contains-Expr-8926844373508289635-value": {
+      "type": "Unit"
+    },
+    "Operand-contains-Expr-11229009905018767976-value": {
+      "type": "Unit"
+    },
+    "Operand-contains-Expr-5357228898454765523-value": {
+      "type": "Unit"
+    },
+    "Operand-contains-Expr-11280983533459960630-value": {
+      "type": "Unit"
+    },
+    "Operand-contains-Expr-12891812013053856490-value": {
+      "type": "Unit"
+    },
+    "VecOperandCtx-length-5871781006564002453-value": {
+      "type": "i64"
+    },
+    "VecOperand-pure-prefix-16835915594115655756-value": {
+      "type": "i64"
+    },
+    "VecOperand-pure-prefix-9353306107957757443-value": {
+      "type": "i64"
+    },
+    "VecOperandCtx-is-pure-5871781006564002453-value": {
+      "type": "Unit"
+    },
+    "33": {
+      "type": "Interval"
+    },
+    "34": {
+      "type": "Interval"
+    },
+    "Body-is-pure-16783941965674463102-value": {
+      "type": "Unit"
+    },
+    "Body-is-pure-1714775736476281168-value": {
+      "type": "Unit"
+    },
+    "Body-is-pure-3377577844511369682-value": {
+      "type": "Unit"
+    },
+    "Body-is-pure-6755155689022739364-value": {
+      "type": "Unit"
+    },
+    "Body-is-pure-5923754635005195107-value": {
+      "type": "Unit"
+    },
+    "Operand-is-pure-0-value": {
+      "type": "Unit"
+    },
+    "Operand-is-pure-12626936695586741817-value": {
+      "type": "Unit"
+    },
+    "Operand-is-pure-4208978898528913939-value": {
+      "type": "Unit"
+    },
+    "Operand-is-pure-7586556743040283621-value": {
+      "type": "Unit"
+    },
+    "Operand-is-pure-9249358851075372135-value": {
+      "type": "Unit"
+    },
+    "Operand-is-pure-11795535641569197560-value": {
+      "type": "Unit"
+    },
+    "Expr-is-pure-10912160959110460649-value": {
+      "type": "Unit"
+    },
+    "Expr-is-pure-14289738803621830331-value": {
+      "type": "Unit"
+    },
+    "Expr-is-pure-15952540911656918845-value": {
+      "type": "Unit"
+    },
+    "Expr-is-pure-883374682458736911-value": {
+      "type": "Unit"
+    },
+    "Expr-is-pure-51973628441192654-value": {
+      "type": "Unit"
+    },
+    "VecOperand-is-pure-9353306107957757443-value": {
+      "type": "Unit"
+    }
+  }
+}

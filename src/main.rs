@@ -28,8 +28,14 @@ fn main() {
             "greedy-dag",
             extract::greedy_dag::GreedyDagExtractor.boxed(),
         ),
-        #[cfg(feature = "ilp-cbc")]
-        ("ilp-cbc", extract::ilp_cbc::CbcExtractor.boxed()),
+        (
+            "faster-greedy-dag",
+            extract::greedy_dag_1::FasterGreedyDagExtractor.boxed(),
+        ),
+        (
+            "global-greedy-dag",
+            extract::global_greedy_dag::GlobalGreedyDagExtractor.boxed(),
+        ),
     ]
     .into_iter()
     .collect();

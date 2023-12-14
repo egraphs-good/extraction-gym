@@ -1,3 +1,5 @@
+use indexmap::IndexMap;
+use rustc_hash::FxHashMap;
 use std::collections::HashMap;
 
 pub use crate::*;
@@ -19,6 +21,37 @@ pub trait Extractor: Sync {
         Self: Sized + 'static,
     {
         Box::new(self)
+    }
+}
+
+pub trait MapGet<K, V> {
+    fn get(&self, key: &K) -> Option<&V>;
+}
+
+impl<K, V> MapGet<K, V> for HashMap<K, V>
+where
+    K: Eq + std::hash::Hash,
+{
+    fn get(&self, key: &K) -> Option<&V> {
+        HashMap::get(self, key)
+    }
+}
+
+impl<K, V> MapGet<K, V> for FxHashMap<K, V>
+where
+    K: Eq + std::hash::Hash,
+{
+    fn get(&self, key: &K) -> Option<&V> {
+        FxHashMap::get(self, key)
+    }
+}
+
+impl<K, V> MapGet<K, V> for IndexMap<K, V>
+where
+    K: Eq + std::hash::Hash,
+{
+    fn get(&self, key: &K) -> Option<&V> {
+        IndexMap::get(self, key)
     }
 }
 
@@ -118,12 +151,10 @@ impl ExtractionResult {
         costs.values().sum()
     }
 
-    pub fn node_sum_cost(
-        &self,
-        egraph: &EGraph,
-        node: &Node,
-        costs: &IndexMap<ClassId, Cost>,
-    ) -> Cost {
+    pub fn node_sum_cost<M>(&self, egraph: &EGraph, node: &Node, costs: &M) -> Cost
+    where
+        M: MapGet<ClassId, Cost>,
+    {
         node.cost
             + node
                 .children

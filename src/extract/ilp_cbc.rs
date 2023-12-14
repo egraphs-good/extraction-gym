@@ -6,10 +6,9 @@ use super::*;
 use coin_cbc::{Col, Model, Sense};
 use indexmap::IndexSet;
 use std::fmt;
-use std::time::Duration;
 use std::time::SystemTime;
 
-const INITIALISE_WITH_BOTTOM_UP: bool = false;
+const INITIALISE_WITH_APPROX: bool = false;
 const PRIOR_OVERBLOCK_CYCLES: bool = false;
 
 const PULL_UP_SINGLE_PARENT: bool = true;
@@ -147,7 +146,7 @@ impl Extractor for CbcExtractor {
             })
             .collect();
 
-        let initial_result = super::bottom_up::BottomUpExtractor.extract(egraph, roots);
+        let initial_result = super::greedy_dag_1::FasterGreedyDagExtractor.extract(egraph, roots);
         let initial_result_cost = initial_result.dag_cost(egraph, roots);
 
         remove_with_loops(&mut vars, roots);
@@ -275,7 +274,7 @@ impl Extractor for CbcExtractor {
         log::info!("Objective function terms: {}", objective_fn_terms);
 
         // set initial solution based on bottom up extractor
-        if INITIALISE_WITH_BOTTOM_UP {
+        if INITIALISE_WITH_APPROX {
             for (class, class_vars) in &vars {
                 for col in &class_vars.variables {
                     model.set_col_initial_solution(*col, 0.0);

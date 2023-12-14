@@ -32,6 +32,8 @@ fn main() {
             "global-greedy-dag",
             extract::global_greedy_dag::GlobalGreedyDagExtractor.boxed(),
         ),
+        #[cfg(feature = "ilp-cbc")]
+        ("ilp-cbc", extract::ilp_cbc::CbcExtractor.boxed()),
     ]
     .into_iter()
     .collect();

@@ -19,10 +19,10 @@ fn main() {
     env_logger::init();
 
     let extractors: IndexMap<&str, Box<dyn Extractor>> = [
-        //("bottom-up", extract::bottom_up::BottomUpExtractor.boxed()),
+        ("bottom-up", extract::bottom_up::BottomUpExtractor.boxed()),
         (
-            "bottom-up-recursive",
-            extract::bottom_up_recursive::BottomUpRecursiveExtractor.boxed(),
+            "faster-bottom-up",
+            extract::faster_bottom_up::BottomUpExtractor.boxed(),
         ),
         (
             "greedy-dag",

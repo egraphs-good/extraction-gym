@@ -1,3 +1,5 @@
+use rustc_hash::{FxHashMap, FxHashSet};
+
 use super::*;
 
 /// A faster bottom up extractor inspired by the faster-greedy-dag extractor.
@@ -16,7 +18,7 @@ pub struct BottomUpExtractor;
 
 impl Extractor for BottomUpExtractor {
     fn extract(&self, egraph: &EGraph, _roots: &[ClassId]) -> ExtractionResult {
-        let mut parents = IndexMap::<ClassId, Vec<NodeId>>::default();
+        let mut parents = IndexMap::<ClassId, Vec<NodeId>>::with_capacity(egraph.classes().len());
         let n2c = |nid: &NodeId| egraph.nid_to_cid(nid);
         let mut analysis_pending = UniqueQueue::default();
 
@@ -39,20 +41,20 @@ impl Extractor for BottomUpExtractor {
         }
 
         let mut result = ExtractionResult::default();
-        let mut costs = IndexMap::<ClassId, Cost>::default();
+        let mut costs = FxHashMap::<ClassId, Cost>::with_capacity_and_hasher(
+            egraph.classes().len(),
+            Default::default(),
+        );
 
         while let Some(node_id) = analysis_pending.pop() {
             let class_id = n2c(&node_id);
             let node = &egraph[&node_id];
-            if node.children.iter().all(|c| costs.contains_key(n2c(c))) {
-                let prev_cost = costs.get(class_id).unwrap_or(&INFINITY);
-
-                let cost = result.node_sum_cost(egraph, node, &costs);
-                if cost < *prev_cost {
-                    result.choose(class_id.clone(), node_id.clone());
-                    costs.insert(class_id.clone(), cost);
-                    analysis_pending.extend(parents[class_id].iter().cloned());
-                }
+            let prev_cost = costs.get(class_id).unwrap_or(&INFINITY);
+            let cost = result.node_sum_cost(egraph, node, &costs);
+            if cost < *prev_cost {
+                result.choose(class_id.clone(), node_id.clone());
+                costs.insert(class_id.clone(), cost);
+                analysis_pending.extend(parents[class_id].iter().cloned());
             }
         }
 
@@ -64,7 +66,7 @@ impl Extractor for BottomUpExtractor {
 
 Notably, insert/pop operations have O(1) expected amortized runtime complexity.
 
-Thanks Trevor for the implementation!
+Thanks @Bastacyclop for the implementation!
 */
 #[derive(Clone)]
 #[cfg_attr(feature = "serde-1", derive(Serialize, Deserialize))]
@@ -72,7 +74,7 @@ pub(crate) struct UniqueQueue<T>
 where
     T: Eq + std::hash::Hash + Clone,
 {
-    set: std::collections::HashSet<T>, // hashbrown::
+    set: FxHashSet<T>, // hashbrown::
     queue: std::collections::VecDeque<T>,
 }
 
@@ -82,7 +84,7 @@ where
 {
     fn default() -> Self {
         UniqueQueue {
-            set: std::collections::HashSet::default(),
+            set: Default::default(),
             queue: std::collections::VecDeque::new(),
         }
     }

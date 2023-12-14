@@ -19,9 +19,7 @@ def load_jsons(files):
     return js
 
 
-def process(js, extractors=[]):
-    extractors = extractors or sorted(set(j["extractor"] for j in js))
-
+def process(js, extractors):
     by_name = {}
     for j in js:
         n, e = j["name"], j["extractor"]
@@ -39,7 +37,9 @@ def process(js, extractors=[]):
     for name, d in by_name.items():
         try:
             if d[e1]["tree"] !=  d[e2]["tree"]:
-                print(name, d[e1]["tree"], d[e2]["tree"]);
+                print(name, " differs in tree cost: ", d[e1]["tree"], d[e2]["tree"]);
+            if d[e1]["dag"] !=  d[e2]["dag"]:
+                print(name, " differs in dag cost: ", d[e1]["dag"], d[e2]["dag"]);
                 
             tree_ratio = d[e1]["tree"] / d[e2]["tree"]
             dag_ratio = d[e1]["dag"] / d[e2]["dag"]
@@ -56,9 +56,14 @@ def process(js, extractors=[]):
         except Exception as e:
             print(f"Error processing {name}")
             raise e
-
+ 
     print(f"cumulative time for {e1}: {e1_cumulative/1000:.0f}ms")
     print(f"cumulative time for {e2}: {e2_cumulative/1000:.0f}ms")
+
+    print(f"cumulative tree cost for {e1}: {sum(d[e1]['tree'] for d in by_name.values()):.0f}")
+    print(f"cumulative tree cost for {e2}: {sum(d[e2]['tree'] for d in by_name.values()):.0f}")
+    print(f"cumulative dag cost for {e1}: {sum(d[e1]['dag'] for d in by_name.values()):.0f}")
+    print(f"cumulative dag cost for {e2}: {sum(d[e2]['dag'] for d in by_name.values()):.0f}")
 
     print(f"{e1} / {e2}")
 
@@ -93,4 +98,14 @@ if __name__ == "__main__":
     files = sys.argv[1:] or glob.glob("output/**/*.json", recursive=True)
     js = load_jsons(files)
     print(f"Loaded {len(js)} jsons.")
-    process(js)
+
+    extractors = sorted(set(j["extractor"] for j in js))
+
+    for i in range(len(extractors)):
+        for j in range(i + 1, len(extractors)):
+            ex1, ex2 = extractors[i], extractors[j]
+            if ex1 == ex2:
+                continue
+            print(f"###################################################\n{ex1} vs {ex2}\n\n")
+            process(js, [ex1, ex2])
+            print("\n\n")

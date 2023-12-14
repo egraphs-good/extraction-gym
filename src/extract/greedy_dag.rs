@@ -1,7 +1,8 @@
 use super::*;
+use rustc_hash::FxHashMap;
 
 struct CostSet {
-    costs: std::collections::HashMap<ClassId, Cost>,
+    costs: FxHashMap<ClassId, Cost>,
     total: Cost,
     choice: NodeId,
 }
@@ -25,7 +26,7 @@ impl Extractor for GreedyDagExtractor {
             'node_loop: for (node_id, node) in &nodes {
                 let cid = egraph.nid_to_cid(node_id);
                 let mut cost_set = CostSet {
-                    costs: std::collections::HashMap::new(),
+                    costs: FxHashMap::default(),
                     total: Cost::default(),
                     choice: node_id.clone(),
                 };

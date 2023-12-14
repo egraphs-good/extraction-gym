@@ -19,6 +19,7 @@ fn main() {
     env_logger::init();
 
     let extractors: IndexMap<&str, Box<dyn Extractor>> = [
+        ("bottom-up", extract::bottom_up::BottomUpExtractor.boxed()),
         (
             "greedy-dag",
             extract::greedy_dag::GreedyDagExtractor.boxed(),
@@ -26,6 +27,10 @@ fn main() {
         (
             "faster-greedy-dag",
             extract::greedy_dag_1::FasterGreedyDagExtractor.boxed(),
+        ),
+        (
+            "global-greedy-dag",
+            extract::global_greedy_dag::GlobalGreedyDagExtractor.boxed(),
         ),
     ]
     .into_iter()

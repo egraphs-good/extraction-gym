@@ -3,6 +3,8 @@ use std::collections::HashMap;
 pub use crate::*;
 
 pub mod bottom_up;
+pub mod faster_bottom_up;
+pub mod global_greedy_dag;
 pub mod greedy_dag;
 pub mod greedy_dag_1;
 

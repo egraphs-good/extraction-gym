@@ -6,7 +6,8 @@ use super::*;
 use rustc_hash::{FxHashMap, FxHashSet};
 
 struct CostSet {
-    costs: FxHashMap<ClassId, Cost>,
+    // It's slightly faster if this is an HashMap rather than an fxHashMap.
+    costs: HashMap<ClassId, Cost>,
     total: Cost,
     choice: NodeId,
 }

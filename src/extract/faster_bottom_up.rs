@@ -14,9 +14,9 @@ use super::*;
 /// This algorithm instead only visits the nodes whose current cost estimate may change:
 /// it does this by tracking parent-child relationships and storing relevant nodes
 /// in a work list (UniqueQueue).
-pub struct BottomUpExtractor;
+pub struct FasterBottomUpExtractor;
 
-impl Extractor for BottomUpExtractor {
+impl Extractor for FasterBottomUpExtractor {
     fn extract(&self, egraph: &EGraph, _roots: &[ClassId]) -> ExtractionResult {
         let mut parents = IndexMap::<ClassId, Vec<NodeId>>::with_capacity(egraph.classes().len());
         let n2c = |nid: &NodeId| egraph.nid_to_cid(nid);

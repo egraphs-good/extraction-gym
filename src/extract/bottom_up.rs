@@ -4,7 +4,10 @@ pub struct BottomUpExtractor;
 impl Extractor for BottomUpExtractor {
     fn extract(&self, egraph: &EGraph, _roots: &[ClassId]) -> ExtractionResult {
         let mut result = ExtractionResult::default();
-        let mut costs = IndexMap::<ClassId, Cost>::default();
+        let mut costs = FxHashMap::<ClassId, Cost>::with_capacity_and_hasher(
+            egraph.classes().len(),
+            Default::default(),
+        );
         let mut did_something = false;
 
         loop {

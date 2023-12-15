@@ -22,7 +22,7 @@ fn main() {
         ("bottom-up", extract::bottom_up::BottomUpExtractor.boxed()),
         (
             "faster-bottom-up",
-            extract::faster_bottom_up::BottomUpExtractor.boxed(),
+            extract::faster_bottom_up::FasterBottomUpExtractor.boxed(),
         ),
         (
             "greedy-dag",
@@ -30,7 +30,7 @@ fn main() {
         ),
         (
             "faster-greedy-dag",
-            extract::greedy_dag_1::FasterGreedyDagExtractor.boxed(),
+            extract::faster_greedy_dag::FasterGreedyDagExtractor.boxed(),
         ),
         (
             "global-greedy-dag",

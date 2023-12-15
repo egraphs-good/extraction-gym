@@ -10,10 +10,12 @@ struct CostSet {
 pub struct GreedyDagExtractor;
 impl Extractor for GreedyDagExtractor {
     fn extract(&self, egraph: &EGraph, _roots: &[ClassId]) -> ExtractionResult {
-        let mut costs = IndexMap::<ClassId, CostSet>::default();
-        let mut keep_going = true;
+        let mut costs = FxHashMap::<ClassId, CostSet>::with_capacity_and_hasher(
+            egraph.classes().len(),
+            Default::default(),
+        );
 
-        let mut nodes = egraph.nodes.clone();
+        let mut keep_going = true;
 
         let mut i = 0;
         while keep_going {
@@ -21,12 +23,10 @@ impl Extractor for GreedyDagExtractor {
             println!("iteration {}", i);
             keep_going = false;
 
-            let mut to_remove = vec![];
-
-            'node_loop: for (node_id, node) in &nodes {
+            'node_loop: for (node_id, node) in &egraph.nodes {
                 let cid = egraph.nid_to_cid(node_id);
                 let mut cost_set = CostSet {
-                    costs: FxHashMap::default(),
+                    costs: Default::default(),
                     total: Cost::default(),
                     choice: node_id.clone(),
                 };
@@ -59,14 +59,6 @@ impl Extractor for GreedyDagExtractor {
                 } else {
                     costs.insert(cid.clone(), cost_set);
                     keep_going = true;
-                }
-                to_remove.push(node_id.clone());
-            }
-
-            // removing nodes you've "done" can speed it up a lot but makes the results much worse
-            if false {
-                for node_id in to_remove {
-                    nodes.remove(&node_id);
                 }
             }
         }

@@ -1,5 +1,6 @@
 /* Uses COIN-OR CBC solver to find an extraction from the egraph where each
 node is only costed once.
+
 */
 
 use super::*;
@@ -12,7 +13,7 @@ const INITIALISE_WITH_APPROX: bool = false;
 const PRIOR_OVERBLOCK_CYCLES: bool = false;
 
 const PULL_UP_SINGLE_PARENT: bool = true;
-const APPLY_MIN_COST_TO_CLASS: bool = true;
+const MOVE_MIN_COST_OF_MEMBERS_TO_CLASS: bool = true;
 const REMOVE_UNREACHABLE_CLASSES: bool = true;
 const REMOVE_HIGH_COST_NODES: bool = true;
 const REMOVE_SELF_LOOPS: bool = true;
@@ -121,12 +122,7 @@ impl Extractor for CbcExtractor {
             .values()
             .map(|class| {
                 let cvars = ClassILP {
-                    active: if roots.contains(&class.id) {
-                        // Roots must be active.
-                        true_literal
-                    } else {
-                        model.add_binary()
-                    },
+                    active: model.add_binary(),
                     variables: class.nodes.iter().map(|_| model.add_binary()).collect(),
                     costs: class.nodes.iter().map(|n| egraph[n].cost).collect(),
                     members: class.nodes.clone(),
@@ -146,7 +142,8 @@ impl Extractor for CbcExtractor {
             })
             .collect();
 
-        let initial_result = super::greedy_dag_1::FasterGreedyDagExtractor.extract(egraph, roots);
+        let initial_result =
+            super::faster_greedy_dag::FasterGreedyDagExtractor.extract(egraph, roots);
         let initial_result_cost = initial_result.dag_cost(egraph, roots);
 
         remove_with_loops(&mut vars, roots);
@@ -223,26 +220,11 @@ impl Extractor for CbcExtractor {
             }
         }
 
-        let mut objective_fn_terms = 0;
-        model.set_obj_sense(Sense::Minimize);
-
-        let mut var_to_cost: IndexMap<Col, f64> = Default::default();
-        for (_class_id, c_var) in &vars {
-            var_to_cost.insert(c_var.active, 0.0);
-            for (&node_active, &node_cost) in c_var.variables.iter().zip(c_var.costs.iter()) {
-                var_to_cost.insert(
-                    node_active,
-                    var_to_cost.get(&node_active).unwrap_or(&0.0) + node_cost.into_inner(),
-                );
-            }
+        for root in roots {
+            model.set_col_lower(vars[root].active, 1.0);
         }
 
-        let mut set_cost = |v, cost| {
-            let cost = var_to_cost.get(v).unwrap() + cost;
-            model.set_obj_coeff(*v, cost);
-            var_to_cost[v] = cost;
-            objective_fn_terms += 1;
-        };
+        let mut objective_fn_terms = 0;
 
         for (_class_id, c_var) in &vars {
             let mut min_cost = 0.0;
@@ -251,11 +233,9 @@ impl Extractor for CbcExtractor {
             Most helpful when the members of the class all have the same cost.
             For example if the members' costs are [1,1,1], three terms get
             replaced by one in the objective function.
-
-            It's more complex that you'd expect because multiple classes with
-            different costs can share the same variable.
             */
-            if APPLY_MIN_COST_TO_CLASS {
+
+            if MOVE_MIN_COST_OF_MEMBERS_TO_CLASS {
                 min_cost = c_var
                     .costs
                     .iter()
@@ -264,16 +244,21 @@ impl Extractor for CbcExtractor {
                     .into_inner();
             }
 
-            set_cost(&c_var.active, min_cost);
+            if min_cost != 0.0 {
+                model.set_obj_coeff(c_var.active, min_cost);
+                objective_fn_terms += 1;
+            }
 
-            for node_active in &c_var.variables {
-                set_cost(&node_active, -min_cost);
+            for (&node_active, &node_cost) in c_var.variables.iter().zip(c_var.costs.iter()) {
+                if *node_cost - min_cost != 0.0 {
+                    model.set_obj_coeff(node_active, *node_cost - min_cost);
+                }
             }
         }
 
         log::info!("Objective function terms: {}", objective_fn_terms);
 
-        // set initial solution based on bottom up extractor
+        // set initial solution based on a non-optimal extraction.
         if INITIALISE_WITH_APPROX {
             for (class, class_vars) in &vars {
                 for col in &class_vars.variables {

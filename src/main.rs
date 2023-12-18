@@ -21,12 +21,16 @@ fn main() {
     let extractors: IndexMap<&str, Box<dyn Extractor>> = [
         ("bottom-up", extract::bottom_up::BottomUpExtractor.boxed()),
         (
+            "faster-bottom-up",
+            extract::faster_bottom_up::FasterBottomUpExtractor.boxed(),
+        ),
+        (
             "greedy-dag",
             extract::greedy_dag::GreedyDagExtractor.boxed(),
         ),
         (
             "faster-greedy-dag",
-            extract::greedy_dag_1::FasterGreedyDagExtractor.boxed(),
+            extract::faster_greedy_dag::FasterGreedyDagExtractor.boxed(),
         ),
         (
             "global-greedy-dag",

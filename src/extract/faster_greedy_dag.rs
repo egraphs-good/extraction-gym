@@ -3,9 +3,11 @@
 // included in the cost.
 
 use super::*;
+use rustc_hash::{FxHashMap, FxHashSet};
 
 struct CostSet {
-    costs: std::collections::HashMap<ClassId, Cost>,
+    // It's slightly faster if this is an HashMap rather than an fxHashMap.
+    costs: HashMap<ClassId, Cost>,
     total: Cost,
     choice: NodeId,
 }
@@ -16,7 +18,7 @@ impl FasterGreedyDagExtractor {
     fn calculate_cost_set(
         egraph: &EGraph,
         node_id: NodeId,
-        costs: &HashMap<ClassId, CostSet>,
+        costs: &FxHashMap<ClassId, CostSet>,
         best_cost: Cost,
     ) -> CostSet {
         let node = &egraph[&node_id];
@@ -24,7 +26,7 @@ impl FasterGreedyDagExtractor {
         // No children -> easy.
         if node.children.is_empty() {
             return CostSet {
-                costs: std::collections::HashMap::default(),
+                costs: Default::default(),
                 total: node.cost,
                 choice: node_id.clone(),
             };
@@ -44,7 +46,7 @@ impl FasterGreedyDagExtractor {
         if childrens_classes.len() == 1 && (node.cost + first_cost.total > best_cost) {
             // Shortcut. Can't be cheaper so return junk.
             return CostSet {
-                costs: std::collections::HashMap::default(),
+                costs: Default::default(),
                 total: INFINITY,
                 choice: node_id.clone(),
             };
@@ -85,46 +87,35 @@ impl FasterGreedyDagExtractor {
     }
 }
 
-impl FasterGreedyDagExtractor {
-    fn check(egraph: &EGraph, node_id: NodeId, costs: &HashMap<ClassId, CostSet>) {
-        let cid = egraph.nid_to_cid(&node_id);
-        let previous = costs.get(cid).unwrap().total;
-        let cs = Self::calculate_cost_set(egraph, node_id, costs, INFINITY);
-        println!("{} {}", cs.total, previous);
-        assert!(cs.total >= previous);
-    }
-}
-
 impl Extractor for FasterGreedyDagExtractor {
     fn extract(&self, egraph: &EGraph, _roots: &[ClassId]) -> ExtractionResult {
-        // 1. build map from class to parent nodes
-        let mut parents = IndexMap::<ClassId, Vec<NodeId>>::default();
+        let mut parents = IndexMap::<ClassId, Vec<NodeId>>::with_capacity(egraph.classes().len());
         let n2c = |nid: &NodeId| egraph.nid_to_cid(nid);
+        let mut analysis_pending = UniqueQueue::default();
 
         for class in egraph.classes().values() {
             parents.insert(class.id.clone(), Vec::new());
         }
+
         for class in egraph.classes().values() {
             for node in &class.nodes {
                 for c in &egraph[node].children {
+                    // compute parents of this enode
                     parents[n2c(c)].push(node.clone());
                 }
-            }
-        }
 
-        // 2. start analysis from leaves
-        let mut analysis_pending = UniqueQueue::default();
-
-        for class in egraph.classes().values() {
-            for node in &class.nodes {
+                // start the analysis from leaves
                 if egraph[node].is_leaf() {
                     analysis_pending.insert(node.clone());
                 }
             }
         }
 
-        // 3. analyse from leaves towards parents until fixpoint
-        let mut costs = HashMap::<ClassId, CostSet>::default();
+        let mut result = ExtractionResult::default();
+        let mut costs = FxHashMap::<ClassId, CostSet>::with_capacity_and_hasher(
+            egraph.classes().len(),
+            Default::default(),
+        );
 
         while let Some(node_id) = analysis_pending.pop() {
             let class_id = n2c(&node_id);
@@ -144,15 +135,6 @@ impl Extractor for FasterGreedyDagExtractor {
             }
         }
 
-        /*
-                for class in egraph.classes().values() {
-                    for node in &class.nodes {
-                        Self::check(&egraph, node.clone(), &costs);
-                    }
-                }
-        */
-
-        let mut result = ExtractionResult::default();
         for (cid, cost_set) in costs {
             result.choose(cid, cost_set.choice);
         }
@@ -164,6 +146,8 @@ impl Extractor for FasterGreedyDagExtractor {
 /** A data structure to maintain a queue of unique elements.
 
 Notably, insert/pop operations have O(1) expected amortized runtime complexity.
+
+Thanks @Bastacyclop for the implementation!
 */
 #[derive(Clone)]
 #[cfg_attr(feature = "serde-1", derive(Serialize, Deserialize))]
@@ -171,7 +155,7 @@ pub(crate) struct UniqueQueue<T>
 where
     T: Eq + std::hash::Hash + Clone,
 {
-    set: std::collections::HashSet<T>, // hashbrown::
+    set: FxHashSet<T>, // hashbrown::
     queue: std::collections::VecDeque<T>,
 }
 
@@ -181,7 +165,7 @@ where
 {
     fn default() -> Self {
         UniqueQueue {
-            set: std::collections::HashSet::default(),
+            set: Default::default(),
             queue: std::collections::VecDeque::new(),
         }
     }

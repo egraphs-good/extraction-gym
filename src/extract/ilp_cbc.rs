@@ -1,5 +1,8 @@
-/* Uses COIN-OR CBC solver to find an extraction from the egraph where each
-node is only costed once.
+/* Uses COIN-OR CBC solver to find an extraction from the egraph where each node is only costed once.
+
+Simplifications are a large part of the complexity. Some parts of the graph are easy to solve, for example tree parts, which can be removed before the solver is called.
+
+The solver is called repeatedly, with the cycles found in the previous solution blocked.
 
 */
 
@@ -9,15 +12,19 @@ use indexmap::IndexSet;
 use std::fmt;
 use std::time::SystemTime;
 
-const INITIALISE_WITH_APPROX: bool = false;
+const PULL_UP_COSTS: bool = true;
+const REMOVE_SELF_LOOPS: bool = true;
+const REMOVE_HIGH_COST_NODES: bool = true;
+const REMOVE_MORE_EXPENSIVE_SUBSUMED_NODES: bool = true;
+const REMOVE_UNREACHABLE_CLASSES: bool = true;
+const PULL_UP_SINGLE_PARENT: bool = true;
+
+// blocks good solutions, so assertions will fail.
 const PRIOR_OVERBLOCK_CYCLES: bool = false;
 
-const PULL_UP_SINGLE_PARENT: bool = true;
-const MOVE_MIN_COST_OF_MEMBERS_TO_CLASS: bool = true;
-const REMOVE_UNREACHABLE_CLASSES: bool = true;
-const REMOVE_HIGH_COST_NODES: bool = true;
-const REMOVE_SELF_LOOPS: bool = true;
-const REMOVE_MORE_EXPENSIVE_SUBSUMED_NODES: bool = true;
+const MOVE_MIN_COST_OF_MEMBERS_TO_CLASS: bool = false;
+const INITIALISE_WITH_APPROX: bool = false;
+const INITIALISE_WITH_PREVIOUS_SOLUTION: bool = false;
 
 // Some problems take >10 hours to optimise.
 const SOLVING_TIME_LIMIT_SECONDS: u64 = 6;
@@ -150,7 +157,8 @@ impl Extractor for CbcExtractor {
         remove_high_cost(&mut vars, initial_result_cost);
         remove_more_expensive_subsumed_nodes(&mut vars);
         remove_unreachable_classes(&mut vars, roots);
-        pull_up_single_child(&mut vars);
+        pull_up_with_single_parent(&mut vars);
+        pull_up_costs(&mut vars, roots);
 
         // extra loops might have been introduced, so rerun.
         remove_with_loops(&mut vars, roots);
@@ -275,7 +283,7 @@ impl Extractor for CbcExtractor {
         }
 
         // This blocks more nodes than required, even making some problems infeasible.
-        // Asserts that check the result need to be disabled.
+        // TODO - The asserts that check the result should automatically be disabled?
         if PRIOR_OVERBLOCK_CYCLES {
             let mut banned_cycles: IndexSet<NodeId> = Default::default();
             find_cycles(egraph, |id, i| {
@@ -367,6 +375,24 @@ impl Extractor for CbcExtractor {
                     block_cycle(&mut model, c, &vars);
                 }
             }
+
+            if INITIALISE_WITH_PREVIOUS_SOLUTION {
+                for (class, class_vars) in &vars {
+                    for col in &class_vars.variables {
+                        model.set_col_initial_solution(*col, 0.0);
+                    }
+
+                    if let Some(node_id) = result.choices.get(class) {
+                        model.set_col_initial_solution(class_vars.active, 1.0);
+                        model.set_col_initial_solution(
+                            vars[class].get_variable_for_node(node_id),
+                            1.0,
+                        );
+                    } else {
+                        model.set_col_initial_solution(class_vars.active, 0.0);
+                    }
+                }
+            }
         }
     }
 }
@@ -416,17 +442,80 @@ fn remove_unreachable_classes(vars: &mut IndexMap<ClassId, ClassILP>, roots: &[C
     }
 }
 
+/*
+For each class with one parent, move the minimum costs of the members to each node in the parent that points to it.
+
+if we iterated through these in order, from child to parent, to parent, to parent.. it could be done in one pass.
+*/
+fn pull_up_costs(vars: &mut IndexMap<ClassId, ClassILP>, roots: &[ClassId]) {
+    if PULL_UP_COSTS {
+        let child_to_parent = classes_with_single_parent(&*vars);
+        log::info!("Classes with a single parent: {}", child_to_parent.len());
+
+        let mut count = 0;
+        let mut changed = true;
+        while (count < 10) && changed {
+            changed = false;
+            for (child, parent) in &child_to_parent {
+                count = count + 1;
+
+                if child == parent {
+                    continue;
+                }
+                if roots.contains(child) {
+                    continue;
+                }
+
+                vars[child].check();
+                vars[parent].check();
+
+                // Get the minimum cost of members of the children
+                let min_cost = vars[child]
+                    .costs
+                    .iter()
+                    .min()
+                    .unwrap_or(&Cost::default())
+                    .into_inner();
+
+                assert!(min_cost >= 0.0);
+                if min_cost == 0.0 {
+                    continue;
+                }
+                changed = true;
+
+                // Now remove it from each member
+                for c in &mut vars[child].costs {
+                    *c -= min_cost;
+                    assert!(c.into_inner() >= 0.0);
+                }
+                // Add it onto each node in the parent that refers to this class.
+                let indices: Vec<_> = vars[parent]
+                    .childrens_classes
+                    .iter()
+                    .enumerate()
+                    .filter(|&(_, c)| c.contains(child))
+                    .map(|(id, _)| id)
+                    .collect();
+
+                assert!(indices.len() > 0);
+
+                for id in indices {
+                    vars[parent].costs[id] += min_cost;
+                }
+            }
+        }
+    }
+}
+
 /* If a class has a single parent class, and both it and the parent have one member,
 them move the children from the child to the parent class.
 
 There could be a long chain of single parent classes - which this handles
 (badly) by looping through a few times.
 
-Ideally this would also push the cost up to the parent, but I couldn't get that
-working properly - don't know why.
 */
 
-fn pull_up_single_child(vars: &mut IndexMap<ClassId, ClassILP>) {
+fn pull_up_with_single_parent(vars: &mut IndexMap<ClassId, ClassILP>) {
     if PULL_UP_SINGLE_PARENT {
         for _i in 0..10 {
             let child_to_parent = classes_with_single_parent(&*vars);
@@ -434,7 +523,9 @@ fn pull_up_single_child(vars: &mut IndexMap<ClassId, ClassILP>) {
 
             let mut pull_up_count = 0;
             for (child, parent) in &child_to_parent {
-                assert!(child != parent);
+                if child == parent {
+                    continue;
+                }
 
                 if vars[child].members.len() != 1 {
                     continue;
@@ -638,9 +729,6 @@ fn classes_with_single_parent(vars: &IndexMap<ClassId, ClassILP>) -> IndexMap<Cl
     for (class_id, class_vars) in vars.iter() {
         for kids in &class_vars.childrens_classes {
             for child_class in kids {
-                if child_class == class_id {
-                    continue;
-                }
                 child_to_parents
                     .entry(child_class.clone())
                     .or_insert_with(IndexSet::new)

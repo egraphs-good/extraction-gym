@@ -1,4 +1,3 @@
-; Makes a binary tree.
 (datatype DT
   (a i64 DT)
   (b i64 DT)

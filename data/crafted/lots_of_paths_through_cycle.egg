@@ -1,4 +1,3 @@
-; Makes a binary tree.
 (datatype DT
   (a i64 DT)
   (b i64 DT)
@@ -19,7 +18,7 @@
 (rewrite (c x y)(c (+ x 1) y))
 (rewrite (d x y)(d (+ x 1) y))
 
-; Put in a cycle to the top
+; Adds some cycles
 (rewrite (d 1 y) (d 1 l0))
 
 (run 30)

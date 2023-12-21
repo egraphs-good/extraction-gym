@@ -1,4 +1,3 @@
-; Makes a binary tree.
 (datatype Tree
   (Leaf String)
   (BinNode Tree Tree))
@@ -13,5 +12,6 @@
 
 (let l6 (BinNode l4 l5))
 
+; Adds cycles 
 (rewrite (BinNode x y) (BinNode x (BinNode x y)))
 (run 2)

@@ -19,15 +19,15 @@ const REMOVE_MORE_EXPENSIVE_SUBSUMED_NODES: bool = true;
 const REMOVE_UNREACHABLE_CLASSES: bool = true;
 const PULL_UP_SINGLE_PARENT: bool = true;
 
-// blocks good solutions, so assertions will fail.
-const PRIOR_OVERBLOCK_CYCLES: bool = false;
-
 const MOVE_MIN_COST_OF_MEMBERS_TO_CLASS: bool = false;
 const INITIALISE_WITH_APPROX: bool = false;
 const INITIALISE_WITH_PREVIOUS_SOLUTION: bool = false;
 
+// blocks good solutions, so assertions will fail.
+const PRIOR_OVERBLOCK_CYCLES: bool = false;
+
 // Some problems take >10 hours to optimise.
-const SOLVING_TIME_LIMIT_SECONDS: u64 = 6;
+const SOLVING_TIME_LIMIT_SECONDS: u64 = 3;
 
 struct NodeILP {
     variable: Col,

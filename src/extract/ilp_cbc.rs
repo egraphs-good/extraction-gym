@@ -1,13 +1,13 @@
 /* Uses COIN-OR CBC solver to find an extraction from the egraph where each node is only costed once.
 
-Simplifications are a large part of the complexity. Some parts of the graph are easy to solve, for example tree parts, which can be removed before the solver is called.
+Some parts of the graph are easy to solve, for example tree parts, which can be collapsed down to a single class before the solver is called.
 
 The solver is called repeatedly, with the cycles found in the previous solution blocked.
 
 */
 
 use super::*;
-use coin_cbc::{Col, Model, Sense};
+use coin_cbc::{Col, Model};
 use indexmap::IndexSet;
 use std::fmt;
 use std::time::SystemTime;
@@ -16,6 +16,7 @@ const PULL_UP_COSTS: bool = true;
 const REMOVE_SELF_LOOPS: bool = true;
 const REMOVE_HIGH_COST_NODES: bool = true;
 const REMOVE_MORE_EXPENSIVE_SUBSUMED_NODES: bool = true;
+const REMOVE_MORE_EXPENSIVE_NODES: bool = true;
 const REMOVE_UNREACHABLE_CLASSES: bool = true;
 const PULL_UP_SINGLE_PARENT: bool = true;
 
@@ -27,7 +28,7 @@ const INITIALISE_WITH_PREVIOUS_SOLUTION: bool = false;
 const PRIOR_OVERBLOCK_CYCLES: bool = false;
 
 // Some problems take >10 hours to optimise.
-const SOLVING_TIME_LIMIT_SECONDS: u64 = 3;
+const SOLVING_TIME_LIMIT_SECONDS: u64 = 10;
 
 struct NodeILP {
     variable: Col,
@@ -68,7 +69,7 @@ impl ClassILP {
         self.childrens_classes.remove(idx);
     }
 
-    fn removeNode(&mut self, node_id: &NodeId) {
+    fn remove_node(&mut self, node_id: &NodeId) {
         if let Some(idx) = self.members.iter().position(|n| n == node_id) {
             self.remove(idx);
         }
@@ -153,15 +154,15 @@ impl Extractor for CbcExtractor {
             super::faster_greedy_dag::FasterGreedyDagExtractor.extract(egraph, roots);
         let initial_result_cost = initial_result.dag_cost(egraph, roots);
 
-        remove_with_loops(&mut vars, roots);
-        remove_high_cost(&mut vars, initial_result_cost);
-        remove_more_expensive_subsumed_nodes(&mut vars);
-        remove_unreachable_classes(&mut vars, roots);
-        pull_up_with_single_parent(&mut vars);
-        pull_up_costs(&mut vars, roots);
-
-        // extra loops might have been introduced, so rerun.
-        remove_with_loops(&mut vars, roots);
+        for _i in 1..3 {
+            remove_with_loops(&mut vars, roots);
+            remove_high_cost(&mut vars, initial_result_cost);
+            remove_more_expensive_nodes(&mut vars, &initial_result, egraph);
+            remove_more_expensive_subsumed_nodes(&mut vars);
+            remove_unreachable_classes(&mut vars, roots);
+            pull_up_with_single_parent(&mut vars, roots);
+            pull_up_costs(&mut vars, roots);
+        }
 
         let mut empty = 0;
         for class in vars.values() {
@@ -268,18 +269,7 @@ impl Extractor for CbcExtractor {
 
         // set initial solution based on a non-optimal extraction.
         if INITIALISE_WITH_APPROX {
-            for (class, class_vars) in &vars {
-                for col in &class_vars.variables {
-                    model.set_col_initial_solution(*col, 0.0);
-                }
-
-                if let Some(node_id) = initial_result.choices.get(class) {
-                    model.set_col_initial_solution(class_vars.active, 1.0);
-                    model.set_col_initial_solution(vars[class].get_variable_for_node(node_id), 1.0);
-                } else {
-                    model.set_col_initial_solution(class_vars.active, 0.0);
-                }
-            }
+            set_initial_solution(&vars, &mut model, &initial_result);
         }
 
         // This blocks more nodes than required, even making some problems infeasible.
@@ -377,23 +367,80 @@ impl Extractor for CbcExtractor {
             }
 
             if INITIALISE_WITH_PREVIOUS_SOLUTION {
-                for (class, class_vars) in &vars {
-                    for col in &class_vars.variables {
-                        model.set_col_initial_solution(*col, 0.0);
-                    }
-
-                    if let Some(node_id) = result.choices.get(class) {
-                        model.set_col_initial_solution(class_vars.active, 1.0);
-                        model.set_col_initial_solution(
-                            vars[class].get_variable_for_node(node_id),
-                            1.0,
-                        );
-                    } else {
-                        model.set_col_initial_solution(class_vars.active, 0.0);
-                    }
-                }
+                set_initial_solution(&vars, &mut model, &result);
             }
         }
+    }
+}
+
+fn set_initial_solution(
+    vars: &IndexMap<ClassId, ClassILP>,
+    model: &mut Model,
+    initial_result: &ExtractionResult,
+) {
+    for (class, class_vars) in vars {
+        for col in &class_vars.variables {
+            model.set_col_initial_solution(*col, 0.0);
+        }
+
+        if let Some(node_id) = initial_result.choices.get(class) {
+            model.set_col_initial_solution(class_vars.active, 1.0);
+            model.set_col_initial_solution(vars[class].get_variable_for_node(node_id), 1.0);
+        } else {
+            model.set_col_initial_solution(class_vars.active, 0.0);
+        }
+    }
+}
+
+/*
+If the cost of a node, including the full cost of all it's children, is less than the cost of just the other node's (excluding its children)
+Then discard the more expensive node.
+
+* The cheapest cost doesn't use the var[] cost, it uses the cost from the egraphs. This is worse, but having dag_cost already
+built, makes this super easy to implement.
+* This can reduce the number of valid extractions - it will drop nodes that have the same cost as other nodes.
+*/
+
+fn remove_more_expensive_nodes(
+    vars: &mut IndexMap<ClassId, ClassILP>,
+    initial_result: &ExtractionResult,
+    egraph: &EGraph,
+) {
+    if REMOVE_MORE_EXPENSIVE_NODES {
+        let mut removed = 0;
+        for class in vars.values_mut() {
+            let children = class.as_nodes();
+            if children.len() <= 2 {
+                continue;
+            }
+
+            let (cheapest_node, cheapest_cost) = children
+                .iter()
+                .map(|node| {
+                    let cost = initial_result.dag_cost(
+                        egraph,
+                        node.children_classes
+                            .iter()
+                            .cloned()
+                            .collect::<Vec<_>>()
+                            .as_slice(),
+                    ) + egraph[&node.member].cost;
+                    (node, cost)
+                })
+                .min_by_key(|&(_, cost)| cost)
+                .unwrap();
+
+            removed += children
+                .iter()
+                .filter(|e| e.cost >= cheapest_cost && (cheapest_node.member != e.member))
+                .map(|e| class.remove_node(&e.member))
+                .count();
+        }
+
+        log::info!(
+            "Removed nodes that are not cheaper than another in the same class: {}",
+            removed
+        );
     }
 }
 
@@ -410,10 +457,15 @@ fn remove_more_expensive_subsumed_nodes(vars: &mut IndexMap<ClassId, ClassILP>) 
             let mut to_remove: IndexSet<NodeId> = Default::default();
 
             for i in 0..children.len() {
+                let node_a = &children[i];
+                if to_remove.contains(&node_a.member.clone()) {
+                    continue;
+                }
+
                 for j in (i + 1)..children.len() {
-                    let node_a = &children[i];
                     let node_b = &children[j];
 
+                    // This removes some extractions with the same cost.
                     if node_a.cost <= node_b.cost
                         && node_a.children_classes.is_subset(&node_b.children_classes)
                     {
@@ -423,7 +475,7 @@ fn remove_more_expensive_subsumed_nodes(vars: &mut IndexMap<ClassId, ClassILP>) 
             }
             removed += to_remove
                 .iter()
-                .map(|node_id| class.removeNode(node_id))
+                .map(|node_id| class.remove_node(node_id))
                 .count();
         }
 
@@ -507,15 +559,15 @@ fn pull_up_costs(vars: &mut IndexMap<ClassId, ClassILP>, roots: &[ClassId]) {
     }
 }
 
-/* If a class has a single parent class, and both it and the parent have one member,
-them move the children from the child to the parent class.
+/* If a class has a single parent class,
+then move the children from the child to the parent class.
 
 There could be a long chain of single parent classes - which this handles
 (badly) by looping through a few times.
 
 */
 
-fn pull_up_with_single_parent(vars: &mut IndexMap<ClassId, ClassILP>) {
+fn pull_up_with_single_parent(vars: &mut IndexMap<ClassId, ClassILP>, roots: &[ClassId]) {
     if PULL_UP_SINGLE_PARENT {
         for _i in 0..10 {
             let child_to_parent = classes_with_single_parent(&*vars);
@@ -527,22 +579,28 @@ fn pull_up_with_single_parent(vars: &mut IndexMap<ClassId, ClassILP>) {
                     continue;
                 }
 
+                if roots.contains(child) {
+                    continue;
+                }
+
                 if vars[child].members.len() != 1 {
                     continue;
                 }
+
                 if vars[child].childrens_classes.first().unwrap().is_empty() {
                     continue;
                 }
 
-                let mut found = 0;
-                for c in &*vars[parent].childrens_classes {
-                    if c.contains(child) {
-                        found += 1;
-                    }
-                }
+                let found = vars[parent]
+                    .childrens_classes
+                    .iter()
+                    .filter(|c| c.contains(child))
+                    .count();
+
                 if found != 1 {
                     continue;
                 }
+
                 let idx = vars[parent]
                     .childrens_classes
                     .iter()
@@ -556,6 +614,7 @@ fn pull_up_with_single_parent(vars: &mut IndexMap<ClassId, ClassILP>) {
                     .first()
                     .unwrap()
                     .clone();
+
                 let parent_descendants: &mut IndexSet<ClassId> = vars
                     .get_mut(parent)
                     .unwrap()
@@ -779,7 +838,7 @@ fn block_cycle(model: &mut Model, cycle: &Vec<ClassId>, vars: &IndexMap<ClassId,
         let next_class_id = &cycle[(i + 1) % cycle.len()];
 
         let blocking_var = model.add_binary();
-        blocking.push(blocking_var.clone());
+        blocking.push(blocking_var);
         for node in &vars[current_class_id].as_nodes() {
             if node.children_classes.contains(next_class_id) {
                 let row = model.add_row();

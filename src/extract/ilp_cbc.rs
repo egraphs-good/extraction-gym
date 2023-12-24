@@ -1,8 +1,10 @@
 /* Uses COIN-OR CBC solver to find an extraction from the egraph where each node is only costed once.
 
-Some parts of the graph are easy to solve, for example tree parts, which can be collapsed down to a single class before the solver is called.
+Some parts of the graph are easy to find optimal extractions for, for example tree parts, which can be collapsed down
+to a single class before the solver is called.
 
-The solver is called repeatedly, with the cycles found in the previous solution blocked.
+There are two ways to block cycles,  with "PRIOR_BLOCK_CYCLES", which adds constraints to completely block cycles in advance,
+or the default scheme which blocks the cycles that are found in candidates from the solver.
 
 */
 
@@ -24,7 +26,9 @@ const MOVE_MIN_COST_OF_MEMBERS_TO_CLASS: bool = false;
 const INITIALISE_WITH_APPROX: bool = false;
 const INITIALISE_WITH_PREVIOUS_SOLUTION: bool = false;
 
-// Some problems take >10 hours to optimise.
+const PRIOR_BLOCK_CYCLES: bool = false;
+
+// Some problems take >36,000 seconds to optimise.
 const SOLVING_TIME_LIMIT_SECONDS: u64 = 10;
 
 struct NodeILP {
@@ -39,7 +43,6 @@ struct ClassILP {
     members: Vec<NodeId>,
     variables: Vec<Col>,
     costs: Vec<Cost>,
-
     // Initially this contains the children of each member (respectively), but
     // gets edited during the run, so mightn't match later on.
     childrens_classes: Vec<IndexSet<ClassId>>,
@@ -102,9 +105,11 @@ impl ClassILP {
         return &self.childrens_classes[idx];
     }
 
-    fn get_variable_for_node(&self, node_id: &NodeId) -> Col {
-        let idx = self.members.iter().position(|n| n == node_id).unwrap();
-        return self.variables[idx].clone();
+    fn get_variable_for_node(&self, node_id: &NodeId) -> Option<Col> {
+        if let Some(idx) = self.members.iter().position(|n| n == node_id) {
+            return Some(self.variables[idx]);
+        }
+        return None;
     }
 }
 
@@ -113,9 +118,6 @@ pub struct CbcExtractor;
 impl Extractor for CbcExtractor {
     fn extract(&self, egraph: &EGraph, roots: &[ClassId]) -> ExtractionResult {
         let mut model = Model::default();
-
-        let true_literal = model.add_binary();
-        model.set_col_lower(true_literal, 1.0);
 
         let false_literal = model.add_binary();
         model.set_col_upper(false_literal, 0.0);
@@ -167,7 +169,7 @@ impl Extractor for CbcExtractor {
                 empty += 1;
             }
         }
-        //No problems yet that justify removing these.
+        //All problems with empty classes finish in side the timeout - so I haven't implemented removing them yet.
         log::info!("Empty classes: {empty}");
 
         for class in vars.values() {
@@ -269,6 +271,8 @@ impl Extractor for CbcExtractor {
             set_initial_solution(&vars, &mut model, &initial_result);
         }
 
+        prior_block(&mut model, &vars);
+
         if false {
             return initial_result;
         }
@@ -337,6 +341,8 @@ impl Extractor for CbcExtractor {
 
                 return result;
             } else {
+                assert!(!PRIOR_BLOCK_CYCLES);
+
                 log::info!("Refining by blocking cycles: {}", cycles.len());
                 for c in &cycles {
                     block_cycle(&mut model, c, &vars);
@@ -344,7 +350,7 @@ impl Extractor for CbcExtractor {
             }
 
             if INITIALISE_WITH_PREVIOUS_SOLUTION {
-                set_initial_solution(&vars, &mut model, &result);
+                model.set_initial_solution(&solution);
             }
         }
     }
@@ -362,7 +368,9 @@ fn set_initial_solution(
 
         if let Some(node_id) = initial_result.choices.get(class) {
             model.set_col_initial_solution(class_vars.active, 1.0);
-            model.set_col_initial_solution(vars[class].get_variable_for_node(node_id), 1.0);
+            if let Some(var) = vars[class].get_variable_for_node(node_id) {
+                model.set_col_initial_solution(var, 1.0);
+            }
         } else {
             model.set_col_initial_solution(class_vars.active, 0.0);
         }
@@ -486,7 +494,7 @@ fn pull_up_costs(vars: &mut IndexMap<ClassId, ClassILP>, roots: &[ClassId]) {
         while (count < 10) && changed {
             changed = false;
             for (child, parent) in &child_to_parent {
-                count = count + 1;
+                count += 1;
 
                 if child == parent {
                     continue;
@@ -815,6 +823,62 @@ fn cycle_dfs(
             let last = stack.pop();
             assert_eq!(*class_id, last.unwrap());
             status.insert(class_id.clone(), TraverseStatus::Done);
+        }
+    }
+}
+
+/*
+Blocks all the cycles by constraining levels associated with classes.
+
+There is an integer variable for each class. If there is an active edge connecting two classes,
+then the level of the source class needs to be less than the level of the destination class.
+
+A nice thing about this is that later on we can read out feasible solutions from
+the ILP solver even on timeout. Currently all the work is thrown away on timeout.
+
+*/
+
+fn prior_block(model: &mut Model, vars: &IndexMap<ClassId, ClassILP>) {
+    if PRIOR_BLOCK_CYCLES {
+        let mut levels: IndexMap<ClassId, Col> = Default::default();
+        for c in vars.keys() {
+            levels.insert(c.clone(), model.add_integer());
+        }
+
+        // If n.variable is true, opposite_col will be false and vice versa.
+        let mut opposite: IndexMap<Col, Col> = Default::default();
+        for c in vars.values() {
+            for n in c.as_nodes() {
+                let opposite_col = model.add_binary();
+                opposite.insert(n.variable, opposite_col);
+                let row = model.add_row();
+                model.set_row_equal(row, 1.0);
+                model.set_weight(row, opposite_col, 1.0);
+                model.set_weight(row, n.variable, 1.0);
+            }
+        }
+
+        for (class_id, c) in vars {
+            model.set_col_lower(*levels.get(class_id).unwrap(), 0.0);
+            model.set_col_upper(*levels.get(class_id).unwrap(), vars.len() as f64);
+
+            for n in c.as_nodes() {
+                for cc in n.children_classes {
+                    assert!(*levels.get(class_id).unwrap() != *levels.get(&cc).unwrap());
+
+                    let row = model.add_row();
+                    model.set_row_upper(row, -1.0);
+                    model.set_weight(row, *levels.get(class_id).unwrap(), 1.0);
+                    model.set_weight(row, *levels.get(&cc).unwrap(), -1.0);
+
+                    // If n.variable is 0, then disable the contraint.
+                    model.set_weight(
+                        row,
+                        *opposite.get(&n.variable).unwrap(),
+                        -((vars.len() + 1) as f64),
+                    );
+                }
+            }
         }
     }
 }

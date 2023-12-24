@@ -24,9 +24,6 @@ const MOVE_MIN_COST_OF_MEMBERS_TO_CLASS: bool = false;
 const INITIALISE_WITH_APPROX: bool = false;
 const INITIALISE_WITH_PREVIOUS_SOLUTION: bool = false;
 
-// blocks good solutions, so assertions will fail.
-const PRIOR_OVERBLOCK_CYCLES: bool = false;
-
 // Some problems take >10 hours to optimise.
 const SOLVING_TIME_LIMIT_SECONDS: u64 = 10;
 
@@ -270,26 +267,6 @@ impl Extractor for CbcExtractor {
         // set initial solution based on a non-optimal extraction.
         if INITIALISE_WITH_APPROX {
             set_initial_solution(&vars, &mut model, &initial_result);
-        }
-
-        // This blocks more nodes than required, even making some problems infeasible.
-        // TODO - The asserts that check the result should automatically be disabled?
-        if PRIOR_OVERBLOCK_CYCLES {
-            let mut banned_cycles: IndexSet<NodeId> = Default::default();
-            find_cycles(egraph, |id, i| {
-                banned_cycles.insert(egraph[&id].nodes[i].clone());
-            });
-            for (_class_id, class_vars) in &vars {
-                for (node_id, node_active) in
-                    class_vars.members.iter().zip(class_vars.variables.iter())
-                {
-                    if banned_cycles.contains(node_id) {
-                        model.set_col_upper(*node_active, 0.0);
-                        model.set_col_lower(*node_active, 0.0);
-                    }
-                }
-            }
-            log::info!("Prior blocked {}", banned_cycles.len());
         }
 
         if false {
@@ -688,97 +665,6 @@ fn remove_with_loops(vars: &mut IndexMap<ClassId, ClassILP>, roots: &[ClassId]) 
 
         log::info!("Omitted looping nodes: {}", self_loop);
     }
-}
-
-// from @khaki3
-// fixes bug in egg 0.9.4's version
-// https://github.com/egraphs-good/egg/issues/207#issuecomment-1264737441
-fn find_cycles(egraph: &EGraph, mut f: impl FnMut(ClassId, usize)) {
-    let mut pending: IndexMap<ClassId, Vec<(ClassId, usize)>> = IndexMap::default();
-
-    let mut order: IndexMap<ClassId, usize> = IndexMap::default();
-
-    let mut memo: IndexMap<(ClassId, usize), bool> = IndexMap::default();
-
-    let mut stack: Vec<(ClassId, usize)> = vec![];
-
-    let n2c = |nid: &NodeId| egraph.nid_to_cid(nid);
-
-    for class in egraph.classes().values() {
-        let id = &class.id;
-        for (i, node_id) in egraph[id].nodes.iter().enumerate() {
-            let node = &egraph[node_id];
-            for child in &node.children {
-                let child = n2c(child).clone();
-                pending
-                    .entry(child)
-                    .or_insert_with(Vec::new)
-                    .push((id.clone(), i));
-            }
-
-            if node.is_leaf() {
-                stack.push((id.clone(), i));
-            }
-        }
-    }
-
-    while let Some((id, i)) = stack.pop() {
-        if memo.get(&(id.clone(), i)).is_some() {
-            continue;
-        }
-
-        let node_id = &egraph[&id].nodes[i];
-        let node = &egraph[node_id];
-        let mut update = false;
-
-        if node.is_leaf() {
-            update = true;
-        } else if node.children.iter().all(|x| order.get(n2c(x)).is_some()) {
-            if let Some(ord) = order.get(&id) {
-                update = node.children.iter().all(|x| &order[n2c(x)] < ord);
-                if !update {
-                    memo.insert((id, i), false);
-                    continue;
-                }
-            } else {
-                update = true;
-            }
-        }
-
-        if update {
-            if order.get(&id).is_none() {
-                if egraph[node_id].is_leaf() {
-                    order.insert(id.clone(), 0);
-                } else {
-                    let max = node
-                        .children
-                        .iter()
-                        .map(|x| order.get(n2c(x)).unwrap())
-                        .max()
-                        .unwrap();
-                    order.insert(id.clone(), max + 1);
-                }
-            }
-            memo.insert((id.clone(), i), true);
-            if let Some(mut v) = pending.remove(&id) {
-                stack.append(&mut v);
-                stack.sort();
-                stack.dedup();
-            };
-        }
-    }
-
-    for class in egraph.classes().values() {
-        let id = &class.id;
-        for (i, node) in class.nodes.iter().enumerate() {
-            if let Some(true) = memo.get(&(id.clone(), i)) {
-                continue;
-            }
-            assert!(!egraph[node].is_leaf());
-            f(id.clone(), i);
-        }
-    }
-    assert!(pending.is_empty());
 }
 
 // Mapping from child class to parent classes

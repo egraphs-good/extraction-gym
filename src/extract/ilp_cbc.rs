@@ -21,6 +21,7 @@ const REMOVE_MORE_EXPENSIVE_SUBSUMED_NODES: bool = true;
 const REMOVE_MORE_EXPENSIVE_NODES: bool = true;
 const REMOVE_UNREACHABLE_CLASSES: bool = true;
 const PULL_UP_SINGLE_PARENT: bool = true;
+const TAKE_INTERSECTION_OF_CHILDREN_IN_CLASS: bool = true;
 
 const MOVE_MIN_COST_OF_MEMBERS_TO_CLASS: bool = false;
 const INITIALISE_WITH_APPROX: bool = false;
@@ -192,8 +193,12 @@ impl Extractor for CbcExtractor {
             let childrens_classes_var =
                 |cc: &IndexSet<ClassId>| cc.iter().map(|n| vars[n].active).collect::<IndexSet<_>>();
 
-            let mut intersection: IndexSet<Col> =
-                childrens_classes_var(&class.childrens_classes[0].clone());
+            let mut intersection: IndexSet<Col> = Default::default();
+
+            if TAKE_INTERSECTION_OF_CHILDREN_IN_CLASS {
+                // otherwise the intersection is empty (i.e. disabled.)
+                intersection = childrens_classes_var(&class.childrens_classes[0].clone());
+            }
 
             for childrens_classes in &class.childrens_classes[1..] {
                 intersection = intersection
@@ -314,6 +319,7 @@ impl Extractor for CbcExtractor {
             for (id, var) in &vars {
                 let active = solution.col(var.active) > 0.0;
                 if active {
+                    assert!(var.members() > 0);
                     assert_eq!(
                         1,
                         var.variables

@@ -34,17 +34,17 @@ impl Config {
     pub const fn default() -> Self {
         Self {
             pull_up_costs: true,
-            remove_self_loops: true,
-            remove_high_cost_nodes: true,
-            remove_more_expensive_subsumed_nodes: true,
-            remove_more_expensive_nodes: true,
-            remove_unreachable_classes: true,
-            pull_up_single_parent: true,
-            take_intersection_of_children_in_class: true,
-            move_min_cost_of_members_to_class: false,
-            initialise_with_approx: false,
-            initialise_with_previous_solution: false,
-            prior_block_cycles: false,
+            remove_self_loops: false,
+            remove_high_cost_nodes: false,
+            remove_more_expensive_subsumed_nodes: false,
+            remove_more_expensive_nodes: false,
+            remove_unreachable_classes: false,
+            pull_up_single_parent: false,
+            take_intersection_of_children_in_class: false,
+            move_min_cost_of_members_to_class: true,
+            initialise_with_approx: true,
+            initialise_with_previous_solution: true,
+            prior_block_cycles: true,
         }
     }
 }
@@ -197,8 +197,13 @@ fn extract(egraph: &EGraph, roots: &[ClassId], config: &Config) -> ExtractionRes
     //All problems with empty classes finish in side the timeout - so I haven't implemented removing them yet.
     log::info!("Empty classes: {empty}");
 
-    for class in vars.values() {
+    for (classid, class) in &vars {
         if class.members() == 0 {
+            if roots.contains(&classid) {
+                log::info!("Infeasible, root has no possible children, returning empty solution");
+                return ExtractionResult::default();
+            }
+
             model.set_col_upper(class.active, 0.0);
             continue;
         }
@@ -347,6 +352,7 @@ fn extract(egraph: &EGraph, roots: &[ClassId], config: &Config) -> ExtractionRes
         let mut cost = 0.0;
         for (id, var) in &vars {
             let active = solution.col(var.active) > 0.0;
+
             if active {
                 assert!(var.members() > 0);
                 assert_eq!(
@@ -391,7 +397,10 @@ fn extract(egraph: &EGraph, roots: &[ClassId], config: &Config) -> ExtractionRes
         }
 
         if config.initialise_with_previous_solution {
-            model.set_initial_solution(&solution);
+            // If we've blocked cycles, then we would have added extra columns, which causes this to fail:
+            //model.set_initial_solution(&solution);
+            // So we use our own instead:
+            set_initial_solution(&vars, &mut model, &result);
         }
     }
 }
@@ -950,7 +959,7 @@ use rand::Rng;
 
 // generates a float between 0 and 1
 fn generate_random_not_nan() -> NotNan<f64> {
-    let mut rng = rand::thread_rng();
+    let mut rng: rand::prelude::ThreadRng = rand::thread_rng();
     let random_float: f64 = rng.gen();
     NotNan::new(random_float).unwrap()
 }
@@ -1026,10 +1035,11 @@ fn generate_random_egraph() -> EGraph {
     egraph
 }
 
-// Run the config on different random graphs.
+// Run the specified config on some random graphs.
 fn test(config: &Config) {
     println!("{:?}", config);
-    for j in 0..100 {
+
+    for j in 0..1000 {
         println!("Fuzz_test iteration:{} ", j.to_string());
         let egraph = generate_random_egraph();
 
@@ -1040,32 +1050,173 @@ fn test(config: &Config) {
     }
 }
 
-fn fuzz_test() {
-    for _ in 0..100 {
-        test(&generate_random_config());
-    }
-}
-
-// Retest configs that have failed before.
-fn failed_configs() {
-    let mut configs: Vec<Config> = Default::default();
-    //configs.push(Config { pull_up_costs: true, remove_self_loops: false, remove_high_cost_nodes: false, remove_more_expensive_subsumed_nodes: true, remove_more_expensive_nodes: true, remove_unreachable_classes: true, pull_up_single_parent: false, take_intersection_of_children_in_class: true, move_min_cost_of_members_to_class: false, initialise_with_approx: false, initialise_with_previous_solution: true, prior_block_cycles: true });
-    configs.push(Config {
+#[test]
+fn all_disabled() {
+    let c = Config {
         pull_up_costs: false,
         remove_self_loops: false,
-        remove_high_cost_nodes: true,
+        remove_high_cost_nodes: false,
         remove_more_expensive_subsumed_nodes: false,
         remove_more_expensive_nodes: false,
+        remove_unreachable_classes: false,
+        pull_up_single_parent: false,
+        take_intersection_of_children_in_class: false,
+        move_min_cost_of_members_to_class: false,
+        initialise_with_approx: false,
+        initialise_with_previous_solution: false,
+        prior_block_cycles: false,
+    };
+
+    test(&c);
+}
+
+#[test]
+fn default_config() {
+    let c = Config::default();
+    test(&c);
+}
+
+#[test]
+fn failed_config_0() {
+    let c = Config {
+        pull_up_costs: true,
+        remove_self_loops: false,
+        remove_high_cost_nodes: false,
+        remove_more_expensive_subsumed_nodes: true,
+        remove_more_expensive_nodes: true,
         remove_unreachable_classes: true,
-        pull_up_single_parent: true,
+        pull_up_single_parent: false,
+        take_intersection_of_children_in_class: true,
+        move_min_cost_of_members_to_class: false,
+        initialise_with_approx: false,
+        initialise_with_previous_solution: true,
+        prior_block_cycles: true,
+    };
+    test(&c);
+}
+#[test]
+fn failed_config_1() {
+    let c = Config {
+        pull_up_costs: false,
+        remove_self_loops: false,
+        remove_high_cost_nodes: false,
+        remove_more_expensive_subsumed_nodes: false,
+        remove_more_expensive_nodes: false,
+        remove_unreachable_classes: false,
+        pull_up_single_parent: false,
         take_intersection_of_children_in_class: false,
         move_min_cost_of_members_to_class: true,
         initialise_with_approx: true,
+        initialise_with_previous_solution: false,
+        prior_block_cycles: false,
+    };
+
+    test(&c);
+}
+#[test]
+fn failed_config_2() {
+    let c = Config {
+        pull_up_costs: true,
+        remove_self_loops: true,
+        remove_high_cost_nodes: true,
+        remove_more_expensive_subsumed_nodes: true,
+        remove_more_expensive_nodes: true,
+        remove_unreachable_classes: true,
+        pull_up_single_parent: true,
+        take_intersection_of_children_in_class: true,
+        move_min_cost_of_members_to_class: false,
+        initialise_with_approx: true,
         initialise_with_previous_solution: true,
         prior_block_cycles: false,
-    });
+    };
 
-    for c in configs {
-        test(&c);
+    test(&c);
+}
+#[test]
+fn failed_config_3() {
+    std::env::set_var("RUST_LOG", "info");
+    env_logger::init();
+
+    let c = Config {
+        pull_up_costs: true,
+        remove_self_loops: true,
+        remove_high_cost_nodes: true,
+        remove_more_expensive_subsumed_nodes: false,
+        remove_more_expensive_nodes: true,
+        remove_unreachable_classes: false,
+        pull_up_single_parent: false,
+        take_intersection_of_children_in_class: false,
+        move_min_cost_of_members_to_class: false,
+        initialise_with_approx: true,
+        initialise_with_previous_solution: false,
+        prior_block_cycles: false,
+    };
+
+    test(&c);
+}
+
+// Currently there are only 4k permutations of config, so we could instead enumerate them.
+#[test]
+fn test_random_configurations() {
+    for _ in 0..1000 {
+        let mut config = generate_random_config();
+        test(&config);
+    }
+}
+
+#[test]
+fn ilp_dag_isnt_worse_than_other_extractors() {
+    for j in 0..1000 {
+        let egraph = generate_random_egraph();
+        println!("{}", j);
+        // if it panics this will be available:
+        //egraph.to_json_file("last_fuzz.json");
+        let ilp_extractor = super::ilp_cbc::CbcExtractor.extract(&egraph, &egraph.root_eclasses);
+        assert!(ilp_extractor
+            .find_cycles(&egraph, &egraph.root_eclasses)
+            .is_empty());
+
+        let bu_extractor =
+            super::bottom_up::BottomUpExtractor.extract(&egraph, &egraph.root_eclasses);
+        assert!(bu_extractor
+            .find_cycles(&egraph, &egraph.root_eclasses)
+            .is_empty());
+
+        let fbu_extractor = super::faster_bottom_up::FasterBottomUpExtractor
+            .extract(&egraph, &egraph.root_eclasses);
+        assert!(fbu_extractor
+            .find_cycles(&egraph, &egraph.root_eclasses)
+            .is_empty());
+
+        let filp_extractor =
+            super::faster_ilp_cbc::FasterCbcExtractor.extract(&egraph, &egraph.root_eclasses);
+        assert!(filp_extractor
+            .find_cycles(&egraph, &egraph.root_eclasses)
+            .is_empty());
+
+        let ilp_dag = ilp_extractor.dag_cost(&egraph, &egraph.root_eclasses);
+        let bu_dag = bu_extractor.dag_cost(&egraph, &egraph.root_eclasses);
+        let fbu_dag = fbu_extractor.tree_cost(&egraph, &egraph.root_eclasses);
+        let filp_dag = filp_extractor.dag_cost(&egraph, &egraph.root_eclasses);
+
+        let ilp_tree = ilp_extractor.tree_cost(&egraph, &egraph.root_eclasses);
+        let bu_tree = bu_extractor.tree_cost(&egraph, &egraph.root_eclasses);
+        let fbu_tree = fbu_extractor.tree_cost(&egraph, &egraph.root_eclasses);
+        let filp_tree = filp_extractor.tree_cost(&egraph, &egraph.root_eclasses);
+
+        println!("ILP tree: {}, ILP dag: {}", ilp_tree, ilp_dag);
+        println!("FILP tree: {}, FILP dag: {}", filp_tree, filp_dag);
+        println!("BU tree: {}, BU dag: {}", bu_tree, bu_dag);
+        println!("FBU tree: {}, FBU dag: {}", fbu_tree, fbu_dag);
+
+        assert!((filp_dag - ilp_dag).abs() < 0.00001);
+
+        assert!(ilp_dag <= bu_dag + 0.00001);
+        assert!(ilp_dag <= fbu_dag + 0.00001);
+
+        assert!(ilp_dag <= filp_tree + 0.00001);
+        assert!(ilp_dag <= ilp_tree + 0.00001);
+        assert!(ilp_dag <= bu_tree + 0.00001);
+        assert!(ilp_dag <= fbu_tree + 0.00001);
     }
 }

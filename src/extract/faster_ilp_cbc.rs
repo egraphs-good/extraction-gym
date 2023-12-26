@@ -1198,7 +1198,7 @@ fn ilp_dag_isnt_worse_than_other_extractors() {
         let filp_extractor =
             super::faster_ilp_cbc::FasterCbcExtractor.extract(&egraph, &egraph.root_eclasses);
         check(&optimal_dag, &filp_extractor, &egraph);
-         let ggd_extractor = super::global_greedy_dag::GlobalGreedyDagExtractor
+        let ggd_extractor = super::global_greedy_dag::GlobalGreedyDagExtractor
             .extract(&egraph, &egraph.root_eclasses);
         check(&optimal_dag, &ggd_extractor, &egraph);
         let gd_extractor =
@@ -1206,7 +1206,7 @@ fn ilp_dag_isnt_worse_than_other_extractors() {
         check(&optimal_dag, &gd_extractor, &egraph);
 
         let filp_dag = filp_extractor.dag_cost(&egraph, &egraph.root_eclasses);
-        
+
         //filp & ilp both optimal, should be the same.
         assert!((optimal_dag - filp_dag).abs() < 0.00001);
     }

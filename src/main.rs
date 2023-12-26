@@ -37,6 +37,11 @@ fn main() {
             extract::global_greedy_dag::GlobalGreedyDagExtractor.boxed(),
         ),
         #[cfg(feature = "ilp-cbc")]
+        (
+            "faster-ilp-cbc",
+            extract::faster_ilp_cbc::FasterCbcExtractor.boxed(),
+        ),
+        #[cfg(feature = "ilp-cbc")]
         ("ilp-cbc", extract::ilp_cbc::CbcExtractor.boxed()),
     ]
     .into_iter()

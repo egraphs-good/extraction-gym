@@ -1,6 +1,6 @@
 use std::iter;
 
-use rpds::{HashTrieMap, HashTrieSet};
+use rpds:: HashTrieSet;
 
 use super::*;
 

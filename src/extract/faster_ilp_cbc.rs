@@ -1134,8 +1134,8 @@ fn failed_config_2() {
 }
 #[test]
 fn failed_config_3() {
-    std::env::set_var("RUST_LOG", "info");
-    env_logger::init();
+    //std::env::set_var("RUST_LOG", "info");
+    //env_logger::init();
 
     let c = Config {
         pull_up_costs: true,
@@ -1164,59 +1164,50 @@ fn test_random_configurations() {
     }
 }
 
+fn check(optimal_dag: &Cost, other: &ExtractionResult, egraph: &EGraph) {
+    assert!(&other.find_cycles(&egraph, &egraph.root_eclasses).is_empty());
+
+    // No tree costs should be better than the optimal DAG cost.
+    assert!(*optimal_dag <= other.tree_cost(&egraph, &egraph.root_eclasses) + 0.00001);
+
+    // No dags costs should be better than the optimal DAG cost.
+    assert!(*optimal_dag <= other.dag_cost(&egraph, &egraph.root_eclasses) + 0.00001);
+}
+
 #[test]
 fn ilp_dag_isnt_worse_than_other_extractors() {
-    for j in 0..1000 {
+    for j in 0..10000 {
         let egraph = generate_random_egraph();
         println!("{}", j);
         // if it panics this will be available:
         //egraph.to_json_file("last_fuzz.json");
+
         let ilp_extractor = super::ilp_cbc::CbcExtractor.extract(&egraph, &egraph.root_eclasses);
-        assert!(ilp_extractor
-            .find_cycles(&egraph, &egraph.root_eclasses)
-            .is_empty());
+        let optimal_dag = ilp_extractor.dag_cost(&egraph, &egraph.root_eclasses);
+        check(&optimal_dag, &ilp_extractor, &egraph);
 
         let bu_extractor =
             super::bottom_up::BottomUpExtractor.extract(&egraph, &egraph.root_eclasses);
-        assert!(bu_extractor
-            .find_cycles(&egraph, &egraph.root_eclasses)
-            .is_empty());
-
+        check(&optimal_dag, &bu_extractor, &egraph);
         let fbu_extractor = super::faster_bottom_up::FasterBottomUpExtractor
             .extract(&egraph, &egraph.root_eclasses);
-        assert!(fbu_extractor
-            .find_cycles(&egraph, &egraph.root_eclasses)
-            .is_empty());
-
+        check(&optimal_dag, &fbu_extractor, &egraph);
+        let fgd_extractor = super::faster_greedy_dag::FasterGreedyDagExtractor
+            .extract(&egraph, &egraph.root_eclasses);
+        check(&optimal_dag, &fgd_extractor, &egraph);
         let filp_extractor =
             super::faster_ilp_cbc::FasterCbcExtractor.extract(&egraph, &egraph.root_eclasses);
-        assert!(filp_extractor
-            .find_cycles(&egraph, &egraph.root_eclasses)
-            .is_empty());
+        check(&optimal_dag, &filp_extractor, &egraph);
+         let ggd_extractor = super::global_greedy_dag::GlobalGreedyDagExtractor
+            .extract(&egraph, &egraph.root_eclasses);
+        check(&optimal_dag, &ggd_extractor, &egraph);
+        let gd_extractor =
+            super::greedy_dag::GreedyDagExtractor.extract(&egraph, &egraph.root_eclasses);
+        check(&optimal_dag, &gd_extractor, &egraph);
 
-        let ilp_dag = ilp_extractor.dag_cost(&egraph, &egraph.root_eclasses);
-        let bu_dag = bu_extractor.dag_cost(&egraph, &egraph.root_eclasses);
-        let fbu_dag = fbu_extractor.tree_cost(&egraph, &egraph.root_eclasses);
         let filp_dag = filp_extractor.dag_cost(&egraph, &egraph.root_eclasses);
-
-        let ilp_tree = ilp_extractor.tree_cost(&egraph, &egraph.root_eclasses);
-        let bu_tree = bu_extractor.tree_cost(&egraph, &egraph.root_eclasses);
-        let fbu_tree = fbu_extractor.tree_cost(&egraph, &egraph.root_eclasses);
-        let filp_tree = filp_extractor.tree_cost(&egraph, &egraph.root_eclasses);
-
-        println!("ILP tree: {}, ILP dag: {}", ilp_tree, ilp_dag);
-        println!("FILP tree: {}, FILP dag: {}", filp_tree, filp_dag);
-        println!("BU tree: {}, BU dag: {}", bu_tree, bu_dag);
-        println!("FBU tree: {}, FBU dag: {}", fbu_tree, fbu_dag);
-
-        assert!((filp_dag - ilp_dag).abs() < 0.00001);
-
-        assert!(ilp_dag <= bu_dag + 0.00001);
-        assert!(ilp_dag <= fbu_dag + 0.00001);
-
-        assert!(ilp_dag <= filp_tree + 0.00001);
-        assert!(ilp_dag <= ilp_tree + 0.00001);
-        assert!(ilp_dag <= bu_tree + 0.00001);
-        assert!(ilp_dag <= fbu_tree + 0.00001);
+        
+        //filp & ilp both optimal, should be the same.
+        assert!((optimal_dag - filp_dag).abs() < 0.00001);
     }
 }

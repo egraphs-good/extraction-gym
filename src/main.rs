@@ -19,29 +19,22 @@ fn main() {
     env_logger::init();
 
     let extractors: IndexMap<&str, Box<dyn Extractor>> = [
-        //("bottom-up", extract::bottom_up::BottomUpExtractor.boxed()),
-        //(
-        //"bottom-up-recursive",
-        //extract::bottom_up_recursive::BottomUpRecursiveExtractor.boxed(),
-        //),
-        //(
-        //  "bottom-up-analysis",
-        //            extract::bottom_up_analysis::BottomUpAnalysisExtractor.boxed(),
-        //      ),
+        ("bottom-up", extract::bottom_up::BottomUpExtractor.boxed()),
+        (
+            "faster-bottom-up",
+            extract::faster_bottom_up::FasterBottomUpExtractor.boxed(),
+        ),
         (
             "greedy-dag",
             extract::greedy_dag::GreedyDagExtractor.boxed(),
         ),
         (
             "faster-greedy-dag",
-            extract::greedy_dag_1::FasterGreedyDagExtractor.boxed(),
+            extract::faster_greedy_dag::FasterGreedyDagExtractor.boxed(),
         ),
-        #[cfg(feature = "ilp-cbc")]
-        ("ilp-cbc", extract::ilp_cbc::CbcExtractor.boxed()),
-        #[cfg(feature = "ilp-cbc-prune")]
         (
-            "ilp-cbc-prune",
-            extract::ilp_cbc_prune::CbcPruneExtractor.boxed(),
+            "global-greedy-dag",
+            extract::global_greedy_dag::GlobalGreedyDagExtractor.boxed(),
         ),
     ]
     .into_iter()

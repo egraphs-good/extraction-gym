@@ -10,16 +10,18 @@ ilp-cbc = ["coin_cbc"]
 ilp-cbc-prune = ["coin_cbc"]
 
 [dependencies]
-env_logger = {version = "0.10.0", default-features = false}
+env_logger = { version = "0.10.0", default-features = false }
 indexmap = "2.0.0"
 log = "0.4.19"
 ordered-float = "3"
-pico-args = {version = "0.5.0", features = ["eq-separator"]}
+pico-args = { version = "0.5.0", features = ["eq-separator"] }
 
 anyhow = "1.0.71"
-coin_cbc = {version = "0.1.6", optional = true}
+coin_cbc = { version = "0.1.6", optional = true }
 im-rc = "15.1.0"
+rustc-hash = "1.1.0"
 
+rpds = "1.1.0"
 [dependencies.egraph-serialize]
 git = "https://github.com/egraphs-good/egraph-serialize"
 rev = "951b829a434f4008c7b45ba4ac0da1037d2da90"

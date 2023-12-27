@@ -1,0 +1,21 @@
+(datatype DT
+  (a i64 DT)
+  (b i64 DT)
+  (c i64 DT)
+  (d i64 DT)
+  (leaf i64)
+ )
+
+(let l4 (leaf 1))
+(let l3 (d 1 l4))
+(let l2 (c 1 l3))
+(let l1 (b 1 l2))
+(let l0 (a 1 l1))
+
+(rewrite (leaf x)(leaf (+ x 1)))
+(rewrite (a x y)(a (+ x 1) y))
+(rewrite (b x y)(b (+ x 1) y))
+(rewrite (c x y)(c (+ x 1) y))
+(rewrite (d x y)(d (+ x 1) y))
+
+(run 30)

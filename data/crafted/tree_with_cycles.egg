@@ -1,0 +1,17 @@
+(datatype Tree
+  (Leaf String)
+  (BinNode Tree Tree))
+
+(let l0 (BinNode (Leaf "0") (Leaf "1")))
+(let l1 (BinNode (Leaf "2") (Leaf "3")))
+(let l2 (BinNode (Leaf "4") (Leaf "5")))
+(let l3 (BinNode (Leaf "6") (Leaf "7")))
+
+(let l4 (BinNode l0 l1))
+(let l5 (BinNode l2 l3))
+
+(let l6 (BinNode l4 l5))
+
+; Adds cycles 
+(rewrite (BinNode x y) (BinNode x (BinNode x y)))
+(run 2)

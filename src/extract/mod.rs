@@ -1,5 +1,5 @@
 use indexmap::IndexMap;
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::collections::HashMap;
 
 pub use crate::*;
@@ -66,6 +66,39 @@ enum Status {
 }
 
 impl ExtractionResult {
+    pub fn check(&self, egraph: &EGraph) {
+        // should be a root
+        assert!(!egraph.root_eclasses.is_empty());
+
+        // All roots should be selected.
+        for cid in egraph.root_eclasses.iter() {
+            assert!(self.choices.contains_key(cid));
+        }
+
+        // No cycles
+        assert!(self.find_cycles(&egraph, &egraph.root_eclasses).is_empty());
+
+        // Nodes should match the class they are selected into.
+        for (cid, nid) in &self.choices {
+            let node = &egraph[nid];
+            assert!(node.eclass == *cid);
+        }
+
+        // All the nodes the roots depend upon should be selected.
+        let mut todo: Vec<ClassId> = egraph.root_eclasses.to_vec();
+        let mut visited: FxHashSet<ClassId> = Default::default();
+        while let Some(cid) = todo.pop() {
+            if !visited.insert(cid.clone()) {
+                continue;
+            }
+            assert!(self.choices.contains_key(&cid));
+
+            for child in &egraph[&self.choices[&cid]].children {
+                todo.push(egraph.nid_to_cid(child).clone());
+            }
+        }
+    }
+
     pub fn choose(&mut self, class_id: ClassId, node_id: NodeId) {
         self.choices.insert(class_id, node_id);
     }

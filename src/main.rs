@@ -78,9 +78,10 @@ fn main() {
 
     let start_time = std::time::Instant::now();
     let result = extractor.extract(&egraph, &egraph.root_eclasses);
-    result.check(&egraph);
-
     let us = start_time.elapsed().as_micros();
+
+    result.check(&egraph);
+    
     let tree = result.tree_cost(&egraph, &egraph.root_eclasses);
     let dag = result.dag_cost(&egraph, &egraph.root_eclasses);
 

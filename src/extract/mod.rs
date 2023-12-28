@@ -203,7 +203,6 @@ impl ExtractionResult {
 }
 
 use ordered_float::NotNan;
-use rand::distributions::Alphanumeric;
 use rand::Rng;
 
 // generates a float between 0 and 1
@@ -211,14 +210,6 @@ fn generate_random_not_nan() -> NotNan<f64> {
     let mut rng: rand::prelude::ThreadRng = rand::thread_rng();
     let random_float: f64 = rng.gen();
     NotNan::new(random_float).unwrap()
-}
-
-fn generate_random_string(length: usize) -> String {
-    rand::thread_rng()
-        .sample_iter(&Alphanumeric)
-        .take(length)
-        .map(char::from)
-        .collect()
 }
 
 //make a random egraph

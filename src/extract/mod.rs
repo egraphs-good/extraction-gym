@@ -12,6 +12,9 @@ pub mod greedy_dag;
 #[cfg(feature = "ilp-cbc")]
 pub mod ilp_cbc;
 
+// Allowance for floating point values to be considered equal
+pub const EPSILON_ALLOWANCE: f64 = 0.00001;
+
 pub trait Extractor: Sync {
     fn extract(&self, egraph: &EGraph, roots: &[ClassId]) -> ExtractionResult;
 
@@ -197,4 +200,80 @@ impl ExtractionResult {
                 })
                 .sum::<Cost>()
     }
+}
+
+use ordered_float::NotNan;
+use rand::distributions::Alphanumeric;
+use rand::Rng;
+
+// generates a float between 0 and 1
+fn generate_random_not_nan() -> NotNan<f64> {
+    let mut rng: rand::prelude::ThreadRng = rand::thread_rng();
+    let random_float: f64 = rng.gen();
+    NotNan::new(random_float).unwrap()
+}
+
+fn generate_random_string(length: usize) -> String {
+    rand::thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(length)
+        .map(char::from)
+        .collect()
+}
+
+//make a random egraph
+pub fn generate_random_egraph() -> EGraph {
+    let mut rng = rand::thread_rng();
+    let mut egraph = EGraph::default();
+    let mut nodes = Vec::<Node>::default();
+    let mut eclass = 0;
+
+    let mut n2nid = IndexMap::<Node, NodeId>::default();
+    let mut count = 0;
+
+    for _ in 0..rng.gen_range(1..100) {
+        let mut children = Vec::<NodeId>::default();
+        for node in &nodes {
+            if rng.gen_bool(0.1) {
+                children.push(n2nid.get(node).unwrap().clone());
+            }
+        }
+
+        if rng.gen_bool(0.2) {
+            eclass += 1;
+        }
+
+        let node = Node {
+            op: "operation".to_string(),
+            children: children,
+            eclass: eclass.to_string().clone().into(),
+            cost: (generate_random_not_nan() * 100.0),
+        };
+
+        nodes.push(node.clone());
+        let id = "node_".to_owned() + &count.to_string();
+        count += 1;
+        egraph.add_node(id.clone(), node.clone());
+        n2nid.insert(node.clone(), id.clone().into());
+    }
+
+    //I've not seen this generate an infeasible egraph, and don't undertand why.
+    let len = nodes.len();
+    for n in &mut nodes {
+        if rng.gen_bool(0.5) {
+            n.children.push(n2nid[rng.gen_range(0..len)].clone());
+        }
+    }
+
+    // Get roots, potentially duplicate.
+    for _ in 1..rng.gen_range(2..11) {
+        egraph.root_eclasses.push(
+            nodes
+                .get(rng.gen_range(0..nodes.len()))
+                .unwrap()
+                .eclass
+                .clone(),
+        );
+    }
+    egraph
 }

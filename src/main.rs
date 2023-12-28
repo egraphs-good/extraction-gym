@@ -17,12 +17,15 @@ pub const INFINITY: Cost = unsafe { NotNan::new_unchecked(std::f64::INFINITY) };
 
 fn main() {
     env_logger::init();
-
     let extractors: IndexMap<&str, Box<dyn Extractor>> = [
         ("bottom-up", extract::bottom_up::BottomUpExtractor.boxed()),
         (
             "faster-bottom-up",
             extract::faster_bottom_up::FasterBottomUpExtractor.boxed(),
+        ),
+        (
+            "faster-greedy-dag",
+            extract::faster_greedy_dag::FasterGreedyDagExtractor.boxed(),
         ),
         (
             "greedy-dag",
@@ -32,10 +35,19 @@ fn main() {
             "faster-greedy-dag",
             extract::faster_greedy_dag::FasterGreedyDagExtractor.boxed(),
         ),
+        /*
         (
             "global-greedy-dag",
             extract::global_greedy_dag::GlobalGreedyDagExtractor.boxed(),
         ),
+        */
+        #[cfg(feature = "faster-ilp-cbc")]
+        (
+            "faster-ilp-cbc",
+            extract::faster_ilp_cbc::FasterCbcExtractor.boxed(),
+        ),
+        #[cfg(feature = "ilp-cbc")]
+        ("ilp-cbc", extract::ilp_cbc::CbcExtractor.boxed()),
     ]
     .into_iter()
     .collect();
@@ -97,4 +109,141 @@ fn main() {
 }}"#
     )
     .unwrap();
+}
+
+/*
+* Checks that no extractors produce better results than the extractors that produce optimal results.
+* Checks that the extractions are valid.
+*/
+
+fn check_optimal_results() {
+    let optimal_dag: Vec<Box<dyn Extractor>> = vec![
+        #[cfg(feature = "faster-ilp-cbc")]
+        (ilp_cbc::CbcExtractor.boxed()),
+        #[cfg(feature = "faster-ilp-cbc")]
+        (faster_ilp_cbc::FasterCbcExtractor.boxed()),
+    ];
+
+    let iterations = if optimal_dag.is_empty() { 2000 } else { 100 };
+
+    let optimal_tree: Vec<Box<dyn Extractor>> = vec![
+        bottom_up::BottomUpExtractor.boxed(),
+        faster_bottom_up::FasterBottomUpExtractor.boxed(),
+    ];
+
+    let others: Vec<Box<dyn Extractor>> = vec![
+        greedy_dag::GreedyDagExtractor.boxed(),
+        faster_greedy_dag::FasterGreedyDagExtractor.boxed(),
+        //global_greedy_dag::GlobalGreedyDagExtractor.boxed(),
+    ];
+
+    for _ in 0..iterations {
+        let egraph = generate_random_egraph();
+
+        let mut optimal_dag_cost: Option<Cost> = None;
+
+        for e in &optimal_dag {
+            let extract = e.extract(&egraph, &egraph.root_eclasses);
+            extract.check(&egraph);
+            let dag_cost = extract.dag_cost(&egraph, &egraph.root_eclasses);
+            let tree_cost = extract.tree_cost(&egraph, &egraph.root_eclasses);
+            if optimal_dag_cost.is_some() {
+                assert!(
+                    dag_cost.into_inner() + EPSILON_ALLOWANCE
+                        > optimal_dag_cost.unwrap().into_inner()
+                );
+
+                assert!(
+                    dag_cost.into_inner()
+                        < optimal_dag_cost.unwrap().into_inner() + EPSILON_ALLOWANCE
+                );
+
+                assert!(
+                    tree_cost.into_inner() + EPSILON_ALLOWANCE
+                        > optimal_dag_cost.unwrap().into_inner()
+                );
+            } else {
+                optimal_dag_cost = Some(dag_cost);
+            }
+        }
+
+        let mut optimal_tree_cost: Option<Cost> = None;
+
+        for e in &optimal_tree {
+            let extract = e.extract(&egraph, &egraph.root_eclasses);
+            extract.check(&egraph);
+            let tree_cost = extract.tree_cost(&egraph, &egraph.root_eclasses);
+            if optimal_tree_cost.is_some() {
+                assert!(
+                    tree_cost.into_inner() + EPSILON_ALLOWANCE
+                        > optimal_tree_cost.unwrap().into_inner()
+                );
+                assert!(
+                    tree_cost.into_inner()
+                        < optimal_tree_cost.unwrap().into_inner() + EPSILON_ALLOWANCE
+                );
+            } else {
+                optimal_tree_cost = Some(tree_cost);
+            }
+        }
+
+        if optimal_dag_cost.is_some() {
+            assert!(optimal_dag_cost.unwrap() < optimal_tree_cost.unwrap() + EPSILON_ALLOWANCE);
+        }
+
+        for e in &others {
+            let extract = e.extract(&egraph, &egraph.root_eclasses);
+            extract.check(&egraph);
+            let tree_cost = extract.tree_cost(&egraph, &egraph.root_eclasses);
+            let dag_cost = extract.dag_cost(&egraph, &egraph.root_eclasses);
+
+            // The optimal tree cost should be <= any extractor's tree cost.
+            assert!(optimal_tree_cost.unwrap() <= tree_cost + EPSILON_ALLOWANCE);
+
+            if optimal_dag_cost.is_some() {
+                // The optimal dag should be less <= any extractor's dag cost
+                assert!(optimal_dag_cost.unwrap() <= dag_cost + EPSILON_ALLOWANCE);
+            }
+        }
+    }
+}
+
+// Make several identical functions so they'll be run in parallel
+#[test]
+fn check0() {
+    check_optimal_results();
+}
+
+#[test]
+fn check1() {
+    check_optimal_results();
+}
+
+#[test]
+fn check2() {
+    check_optimal_results();
+}
+
+#[test]
+fn check3() {
+    check_optimal_results();
+}
+
+#[test]
+fn check4() {
+    check_optimal_results();
+}
+#[test]
+fn check5() {
+    check_optimal_results();
+}
+
+#[test]
+fn check6() {
+    check_optimal_results();
+}
+
+#[test]
+fn check7() {
+    check_optimal_results();
 }

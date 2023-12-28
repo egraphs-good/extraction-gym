@@ -7,6 +7,7 @@ version = "0.1.0"
 
 [features]
 ilp-cbc = ["coin_cbc"]
+ilp-cbc-prune = ["coin_cbc"]
 
 [dependencies]
 env_logger = { version = "0.10.0", default-features = false }
@@ -24,3 +25,6 @@ rpds = "1.1.0"
 [dependencies.egraph-serialize]
 git = "https://github.com/egraphs-good/egraph-serialize"
 rev = "951b829a434f4008c7b45ba4ac0da1037d2da90"
+
+[profile.release]
+debug = true

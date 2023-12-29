@@ -1000,36 +1000,6 @@ pub fn generate_random_config() -> Config {
     }
 }
 
-const ITERATIONS: i64 = 5;
-const TIMES: i64 = 100;
-
-fn test_configs(config: &Vec<Config>) {
-    for _ in 0..TIMES {
-        let egraph = generate_random_egraph();
-
-        let mut results: Option<Cost> = None;
-        for c in config {
-            let extraction = extract(&egraph, &egraph.root_eclasses, c);
-            extraction.check(&egraph);
-            let dag_cost = extraction.dag_cost(&egraph, &egraph.root_eclasses);
-            if results.is_some() {
-                assert!(dag_cost.into_inner() + EPSILON_ALLOWANCE > results.unwrap().into_inner());
-                assert!(dag_cost.into_inner() < results.unwrap().into_inner() + EPSILON_ALLOWANCE);
-            }
-            results = Some(dag_cost);
-        }
-    }
-}
-
-fn run() {
-    let mut configs = vec![Config::default(), all_disabled()];
-
-    for _ in 0..ITERATIONS {
-        configs.push(generate_random_config());
-    }
-    test_configs(&configs);
-}
-
 fn all_disabled() -> Config {
     return Config {
         pull_up_costs: false,
@@ -1043,6 +1013,38 @@ fn all_disabled() -> Config {
         move_min_cost_of_members_to_class: false,
         prior_block_cycles: false,
     };
+}
+
+const EXTRA_CONFIGS_TO_TEST: i64 = 5;
+const RANDOM_EGRAPHS_TO_TEST: i64 = 100;
+
+fn test_configs(config: &Vec<Config>) {
+    for _ in 0..RANDOM_EGRAPHS_TO_TEST {
+        let egraph = generate_random_egraph();
+
+        let mut results: Option<Cost> = None;
+        for c in config {
+            let extraction = extract(&egraph, &egraph.root_eclasses, c);
+            extraction.check(&egraph);
+            let dag_cost = extraction.dag_cost(&egraph, &egraph.root_eclasses);
+            if results.is_some() {
+                assert!(
+                    (dag_cost.into_inner() - results.unwrap().into_inner()).abs()
+                        < EPSILON_ALLOWANCE
+                );
+            }
+            results = Some(dag_cost);
+        }
+    }
+}
+
+fn run() {
+    let mut configs = vec![Config::default(), all_disabled()];
+
+    for _ in 0..EXTRA_CONFIGS_TO_TEST {
+        configs.push(generate_random_config());
+    }
+    test_configs(&configs);
 }
 
 // So the test runner uses more of my cores.

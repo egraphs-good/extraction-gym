@@ -1,10 +1,13 @@
-/* A slow optimal ILP extractor.
+/* An ILP extractor that returns the optimal DAG-extraction.
 
-It will return the optimal answer - but slowly!
+This extractor is simple so that it's easy to see that it's correct.
 
-This is supposed to be simple so that it's easy to see
-that it's correct and so it can be used as an oracle to test other extractors.
+If the timeout is reached, it will return the result of the faster-greedy-dag extractor.
 */
+
+// Without a timeout, some will take > 10 hours to finish.
+const SOLVING_TIME_LIMIT_SECONDS: u64 = 10;
+
 use super::*;
 use coin_cbc::{Col, Model, Sense};
 use indexmap::IndexSet;
@@ -19,6 +22,8 @@ pub struct CbcExtractor;
 impl Extractor for CbcExtractor {
     fn extract(&self, egraph: &EGraph, roots: &[ClassId]) -> ExtractionResult {
         let mut model = Model::default();
+
+        model.set_parameter("seconds", &SOLVING_TIME_LIMIT_SECONDS.to_string());
 
         let vars: IndexMap<ClassId, ClassVars> = egraph
             .classes()
@@ -91,6 +96,13 @@ impl Extractor for CbcExtractor {
             solution.raw().obj_value(),
         );
 
+        if solution.raw().status() != coin_cbc::raw::Status::Finished {
+            let initial_result =
+                super::faster_greedy_dag::FasterGreedyDagExtractor.extract(egraph, roots);
+            log::info!("Unfinished CBC solution");
+            return initial_result;
+        }
+
         let mut result = ExtractionResult::default();
 
         for (id, var) in &vars {
@@ -106,8 +118,6 @@ impl Extractor for CbcExtractor {
             }
         }
 
-        let cycles = result.find_cycles(egraph, roots);
-        assert!(cycles.is_empty());
         return result;
     }
 }
@@ -147,7 +157,10 @@ fn block_cycles(model: &mut Model, vars: &IndexMap<ClassId, ClassVars>, egraph: 
                 .collect::<IndexSet<_>>();
 
             if children_classes.contains(class_id) {
-                // Self loop. disable this node.
+                // Self loop - disable this node.
+                // This is clumsier than calling set_col_lower(var,0.0),
+                // but means it'll be infeasible (rather than producing an
+                // incorrect solution) if var corresponds to a root node.
                 let row = model.add_row();
                 model.set_weight(row, var, 1.0);
                 model.set_row_equal(row, 0.0);

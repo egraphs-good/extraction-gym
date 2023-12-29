@@ -47,7 +47,7 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
                 is_tree_optimal: false,
             },
         ),
-        (
+         (
             "greedy-dag",
             ExtractorDetail {
                 extractor: extract::greedy_dag::GreedyDagExtractor.boxed(),
@@ -75,10 +75,12 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
         #[cfg(feature = "ilp-cbc")]
         (
             "faster-ilp-cbc",
-            extract::faster_ilp_cbc::FasterCbcExtractor.boxed(),
+            ExtractorDetail {
+                extractor: extract::faster_ilp_cbc::FasterCbcExtractor.boxed(),
+                is_dag_optimal: true,
+                is_tree_optimal: false,
+            },
         ),
-        #[cfg(feature = "ilp-cbc")]
-        ("ilp-cbc", extract::ilp_cbc::CbcExtractor.boxed()),
     ]
     .into_iter()
     .collect();

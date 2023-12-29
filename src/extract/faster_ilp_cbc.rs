@@ -1082,7 +1082,6 @@ fn random7() {
     run();
 }
 
-
 #[test]
 fn random8() {
     run();

@@ -47,7 +47,7 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
                 is_tree_optimal: false,
             },
         ),
-         (
+        (
             "greedy-dag",
             ExtractorDetail {
                 extractor: extract::greedy_dag::GreedyDagExtractor.boxed(),

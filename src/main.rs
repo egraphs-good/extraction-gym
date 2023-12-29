@@ -265,42 +265,15 @@ fn check_assert_enabled() {
     assert!(false);
 }
 
-// Make several identical functions so they'll be run in parallel
-#[test]
-fn check0() {
-    check_optimal_results();
+macro_rules! create_optimal_check_tests {
+    ($($name:ident),*) => {
+        $(
+            #[test]
+            fn $name() {
+                check_optimal_results();
+            }
+        )*
+    }
 }
 
-#[test]
-fn check1() {
-    check_optimal_results();
-}
-
-#[test]
-fn check2() {
-    check_optimal_results();
-}
-
-#[test]
-fn check3() {
-    check_optimal_results();
-}
-
-#[test]
-fn check4() {
-    check_optimal_results();
-}
-#[test]
-fn check5() {
-    check_optimal_results();
-}
-
-#[test]
-fn check6() {
-    check_optimal_results();
-}
-
-#[test]
-fn check7() {
-    check_optimal_results();
-}
+create_optimal_check_tests!(check0, check1, check2, check3, check4, check5, check6, check7);

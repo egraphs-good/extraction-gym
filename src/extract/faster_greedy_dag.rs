@@ -41,9 +41,13 @@ impl FasterGreedyDagExtractor {
         childrens_classes.sort();
         childrens_classes.dedup();
 
+        let cid = egraph.nid_to_cid(&node_id);
+
         let first_cost = costs.get(&childrens_classes[0]).unwrap();
 
-        if childrens_classes.len() == 1 && (node.cost + first_cost.total > best_cost) {
+        if childrens_classes.contains(cid)
+            || (childrens_classes.len() == 1 && (node.cost + first_cost.total > best_cost))
+        {
             // Shortcut. Can't be cheaper so return junk.
             return CostSet {
                 costs: Default::default(),
@@ -69,7 +73,6 @@ impl FasterGreedyDagExtractor {
             }
         }
 
-        let cid = egraph.nid_to_cid(&node_id);
         let contains = result.contains_key(&cid);
         result.insert(cid.clone(), node.cost);
 

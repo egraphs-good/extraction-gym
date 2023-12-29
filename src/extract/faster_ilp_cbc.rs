@@ -1046,53 +1046,15 @@ fn all_disabled() -> Config {
 }
 
 // So the test runner uses more of my cores.
-
-#[test]
-fn random1() {
-    run();
+macro_rules! create_tests {
+    ($($name:ident),*) => {
+        $(
+            #[test]
+            fn $name() {
+                run();
+            }
+        )*
+    }
 }
 
-#[test]
-fn random2() {
-    run();
-}
-
-#[test]
-fn random3() {
-    run();
-}
-
-#[test]
-fn random4() {
-    run();
-}
-
-#[test]
-fn random5() {
-    run();
-}
-
-#[test]
-fn random6() {
-    run();
-}
-
-#[test]
-fn random7() {
-    run();
-}
-
-#[test]
-fn random8() {
-    run();
-}
-
-#[test]
-fn random9() {
-    run();
-}
-
-#[test]
-fn random10() {
-    run();
-}
+create_tests!(random0, random1, random2, random3, random4, random5, random6, random7, random8, random9);

@@ -148,11 +148,7 @@ fn main() {
 */
 
 fn check_optimal_results() {
-    let optimal_dag_found = extractors()
-        .into_iter()
-        .filter(|(_, ed)| ed.is_dag_optimal)
-        .count()
-        != 0;
+    let optimal_dag_found = extractors().into_iter().any(|(_, ed)| ed.is_dag_optimal);
 
     let iterations = if optimal_dag_found { 100 } else { 10000 };
 
@@ -243,6 +239,24 @@ fn check_optimal_results2<I: Iterator<Item = EGraph>>(egraphs: I) {
             }
         }
     }
+}
+
+// Run on all the .json files in the data directory
+#[test]
+#[ignore = "too slow to run all the time"]
+fn run_files() {
+    use walkdir::WalkDir;
+
+    let egraphs = WalkDir::new("./data")
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|e| {
+            e.file_type().is_file()
+                && e.path().extension().and_then(std::ffi::OsStr::to_str) == Some("json")
+        })
+        .map(|e| e.path().to_string_lossy().into_owned())
+        .map(|e| EGraph::from_json_file(&e).unwrap());
+    check_optimal_results2(egraphs);
 }
 
 #[test]

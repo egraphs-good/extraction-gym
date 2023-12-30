@@ -1057,4 +1057,6 @@ macro_rules! create_tests {
     }
 }
 
-create_tests!(random0, random1, random2, random3, random4, random5, random6, random7, random8, random9);
+create_tests!(
+    random0, random1, random2, random3, random4, random5, random6, random7, random8, random9
+);

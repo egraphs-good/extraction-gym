@@ -212,59 +212,66 @@ fn generate_random_not_nan() -> NotNan<f64> {
     NotNan::new(random_float).unwrap()
 }
 
-//make a random egraph
+//make a random egraph that has a loop-free extraction.
 pub fn generate_random_egraph() -> EGraph {
     let mut rng = rand::thread_rng();
-    let mut egraph = EGraph::default();
-    let mut nodes = Vec::<Node>::default();
+    let core_node_count = rng.gen_range(1..100) as usize;
+    let extra_node_count = rng.gen_range(1..100);
+    let mut nodes = Vec::with_capacity(core_node_count + extra_node_count);
     let mut eclass = 0;
 
-    let mut n2nid = IndexMap::<Node, NodeId>::default();
-    let mut count = 0;
+    let id2nid = |id: usize| -> NodeId { format!("node_{}", id).into() };
 
-    for _ in 0..rng.gen_range(1..100) {
-        let mut children = Vec::<NodeId>::default();
-        for node in &nodes {
-            if rng.gen_bool(0.1) {
-                children.push(n2nid.get(node).unwrap().clone());
-            }
-        }
+    for i in 0..core_node_count {
+        let children: Vec<NodeId> = (0..i).filter(|_| rng.gen_bool(0.1)).map(id2nid).collect();
 
         if rng.gen_bool(0.2) {
             eclass += 1;
         }
 
-        let node = Node {
+        nodes.push(Node {
             op: "operation".to_string(),
             children: children,
             eclass: eclass.to_string().clone().into(),
             cost: (generate_random_not_nan() * 100.0),
-        };
-
-        nodes.push(node.clone());
-        let id = "node_".to_owned() + &count.to_string();
-        count += 1;
-        egraph.add_node(id.clone(), node.clone());
-        n2nid.insert(node.clone(), id.clone().into());
+        });
     }
 
-    //I've not seen this generate an infeasible egraph, and don't undertand why.
-    let len = nodes.len();
-    for n in &mut nodes {
-        if rng.gen_bool(0.5) {
-            n.children.push(n2nid[rng.gen_range(0..len)].clone());
+    // So far we have the nodes for a feasible egraph. Now we add some
+    // cycles to extra nodes - nodes that aren't required in the extraction.
+    for _ in 0..extra_node_count {
+        nodes.push(Node {
+            op: "operation".to_string(),
+            children: vec![],
+            eclass: rng.gen_range(0..eclass * 2 + 1).to_string().clone().into(),
+            cost: (generate_random_not_nan() * 100.0),
+        });
+    }
+
+    for i in core_node_count..nodes.len() {
+        for j in 0..nodes.len() {
+            if rng.gen_bool(0.05) {
+                nodes.get_mut(i).unwrap().children.push(id2nid(j));
+            }
         }
     }
 
-    // Get roots, potentially duplicate.
-    for _ in 1..rng.gen_range(2..11) {
+    let mut egraph = EGraph::default();
+
+    for i in 0..nodes.len() {
+        egraph.add_node(id2nid(i), nodes[i].clone());
+    }
+
+    // Set roots
+    for _ in 1..rng.gen_range(2..6) {
         egraph.root_eclasses.push(
             nodes
-                .get(rng.gen_range(0..nodes.len()))
+                .get(rng.gen_range(0..core_node_count))
                 .unwrap()
                 .eclass
                 .clone(),
         );
     }
+
     egraph
 }

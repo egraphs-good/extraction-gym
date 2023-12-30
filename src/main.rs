@@ -39,14 +39,14 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
                 is_tree_optimal: true,
             },
         ),
-        (
+        /*(
             "faster-greedy-dag",
             ExtractorDetail {
                 extractor: extract::faster_greedy_dag::FasterGreedyDagExtractor.boxed(),
                 is_dag_optimal: false,
                 is_tree_optimal: false,
             },
-        ),
+        ),*/
         (
             "greedy-dag",
             ExtractorDetail {

@@ -45,9 +45,6 @@ impl Config {
     }
 }
 
-// Some problems take >36,000 seconds to optimise.
-const SOLVING_TIME_LIMIT_SECONDS: u64 = 10;
-
 struct NodeILP {
     variable: Col,
     cost: Cost,
@@ -130,15 +127,25 @@ impl ClassILP {
     }
 }
 
+
+pub struct FasterCbcExtractorWithTimeout<const TIMEOUT_IN_SECONDS: u32>;
+
+// Some problems take >36,000 seconds to optimise.
+impl<const TIMEOUT_IN_SECONDS: u32> Extractor for FasterCbcExtractorWithTimeout<TIMEOUT_IN_SECONDS> {
+    fn extract(&self, egraph: &EGraph, roots: &[ClassId]) -> ExtractionResult {
+        return extract(egraph, roots, &Config::default(), TIMEOUT_IN_SECONDS);
+    }
+}
+
 pub struct FasterCbcExtractor;
 
 impl Extractor for FasterCbcExtractor {
     fn extract(&self, egraph: &EGraph, roots: &[ClassId]) -> ExtractionResult {
-        extract(egraph, roots, &Config::default())
+           return extract(egraph, roots,&Config::default(), std::u32::MAX);
     }
 }
 
-fn extract(egraph: &EGraph, roots: &[ClassId], config: &Config) -> ExtractionResult {
+fn extract(egraph: &EGraph, roots: &[ClassId], config: &Config, timeout: u32) -> ExtractionResult {
     let mut model = Model::default();
 
     //silence verbose stdout output
@@ -321,7 +328,7 @@ fn extract(egraph: &EGraph, roots: &[ClassId], config: &Config) -> ExtractionRes
     loop {
         // Set the solver limit based on how long has passed already.
         if let Ok(difference) = SystemTime::now().duration_since(start_time) {
-            let seconds = SOLVING_TIME_LIMIT_SECONDS.saturating_sub(difference.as_secs());
+            let seconds = timeout.saturating_sub(difference.as_secs().try_into().unwrap());
             model.set_parameter("seconds", &seconds.to_string());
         } else {
             model.set_parameter("seconds", "0");
@@ -434,9 +441,7 @@ fn extract(egraph: &EGraph, roots: &[ClassId], config: &Config) -> ExtractionRes
 }
 
 /*
-Using this caused wrong results from the solver. My hypothesis is that COIN-OR CBC expects the solution that we
-provide with this to be feasible. Reasonable, given that we're providing an "initial solution".
-When we provided an infeasible initial solution, we'd occassionaly get wrong results from the solver.
+Using this caused wrong results from the solver. I don't have a good idea why.
 */
 fn set_initial_solution(
     vars: &IndexMap<ClassId, ClassILP>,
@@ -1039,7 +1044,7 @@ fn test_configs(config: &Vec<Config>, log_path: impl AsRef<std::path::Path>) {
 
         let mut results: Option<Cost> = None;
         for c in config {
-            let extraction = extract(&egraph, &egraph.root_eclasses, c);
+            let extraction = extract(&egraph, &egraph.root_eclasses, c, u32::MAX);
             extraction.check(&egraph);
             let dag_cost = extraction.dag_cost(&egraph, &egraph.root_eclasses);
             if results.is_some() {

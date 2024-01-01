@@ -19,6 +19,7 @@ struct ExtractorDetail {
     extractor: Box<dyn Extractor>,
     is_dag_optimal: bool,
     is_tree_optimal: bool,
+    use_for_bench: bool,
 }
 
 fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
@@ -29,6 +30,7 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
                 extractor: extract::bottom_up::BottomUpExtractor.boxed(),
                 is_dag_optimal: false,
                 is_tree_optimal: true,
+                use_for_bench: true,
             },
         ),
         (
@@ -37,6 +39,7 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
                 extractor: extract::faster_bottom_up::FasterBottomUpExtractor.boxed(),
                 is_dag_optimal: false,
                 is_tree_optimal: true,
+                use_for_bench: true,
             },
         ),
         (
@@ -45,6 +48,7 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
                 extractor: extract::faster_greedy_dag::FasterGreedyDagExtractor.boxed(),
                 is_dag_optimal: false,
                 is_tree_optimal: false,
+                use_for_bench: true,
             },
         ),
         (
@@ -53,6 +57,7 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
                 extractor: extract::greedy_dag::GreedyDagExtractor.boxed(),
                 is_dag_optimal: false,
                 is_tree_optimal: false,
+                use_for_bench: true,
             },
         ),
         /*(
@@ -61,8 +66,29 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
                 extractor: extract::global_greedy_dag::GlobalGreedyDagExtractor.boxed(),
                 is_dag_optimal: false,
                 is_tree_optimal: false,
+                use_for_bench: true,
             },
         ),*/
+        #[cfg(feature = "ilp-cbc")]
+        (
+            "ilp-cbc-timeout",
+            ExtractorDetail {
+                extractor: extract::ilp_cbc::CbcExtractorWithTimeout::<10>.boxed(),
+                is_dag_optimal: false,
+                is_tree_optimal: false,
+                use_for_bench: true,
+            },
+        ),
+        #[cfg(feature = "ilp-cbc")]
+        (
+            "faster-ilp-cbc-timeout",
+            ExtractorDetail {
+                extractor: extract::faster_ilp_cbc::FasterCbcExtractorWithTimeout::<10>.boxed(),
+                is_dag_optimal: false,
+                is_tree_optimal: false,
+                use_for_bench: true,
+            },
+        ),
         #[cfg(feature = "ilp-cbc")]
         (
             "ilp-cbc",
@@ -70,6 +96,7 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
                 extractor: extract::ilp_cbc::CbcExtractor.boxed(),
                 is_dag_optimal: true,
                 is_tree_optimal: false,
+                use_for_bench: false, // takes >10 hours sometimes
             },
         ),
         #[cfg(feature = "ilp-cbc")]
@@ -79,6 +106,7 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
                 extractor: extract::faster_ilp_cbc::FasterCbcExtractor.boxed(),
                 is_dag_optimal: true,
                 is_tree_optimal: false,
+                use_for_bench: false, // takes >10 hours sometimes
             },
         ),
     ]
@@ -90,7 +118,8 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
 fn main() {
     env_logger::init();
 
-    let extractors = extractors();
+    let mut extractors = extractors();
+    extractors.retain(|_, ed| ed.use_for_bench);
 
     let mut args = pico_args::Arguments::from_env();
 
@@ -152,21 +181,14 @@ fn main() {
 }
 
 /*
-* Checks that no extractors produce better results than the extractors that produce optimal results.
-* Checks that the extractions are valid.
-*/
+ * Checks that no extractors produce better results than the extractors that produce optimal results.
+ * Checks that the extractions are valid.
+ */
 
-fn check_optimal_results() {
-    let optimal_dag_found = extractors().into_iter().any(|(_, ed)| ed.is_dag_optimal);
-
-    let iterations = if optimal_dag_found { 100 } else { 10000 };
-
-    let egraphs = (0..iterations).map(|_| generate_random_egraph());
-
-    check_optimal_results2(egraphs);
-}
-
-fn check_optimal_results2<I: Iterator<Item = EGraph>>(egraphs: I) {
+fn check_optimal_results<I: Iterator<Item = EGraph>>(
+    egraphs: I,
+    log_path: impl AsRef<std::path::Path>,
+) {
     let optimal_dag: Vec<Box<dyn Extractor>> = extractors()
         .into_iter()
         .filter(|(_, ed)| ed.is_dag_optimal)
@@ -185,10 +207,10 @@ fn check_optimal_results2<I: Iterator<Item = EGraph>>(egraphs: I) {
         .map(|(_, ed)| ed.extractor)
         .collect();
 
-    let mut count = 0;
     for egraph in egraphs {
-        count += 1;
-        println!("{count}");
+        if !log_path.as_ref().to_str().unwrap_or("").is_empty() {
+            egraph.to_json_file(&log_path).unwrap();
+        }
 
         let mut optimal_dag_cost: Option<Cost> = None;
 
@@ -247,16 +269,18 @@ fn check_optimal_results2<I: Iterator<Item = EGraph>>(egraphs: I) {
                 assert!(optimal_dag_cost.unwrap() <= dag_cost + EPSILON_ALLOWANCE);
             }
         }
+        if !log_path.as_ref().to_str().unwrap_or("").is_empty() {
+            std::fs::remove_file(&log_path);
+        }
     }
 }
 
-// Run on all the .json files in the data directory
+// Run on all the fuzz .json files in the data directory
 #[test]
-#[ignore = "too slow to run all the time"]
-fn run_files() {
+fn run_fuzz_files() {
     use walkdir::WalkDir;
 
-    let egraphs = WalkDir::new("./data")
+    let egraphs = WalkDir::new("./data/fuzz")
         .into_iter()
         .filter_map(Result::ok)
         .filter(|e| {
@@ -264,8 +288,8 @@ fn run_files() {
                 && e.path().extension().and_then(std::ffi::OsStr::to_str) == Some("json")
         })
         .map(|e| e.path().to_string_lossy().into_owned())
-        .map(|e| EGraph::from_json_file(&e).unwrap());
-    check_optimal_results2(egraphs);
+        .map(|e| EGraph::from_json_file(e).unwrap());
+    check_optimal_results(egraphs, "");
 }
 
 #[test]
@@ -274,42 +298,29 @@ fn check_assert_enabled() {
     assert!(false);
 }
 
-// Make several identical functions so they'll be run in parallel
-#[test]
-fn check0() {
-    check_optimal_results();
+macro_rules! create_optimal_check_tests {
+    ($($name:ident),*) => {
+        $(
+            #[test]
+            fn $name() {
+                let mut iterations = 2000;
+                if ELABORATE_TESTING
+                {
+                    iterations *=500;
+                }
+                if extractors().into_iter().any(|(_, ed)| ed.is_dag_optimal)
+                {
+                     iterations /= 50;
+                }
+                println!("Iterations chosen {iterations}");
+
+                check_optimal_results((0..iterations).map(|_| generate_random_egraph()), test_save_path(stringify!($name)));
+            }
+        )*
+    }
 }
 
-#[test]
-fn check1() {
-    check_optimal_results();
-}
-
-#[test]
-fn check2() {
-    check_optimal_results();
-}
-
-#[test]
-fn check3() {
-    check_optimal_results();
-}
-
-#[test]
-fn check4() {
-    check_optimal_results();
-}
-#[test]
-fn check5() {
-    check_optimal_results();
-}
-
-#[test]
-fn check6() {
-    check_optimal_results();
-}
-
-#[test]
-fn check7() {
-    check_optimal_results();
-}
+// So the test runner uses more of my cores.
+create_optimal_check_tests!(
+    check0, check1, check2, check3, check4, check5, check6, check7, check8, check9, check10
+);

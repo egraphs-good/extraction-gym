@@ -14,16 +14,15 @@ struct ClassVars {
     nodes: Vec<Col>,
 }
 
-pub struct CbcExtractor;
-pub struct CbcExtractorWithTimeout;
+pub struct CbcExtractorWithTimeout<const TIMEOUT_IN_SECONDS: u32>;
 
-impl Extractor for CbcExtractorWithTimeout {
+impl<const TIMEOUT_IN_SECONDS: u32> Extractor for CbcExtractorWithTimeout<TIMEOUT_IN_SECONDS> {
     fn extract(&self, egraph: &EGraph, roots: &[ClassId]) -> ExtractionResult {
-        // Without a timeout, some will take > 10 hours to finish.
-        const SOLVING_TIME_LIMIT_SECONDS: u32 = 10;
-        return extract(egraph, roots, SOLVING_TIME_LIMIT_SECONDS);
+        return extract(egraph, roots, TIMEOUT_IN_SECONDS);
     }
 }
+
+pub struct CbcExtractor;
 
 impl Extractor for CbcExtractor {
     fn extract(&self, egraph: &EGraph, roots: &[ClassId]) -> ExtractionResult {

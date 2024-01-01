@@ -18,7 +18,7 @@ pub struct CbcExtractor;
 pub struct CbcExtractorWithTimeout;
 
 impl Extractor for CbcExtractorWithTimeout {
-    fn extract(egraph: &EGraph, roots: &[ClassId]) -> ExtractionResult {
+    fn extract(&self, egraph: &EGraph, roots: &[ClassId]) -> ExtractionResult {
         // Without a timeout, some will take > 10 hours to finish.
         const SOLVING_TIME_LIMIT_SECONDS: u32 = 10;
         return extract(egraph, roots, SOLVING_TIME_LIMIT_SECONDS);
@@ -108,7 +108,7 @@ fn extract(egraph: &EGraph, roots: &[ClassId], timeout_seconds: u32) -> Extracti
     );
 
     if solution.raw().status() != coin_cbc::raw::Status::Finished {
-        assert(timeout != std::u32::MAX);
+        assert!(timeout_seconds != std::u32::MAX);
 
         let initial_result =
             super::faster_greedy_dag::FasterGreedyDagExtractor.extract(egraph, roots);

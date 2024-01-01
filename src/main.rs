@@ -37,7 +37,10 @@ fn main() {
             extract::global_greedy_dag::GlobalGreedyDagExtractor.boxed(),
         ),
         #[cfg(feature = "ilp-cbc")]
-        ("ilp-cbc", extract::ilp_cbc::CbcExtractor.boxed()),
+        (
+            "ilp-cbc-timeout",
+            extract::ilp_cbc::CbcExtractorWithTimeout.boxed(),
+        ),
     ]
     .into_iter()
     .collect();

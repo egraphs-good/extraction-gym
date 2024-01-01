@@ -133,6 +133,19 @@ fn extract(egraph: &EGraph, roots: &[ClassId], timeout_seconds: u32) -> Extracti
     return result;
 }
 
+/*
+
+ To block cycles, we enforce that a topological ordering exists on the extraction.
+ Each class is mapped to an integer variable (called its level).  Then for each node,
+ we add a constraint that if a node is active, then the level of the class the node
+ belongs to must be less than than the level of each of the node's  children.
+
+ To create a cycle, the levels would need to decrease, so they're blocked. For example,
+ given a two class cycle: if class A, has level 'l', and class B has level 'm', then
+ 'l' must be less than 'm', but because there is also an active node in class B that
+ has class A as a child, 'm' must be less than 'l', which is a contradiction.
+*/
+
 fn block_cycles(model: &mut Model, vars: &IndexMap<ClassId, ClassVars>, egraph: &EGraph) {
     let mut levels: IndexMap<ClassId, Col> = Default::default();
     for c in vars.keys() {

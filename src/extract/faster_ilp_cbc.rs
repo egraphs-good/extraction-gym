@@ -127,11 +127,12 @@ impl ClassILP {
     }
 }
 
-
 pub struct FasterCbcExtractorWithTimeout<const TIMEOUT_IN_SECONDS: u32>;
 
 // Some problems take >36,000 seconds to optimise.
-impl<const TIMEOUT_IN_SECONDS: u32> Extractor for FasterCbcExtractorWithTimeout<TIMEOUT_IN_SECONDS> {
+impl<const TIMEOUT_IN_SECONDS: u32> Extractor
+    for FasterCbcExtractorWithTimeout<TIMEOUT_IN_SECONDS>
+{
     fn extract(&self, egraph: &EGraph, roots: &[ClassId]) -> ExtractionResult {
         return extract(egraph, roots, &Config::default(), TIMEOUT_IN_SECONDS);
     }
@@ -141,7 +142,7 @@ pub struct FasterCbcExtractor;
 
 impl Extractor for FasterCbcExtractor {
     fn extract(&self, egraph: &EGraph, roots: &[ClassId]) -> ExtractionResult {
-           return extract(egraph, roots,&Config::default(), std::u32::MAX);
+        return extract(egraph, roots, &Config::default(), std::u32::MAX);
     }
 }
 

@@ -35,7 +35,7 @@ $(PROGRAM): $(SRC)
 
 .PHONY: test
 test:
-	cargo test --release
+	cargo nextest run
 
 .PHONY: nits
 nits:

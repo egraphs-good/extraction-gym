@@ -19,6 +19,7 @@ struct ExtractorDetail {
     extractor: Box<dyn Extractor>,
     is_dag_optimal: bool,
     is_tree_optimal: bool,
+    use_for_bench: bool,
 }
 
 fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
@@ -29,6 +30,7 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
                 extractor: extract::bottom_up::BottomUpExtractor.boxed(),
                 is_dag_optimal: false,
                 is_tree_optimal: true,
+                use_for_bench: true,
             },
         ),
         (
@@ -37,6 +39,7 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
                 extractor: extract::faster_bottom_up::FasterBottomUpExtractor.boxed(),
                 is_dag_optimal: false,
                 is_tree_optimal: true,
+                use_for_bench: true,
             },
         ),
         /*(
@@ -45,6 +48,7 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
                 extractor: extract::faster_greedy_dag::FasterGreedyDagExtractor.boxed(),
                 is_dag_optimal: false,
                 is_tree_optimal: false,
+                use_for_bench: true,
             },
         ),*/
         (
@@ -53,6 +57,7 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
                 extractor: extract::greedy_dag::GreedyDagExtractor.boxed(),
                 is_dag_optimal: false,
                 is_tree_optimal: false,
+                use_for_bench: true,
             },
         ),
         /*(
@@ -61,8 +66,19 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
                 extractor: extract::global_greedy_dag::GlobalGreedyDagExtractor.boxed(),
                 is_dag_optimal: false,
                 is_tree_optimal: false,
+                use_for_bench: true,
             },
         ),*/
+        #[cfg(feature = "ilp-cbc")]
+        (
+            "ilp-cbc-timeout",
+            ExtractorDetail {
+                extractor: extract::ilp_cbc::CbcExtractorWithTimeout::<10>.boxed(),
+                is_dag_optimal: false,
+                is_tree_optimal: false,
+                use_for_bench: true,
+            },
+        ),
         #[cfg(feature = "ilp-cbc")]
         (
             "ilp-cbc",
@@ -70,6 +86,7 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
                 extractor: extract::ilp_cbc::CbcExtractor.boxed(),
                 is_dag_optimal: true,
                 is_tree_optimal: false,
+                use_for_bench: false, // takes >10 hours sometimes
             },
         ),
     ]
@@ -81,7 +98,8 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
 fn main() {
     env_logger::init();
 
-    let extractors = extractors();
+    let mut extractors = extractors();
+    extractors.retain(|_, ed| ed.use_for_bench);
 
     let mut args = pico_args::Arguments::from_env();
 
@@ -147,17 +165,7 @@ fn main() {
 * Checks that the extractions are valid.
 */
 
-fn check_optimal_results() {
-    let optimal_dag_found = extractors().into_iter().any(|(_, ed)| ed.is_dag_optimal);
-
-    let iterations = if optimal_dag_found { 100 } else { 10000 };
-
-    let egraphs = (0..iterations).map(|_| generate_random_egraph());
-
-    check_optimal_results2(egraphs);
-}
-
-fn check_optimal_results2<I: Iterator<Item = EGraph>>(egraphs: I) {
+fn check_optimal_results<I: Iterator<Item = EGraph>>(egraphs: I) {
     let optimal_dag: Vec<Box<dyn Extractor>> = extractors()
         .into_iter()
         .filter(|(_, ed)| ed.is_dag_optimal)
@@ -241,13 +249,12 @@ fn check_optimal_results2<I: Iterator<Item = EGraph>>(egraphs: I) {
     }
 }
 
-// Run on all the .json files in the data directory
+// Run on all the .json files in the data/fuzz directory
 #[test]
-#[ignore = "too slow to run all the time"]
-fn run_files() {
+fn run_on_fuzz_egraphs() {
     use walkdir::WalkDir;
 
-    let egraphs = WalkDir::new("./data")
+    let egraphs = WalkDir::new("./data/fuzz")
         .into_iter()
         .filter_map(Result::ok)
         .filter(|e| {
@@ -256,7 +263,7 @@ fn run_files() {
         })
         .map(|e| e.path().to_string_lossy().into_owned())
         .map(|e| EGraph::from_json_file(&e).unwrap());
-    check_optimal_results2(egraphs);
+    check_optimal_results(egraphs);
 }
 
 #[test]
@@ -270,7 +277,10 @@ macro_rules! create_optimal_check_tests {
         $(
             #[test]
             fn $name() {
-                check_optimal_results();
+                let optimal_dag_found = extractors().into_iter().any(|(_, ed)| ed.is_dag_optimal);
+                let iterations = if optimal_dag_found { 100 } else { 10000 };
+                let egraphs = (0..iterations).map(|_| generate_random_egraph());
+                check_optimal_results(egraphs);
             }
         )*
     }

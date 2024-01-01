@@ -32,10 +32,10 @@ fn main() {
             "faster-greedy-dag",
             extract::faster_greedy_dag::FasterGreedyDagExtractor.boxed(),
         ),
-        /*(
+        (
             "global-greedy-dag",
             extract::global_greedy_dag::GlobalGreedyDagExtractor.boxed(),
-        ),*/
+        ),
         #[cfg(feature = "ilp-cbc")]
         (
             "ilp-cbc-timeout",

@@ -358,6 +358,11 @@ fn extract(egraph: &EGraph, roots: &[ClassId], config: &Config) -> ExtractionRes
         }
         */
 
+        if solution.raw().status() != coin_cbc::raw::Status::Finished {
+            log::info!("CBC stopped before finishing");
+            return initial_result;
+        }
+
         let mut result = ExtractionResult::default();
 
         let mut cost = 0.0;

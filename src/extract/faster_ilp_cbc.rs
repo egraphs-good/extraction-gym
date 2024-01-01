@@ -35,11 +35,11 @@ impl Config {
             remove_self_loops: true,
             remove_high_cost_nodes: true,
             remove_more_expensive_subsumed_nodes: true,
-            remove_more_expensive_nodes: true,
+            remove_more_expensive_nodes: false,
             remove_unreachable_classes: true,
             pull_up_single_parent: true,
             take_intersection_of_children_in_class: true,
-            move_min_cost_of_members_to_class: true,
+            move_min_cost_of_members_to_class: false,
             prior_block_cycles: false,
         }
     }
@@ -140,6 +140,9 @@ impl Extractor for FasterCbcExtractor {
 
 fn extract(egraph: &EGraph, roots: &[ClassId], config: &Config) -> ExtractionResult {
     let mut model = Model::default();
+
+    //silence verbose stdout output
+    model.set_parameter("loglevel", "0");
 
     let false_literal = model.add_binary();
     model.set_col_upper(false_literal, 0.0);
@@ -314,6 +317,7 @@ fn extract(egraph: &EGraph, roots: &[ClassId], config: &Config) -> ExtractionRes
     }
 
     let start_time = SystemTime::now();
+
     loop {
         // Set the solver limit based on how long has passed already.
         if let Ok(difference) = SystemTime::now().duration_since(start_time) {
@@ -333,23 +337,16 @@ fn extract(egraph: &EGraph, roots: &[ClassId], config: &Config) -> ExtractionRes
             solution.raw().obj_value(),
         );
 
-        if solution.raw().status() != coin_cbc::raw::Status::Finished {
-            /* The solver keeps the best discovered feasible solution
-            (somewhere). It'd be better to extract that, test if
-            it has cycles, and if not return that. */
-            log::info!(
-                "Timed out, returning initial solution of: {} ",
-                initial_result_cost.into_inner()
-            );
-            return initial_result;
-        }
-
         if solution.raw().is_proven_infeasible() {
             log::info!("Infeasible, returning empty solution");
             return ExtractionResult::default();
         }
 
+        // Doesn't make allowance for getting cycles.
+        /*
         if solution.raw().status() != coin_cbc::raw::Status::Finished {
+            log::info!("CBC stopped before finishing");
+
             if solution.raw().obj_value() > initial_result_cost.into_inner() {
                 log::info!(
                     "Unfinished CBC solution is worse than greedy dag: {} > {}",
@@ -359,6 +356,7 @@ fn extract(egraph: &EGraph, roots: &[ClassId], config: &Config) -> ExtractionRes
                 return initial_result;
             }
         }
+        */
 
         let mut result = ExtractionResult::default();
 
@@ -463,6 +461,7 @@ Then discard the more expensive node.
 * The cheapest cost doesn't use the var[] cost, it uses the cost from the egraphs. This is worse, but having dag_cost already
 built, makes this super easy to implement.
 * This can reduce the number of valid extractions - it will drop nodes that have the same cost as other nodes.
+* This currently doesn't work if the egraph contains subgraphs that are infeasible, because it calls dag_cost on those cycles (which fails.)
 */
 
 fn remove_more_expensive_nodes(
@@ -991,7 +990,8 @@ pub fn generate_random_config() -> Config {
         remove_self_loops: rng.gen(),
         remove_high_cost_nodes: rng.gen(),
         remove_more_expensive_subsumed_nodes: rng.gen(),
-        remove_more_expensive_nodes: rng.gen(),
+        remove_more_expensive_nodes: false,
+        /// CURRENTLY BROKEN FOR INFEASIBLE SUBGRAPHS
         remove_unreachable_classes: rng.gen(),
         pull_up_single_parent: rng.gen(),
         take_intersection_of_children_in_class: rng.gen(),
@@ -1015,12 +1015,22 @@ fn all_disabled() -> Config {
     };
 }
 
-const EXTRA_CONFIGS_TO_TEST: i64 = 5;
-const RANDOM_EGRAPHS_TO_TEST: i64 = 100;
+const CONFIGS_TO_TEST: i64 = 150;
+const ELABORATE_TESTING: bool = false;
 
-fn test_configs(config: &Vec<Config>) {
+fn test_configs(config: &Vec<Config>, log_path: impl AsRef<std::path::Path>) {
+    const RANDOM_EGRAPHS_TO_TEST: i64 = if ELABORATE_TESTING {
+        1000000 / CONFIGS_TO_TEST
+    } else {
+        250 / CONFIGS_TO_TEST
+    };
+
     for _ in 0..RANDOM_EGRAPHS_TO_TEST {
         let egraph = generate_random_egraph();
+
+        if !log_path.as_ref().to_str().unwrap_or("").is_empty() {
+            egraph.to_json_file(&log_path).unwrap();
+        }
 
         let mut results: Option<Cost> = None;
         for c in config {
@@ -1038,27 +1048,24 @@ fn test_configs(config: &Vec<Config>) {
     }
 }
 
-fn run() {
-    let mut configs = vec![Config::default(), all_disabled()];
-
-    for _ in 0..EXTRA_CONFIGS_TO_TEST {
-        configs.push(generate_random_config());
-    }
-    test_configs(&configs);
-}
-
-// So the test runner uses more of my cores.
 macro_rules! create_tests {
     ($($name:ident),*) => {
         $(
             #[test]
             fn $name() {
-                run();
+                let mut configs = vec![Config::default(), all_disabled()];
+
+                for _ in 0..CONFIGS_TO_TEST {
+                    configs.push(generate_random_config());
+                }
+                test_configs(&configs, test_save_path(stringify!($name)));
             }
         )*
     }
 }
 
+// So the test runner uses more of my cores.
 create_tests!(
-    random0, random1, random2, random3, random4, random5, random6, random7, random8, random9
+    random0, random1, random2, random3, random4, random5, random6, random7, random8, random9,
+    random10
 );

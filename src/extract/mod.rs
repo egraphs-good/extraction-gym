@@ -17,6 +17,16 @@ pub mod ilp_cbc;
 // Allowance for floating point values to be considered equal
 pub const EPSILON_ALLOWANCE: f64 = 0.00001;
 
+pub const ELABORATE_TESTING: bool = false;
+
+pub fn test_save_path(name: &str) -> String {
+    return if ELABORATE_TESTING {
+        format!("/dev/shm/{}_egraph.json", name)
+    } else {
+        "".to_string()
+    };
+}
+
 pub trait Extractor: Sync {
     fn extract(&self, egraph: &EGraph, roots: &[ClassId]) -> ExtractionResult;
 

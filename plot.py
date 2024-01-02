@@ -19,6 +19,99 @@ def load_jsons(files):
     return js
 
 
+# Returns a sequence of [time, improvement] pairs for the given extractor.
+# The improvement is the total improvement in dag-cost compared to the 
+# reference extractor.
+def getSequence(js, e0, reference, ref_data):
+
+    e0_cumulative=0
+    e0_list = []
+
+    e0_data = [j for j in js if j["extractor"] == e0]
+
+    for j in e0_data:
+        e0_cumulative += j["micros"]
+        jv = j;
+
+        jv["improvement"] = ref_data[j["name"]]["dag"]- j["dag"] 
+        e0_list.append(jv)
+
+    e0_cumulative = int(e0_cumulative / (1000 * 1000))
+
+    #sort each by runtime ascending
+    e0_list.sort(key=lambda x: x["micros"])
+    improvement = 0;
+    for e in e0_list:
+        improvement += e["improvement"]
+                
+    print (f"Extractor {e0}, total dag-cost improvement: {improvement:.1f} in {e0_cumulative}s")
+    e0_value = []
+    per_problem =0.0 #microseconds available per problem.
+    
+    for i in range(0, e0_cumulative + 1):
+        finished = 0;
+        spent = 0;
+        for jv in e0_list:
+            if (jv["micros"] < per_problem):
+                finished+=1
+                spent += jv["micros"]
+            else:
+                break #list is sorted, so we can stop here
+        active = len(e0_list) - finished
+
+        if active == 0:
+            break
+        per_problem = (1000000*i - spent) /active
+
+        saving = 0
+        
+        for jv in e0_list:
+            if jv["micros"] < per_problem:
+                saving += jv["improvement"]
+            else:
+                break
+
+        e0_value.append([i, saving]);
+
+    return e0_value
+
+#Assumes each extractor is run on the all the egraph benchmarks at the same time.
+#So given 500 egraphs, each will receive 1/500th of a second of that first second's
+#CPU time. Say 10 finish in less than 1/500th of a second, then for the 2nd second
+#of CPU time, each egraph will get 1/490th of a second of CPU time, and so on.
+def graph(js):
+    reference = "faster-greedy-dag"
+    if not any(j["extractor"] == reference for j in js):
+        print(f"Warning: no {reference} in {js}")
+        return
+
+    extractors = set(j["extractor"] for j in js)
+    extractors.remove(reference)
+    extractors.remove("bottom-up")
+
+    ref_data = {}
+    for j in js:
+        if j["extractor"] == reference:
+            ref_data[j["name"]] = j
+
+    series = {}
+    for e in extractors:
+        series[e] = getSequence(js, e, reference, ref_data);
+
+    #Plot in a graph.
+    import matplotlib.pyplot as plt
+
+    for s, values in series.items():
+        x_values = [i[0] for i in values]
+        y_values = [i[1] for i in values]
+        plt.plot(x_values, y_values, label=s)
+
+    plt.xlabel('time (s)')
+    plt.ylabel('dag-cost saving')
+    plt.legend()
+    plt.title('Improvement of extractors compared to ' + reference)
+    plt.savefig('dag_cost_improvement.svg')
+
 def process(js, extractors):
     by_name = {}
     for j in js:
@@ -112,3 +205,4 @@ if __name__ == "__main__":
             print(f"###################################################\n{ex1} vs {ex2}\n\n")
             process(js, [ex1, ex2])
             print("\n\n")
+    graph(js)

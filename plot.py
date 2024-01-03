@@ -82,12 +82,15 @@ def getSequence(js, e0, reference, ref_data):
 def graph(js):
     reference = "faster-greedy-dag"
     if not any(j["extractor"] == reference for j in js):
-        print(f"Warning: no {reference} in {js}")
+        print(f"Warning: no jsons found for {reference}")
         return
 
     extractors = set(j["extractor"] for j in js)
-    extractors.remove(reference)
-    extractors.remove("bottom-up")
+    
+    # Tree cost extraction is solved.
+    for item in ["bottom-up", "faster-bottom-up", reference]:
+        if item in extractors:
+            extractors.remove(item)
 
     ref_data = {}
     for j in js:
@@ -129,8 +132,6 @@ def process(js, extractors):
 
     for name, d in by_name.items():
         try:
-            if d[e1]["tree"] !=  d[e2]["tree"]:
-                print(name, " differs in tree cost: ", d[e1]["tree"], d[e2]["tree"]);
             if d[e1]["dag"] !=  d[e2]["dag"]:
                 print(name, " differs in dag cost: ", d[e1]["dag"], d[e2]["dag"]);
                 
@@ -150,9 +151,6 @@ def process(js, extractors):
             print(f"Error processing {name}")
             raise e
  
-    print(f"cumulative time for {e1}: {e1_cumulative/1000:.0f}ms")
-    print(f"cumulative time for {e2}: {e2_cumulative/1000:.0f}ms")
-
     print(f"cumulative tree cost for {e1}: {sum(d[e1]['tree'] for d in by_name.values()):.0f}")
     print(f"cumulative tree cost for {e2}: {sum(d[e2]['tree'] for d in by_name.values()):.0f}")
     print(f"cumulative dag cost for {e1}: {sum(d[e1]['dag'] for d in by_name.values()):.0f}")

@@ -136,9 +136,9 @@ fn extract(egraph: &EGraph, roots: &[ClassId], timeout_seconds: u32) -> Extracti
 /*
 
  To block cycles, we enforce that a topological ordering exists on the extraction.
- Each class is mapped to an integer variable (called its level).  Then for each node,
+ Each class is mapped to a variable (called its level).  Then for each node,
  we add a constraint that if a node is active, then the level of the class the node
- belongs to must be less than than the level of each of the node's  children.
+ belongs to must be less than than the level of each of the node's children.
 
  To create a cycle, the levels would need to decrease, so they're blocked. For example,
  given a two class cycle: if class A, has level 'l', and class B has level 'm', then
@@ -149,7 +149,11 @@ fn extract(egraph: &EGraph, roots: &[ClassId], timeout_seconds: u32) -> Extracti
 fn block_cycles(model: &mut Model, vars: &IndexMap<ClassId, ClassVars>, egraph: &EGraph) {
     let mut levels: IndexMap<ClassId, Col> = Default::default();
     for c in vars.keys() {
-        levels.insert(c.clone(), model.add_integer());
+        let var = model.add_col();
+        levels.insert(c.clone(), var);
+        //model.set_col_lower(var, 0.0);
+        // It solves the benchmarks about 5% faster without this
+        //model.set_col_upper(var, vars.len() as f64);
     }
 
     // If n.variable is true, opposite_col will be false and vice versa.
@@ -166,9 +170,6 @@ fn block_cycles(model: &mut Model, vars: &IndexMap<ClassId, ClassVars>, egraph: 
     }
 
     for (class_id, c) in vars {
-        model.set_col_lower(*levels.get(class_id).unwrap(), 0.0);
-        model.set_col_upper(*levels.get(class_id).unwrap(), vars.len() as f64);
-
         for i in 0..c.nodes.len() {
             let n_id = &egraph[class_id].nodes[i];
             let n = &egraph[n_id];
@@ -195,15 +196,15 @@ fn block_cycles(model: &mut Model, vars: &IndexMap<ClassId, ClassVars>, egraph: 
                 assert!(*levels.get(class_id).unwrap() != *levels.get(&cc).unwrap());
 
                 let row = model.add_row();
-                model.set_row_upper(row, -1.0);
-                model.set_weight(row, *levels.get(class_id).unwrap(), 1.0);
-                model.set_weight(row, *levels.get(&cc).unwrap(), -1.0);
+                model.set_row_lower(row, 1.0);
+                model.set_weight(row, *levels.get(class_id).unwrap(), -1.0);
+                model.set_weight(row, *levels.get(&cc).unwrap(), 1.0);
 
                 // If n.variable is 0, then disable the contraint.
                 model.set_weight(
                     row,
                     *opposite.get(&var).unwrap(),
-                    -((vars.len() + 1) as f64),
+                    (vars.len() +1) as f64,
                 );
             }
         }

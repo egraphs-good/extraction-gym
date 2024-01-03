@@ -201,11 +201,7 @@ fn block_cycles(model: &mut Model, vars: &IndexMap<ClassId, ClassVars>, egraph: 
                 model.set_weight(row, *levels.get(&cc).unwrap(), 1.0);
 
                 // If n.variable is 0, then disable the contraint.
-                model.set_weight(
-                    row,
-                    *opposite.get(&var).unwrap(),
-                    (vars.len() +1) as f64,
-                );
+                model.set_weight(row, *opposite.get(&var).unwrap(), (vars.len() + 1) as f64);
             }
         }
     }

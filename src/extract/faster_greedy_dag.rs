@@ -173,7 +173,6 @@ impl Default for MostlyUniquePriorityQueue {
 }
 
 impl MostlyUniquePriorityQueue {
-    
     // Note there can be duplicates innserted, but that's fine.
     pub fn insert(&mut self, node_id: NodeId, cost: Cost) {
         let old = self.set.get(&node_id);

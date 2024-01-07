@@ -51,15 +51,7 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
                 use_for_bench: true,
             },
         ),*/
-        (
-            "greedy-dag",
-            ExtractorDetail {
-                extractor: extract::greedy_dag::GreedyDagExtractor.boxed(),
-                is_dag_optimal: false,
-                is_tree_optimal: false,
-                use_for_bench: true,
-            },
-        ),
+
         /*(
             "global-greedy-dag",
             ExtractorDetail {
@@ -240,7 +232,6 @@ fn check_optimal_results<I: Iterator<Item = EGraph>>(egraphs: I) {
             // The optimal tree cost should be <= any extractor's tree cost.
             if optimal_tree_cost.is_some() {
                 assert!(optimal_tree_cost.unwrap() <= tree_cost + EPSILON_ALLOWANCE);
-                println!("{} {}", optimal_tree_cost.unwrap(), tree_cost);
             }
 
             if optimal_dag_cost.is_some() {

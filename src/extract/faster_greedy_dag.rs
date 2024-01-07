@@ -22,11 +22,11 @@ impl FasterGreedyDagExtractor {
         best_cost: Cost,
     ) -> CostSet {
         let node = &egraph[&node_id];
+        let cid = egraph.nid_to_cid(&node_id);
 
-        // No children -> easy.
         if node.children.is_empty() {
             return CostSet {
-                costs: Default::default(),
+                costs: HashMap::from([(cid.clone(), node.cost)]),
                 total: node.cost,
                 choice: node_id.clone(),
             };
@@ -40,8 +40,6 @@ impl FasterGreedyDagExtractor {
             .collect::<Vec<ClassId>>();
         childrens_classes.sort();
         childrens_classes.dedup();
-
-        let cid = egraph.nid_to_cid(&node_id);
 
         let first_cost = costs.get(&childrens_classes[0]).unwrap();
 

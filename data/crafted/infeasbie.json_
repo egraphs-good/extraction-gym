@@ -1,0 +1,22 @@
+{
+  "nodes": {
+    "0__0": {
+      "op": "root",
+      "cost": 1.0,
+      "eclass": "0",
+      "children": ["1__0"]
+    },
+    "1__0": {
+      "op": "cycle",
+      "cost": 1.0,
+      "eclass": "1",
+      "children": [
+        "0__0"
+      ]
+    }
+  },
+  "comment": "# infeasbile",
+  "root_eclasses": [
+    "0"
+  ]
+}

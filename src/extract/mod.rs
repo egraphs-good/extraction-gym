@@ -217,10 +217,23 @@ pub fn generate_random_egraph() -> EGraph {
     let mut rng = rand::thread_rng();
     let core_node_count = rng.gen_range(1..100) as usize;
     let extra_node_count = rng.gen_range(1..100);
-    let mut nodes = Vec::with_capacity(core_node_count + extra_node_count);
+    let mut nodes: Vec<Node> = Vec::with_capacity(core_node_count + extra_node_count);
     let mut eclass = 0;
 
     let id2nid = |id: usize| -> NodeId { format!("node_{}", id).into() };
+
+    // Unless we do it explicitly, the costs are almost never equal to others' costs or zero:
+    let get_semi_random_cost = |nodes: &Vec<Node>| -> Cost {
+        let mut rng = rand::thread_rng();
+
+        if nodes.len() > 0 && rng.gen_bool(0.1) {
+            return nodes[rng.gen_range(0..nodes.len())].cost;
+        } else if rng.gen_bool(0.05) {
+            return Cost::default();
+        } else {
+            return generate_random_not_nan() * 100.0;
+        }
+    };
 
     for i in 0..core_node_count {
         let children: Vec<NodeId> = (0..i).filter(|_| rng.gen_bool(0.1)).map(id2nid).collect();
@@ -233,7 +246,7 @@ pub fn generate_random_egraph() -> EGraph {
             op: "operation".to_string(),
             children: children,
             eclass: eclass.to_string().clone().into(),
-            cost: (generate_random_not_nan() * 100.0),
+            cost: get_semi_random_cost(&nodes),
         });
     }
 
@@ -244,7 +257,7 @@ pub fn generate_random_egraph() -> EGraph {
             op: "operation".to_string(),
             children: vec![],
             eclass: rng.gen_range(0..eclass * 2 + 1).to_string().clone().into(),
-            cost: (generate_random_not_nan() * 100.0),
+            cost: get_semi_random_cost(&nodes),
         });
     }
 

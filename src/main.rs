@@ -187,7 +187,6 @@ fn check_optimal_results<I: Iterator<Item = EGraph>>(egraphs: I) {
     let mut count = 0;
     for egraph in egraphs {
         count += 1;
-        println!("{count}");
 
         let mut optimal_dag_cost: Option<Cost> = None;
 
@@ -228,7 +227,7 @@ fn check_optimal_results<I: Iterator<Item = EGraph>>(egraphs: I) {
             );
         }
 
-        if optimal_dag_cost.is_some() {
+        if optimal_dag_cost.is_some() && optimal_tree_cost.is_some() {
             assert!(optimal_dag_cost.unwrap() < optimal_tree_cost.unwrap() + EPSILON_ALLOWANCE);
         }
 
@@ -239,7 +238,10 @@ fn check_optimal_results<I: Iterator<Item = EGraph>>(egraphs: I) {
             let dag_cost = extract.dag_cost(&egraph, &egraph.root_eclasses);
 
             // The optimal tree cost should be <= any extractor's tree cost.
-            assert!(optimal_tree_cost.unwrap() <= tree_cost + EPSILON_ALLOWANCE);
+            if optimal_tree_cost.is_some() {
+                assert!(optimal_tree_cost.unwrap() <= tree_cost + EPSILON_ALLOWANCE);
+                println!("{} {}", optimal_tree_cost.unwrap(), tree_cost);
+            }
 
             if optimal_dag_cost.is_some() {
                 // The optimal dag should be less <= any extractor's dag cost
@@ -262,7 +264,7 @@ fn run_on_fuzz_egraphs() {
                 && e.path().extension().and_then(std::ffi::OsStr::to_str) == Some("json")
         })
         .map(|e| e.path().to_string_lossy().into_owned())
-        .map(|e| EGraph::from_json_file(&e).unwrap());
+        .map(|e| EGraph::from_json_file(e).unwrap());
     check_optimal_results(egraphs);
 }
 

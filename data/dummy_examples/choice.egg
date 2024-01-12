@@ -6,7 +6,7 @@
 ; Tree extraction would pick (g (x n))
 ; Dag extraction notices the shared subterm A B across choices and makes the opposite choice.
 ; A and B are amoritized across uses, so cost (f n A B) ~ 1
-(define t
+(let t
     (Cons  (g (x 0))
     (Cons  (g (x 1))
     (Cons  (g (x 2))

@@ -7,7 +7,7 @@
 ; We pick enode e = (Mul (One) e)  
 
 
-(define t 
+(let t 
     (Mul (One) (foo (foo (foo (foo (One))))
 )))
 (run 1)

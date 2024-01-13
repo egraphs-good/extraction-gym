@@ -506,7 +506,7 @@ fn remove_more_expensive_subsumed_nodes(vars: &mut IndexMap<ClassId, ClassILP>, 
         let mut removed = 0;
         for class in vars.values_mut() {
             let mut children = class.as_nodes();
-            children.sort_by_key(|e| e.children_classes.len());
+            children.sort_by_key(|e| (e.children_classes.len(), e.cost));
 
             let mut to_remove: IndexSet<NodeId> = Default::default();
 

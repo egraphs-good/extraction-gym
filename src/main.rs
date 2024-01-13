@@ -235,10 +235,10 @@ fn check_optimal_results<I: Iterator<Item = EGraph>>(egraphs: I) {
 
 // Run on all the .json files in the data/fuzz directory
 #[test]
-fn run_on_fuzz_egraphs() {
+fn run_on_test_egraphs() {
     use walkdir::WalkDir;
 
-    let egraphs = WalkDir::new("./data/fuzz")
+    let egraphs = WalkDir::new("./test_data/")
         .into_iter()
         .filter_map(Result::ok)
         .filter(|e| {

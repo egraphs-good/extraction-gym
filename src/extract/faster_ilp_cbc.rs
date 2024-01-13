@@ -1,10 +1,14 @@
-/* Uses COIN-OR CBC solver to find an extraction from the egraph where each node is only costed once.
+/* 
+Produces a dag-cost optimal extraction of an Egraph.
 
-Some parts of the graph are easy to find optimal extractions for, for example tree parts, which this collapses down
-to a single class before the solver is called.
+This can take >10 hours to run on some egraphs, so there's the option to provide a timeout.
 
-There are two ways to block cycles,  with "PRIOR_BLOCK_CYCLES", which adds constraints to completely block cycles in advance,
-or the default scheme which blocks the cycles that are found in candidates from the solver.
+First, it simplifies the egraph by removing nodes that can't be selected in the optimal
+solution, and by collapsing other classes down. It then incrementally calls the COIN-OR CBC solver
+to find an extraction.
+
+If the solver produces an extraction with a cycle, extra constraints are added to block
+the cycle and the solver is called again.
 
 */
 
@@ -20,12 +24,13 @@ pub struct Config {
     pub remove_self_loops: bool,
     pub remove_high_cost_nodes: bool,
     pub remove_more_expensive_subsumed_nodes: bool,
-    pub remove_more_expensive_nodes: bool,
     pub remove_unreachable_classes: bool,
     pub pull_up_single_parent: bool,
     pub take_intersection_of_children_in_class: bool,
     pub move_min_cost_of_members_to_class: bool,
-    pub prior_block_cycles: bool,
+    pub find_extra_roots: bool,
+    pub remove_empty_classes: bool,
+    pub return_improved_on_timeout: bool,
 }
 
 impl Config {
@@ -35,12 +40,13 @@ impl Config {
             remove_self_loops: true,
             remove_high_cost_nodes: true,
             remove_more_expensive_subsumed_nodes: true,
-            remove_more_expensive_nodes: false,
             remove_unreachable_classes: true,
             pull_up_single_parent: true,
             take_intersection_of_children_in_class: true,
             move_min_cost_of_members_to_class: false,
-            prior_block_cycles: false,
+            find_extra_roots: true,
+            remove_empty_classes: true,
+            return_improved_on_timeout: true,
         }
     }
 }
@@ -146,8 +152,20 @@ impl Extractor for FasterCbcExtractor {
     }
 }
 
-fn extract(egraph: &EGraph, roots: &[ClassId], config: &Config, timeout: u32) -> ExtractionResult {
+fn extract(
+    egraph: &EGraph,
+    roots_slice: &[ClassId],
+    config: &Config,
+    timeout: u32,
+) -> ExtractionResult {
+    // todo from now on we don't use roots_slice - be good to prevent using it any more.
+    let mut roots = roots_slice.to_vec();
+    roots.sort();
+    roots.dedup();
+
     let mut model = Model::default();
+
+    let simp_start_time = std::time::Instant::now();
 
     //silence verbose stdout output
     model.set_parameter("loglevel", "0");
@@ -182,27 +200,19 @@ fn extract(egraph: &EGraph, roots: &[ClassId], config: &Config, timeout: u32) ->
         })
         .collect();
 
-    let initial_result = super::faster_greedy_dag::FasterGreedyDagExtractor.extract(egraph, roots);
-    let initial_result_cost = initial_result.dag_cost(egraph, roots);
+    let initial_result = super::faster_greedy_dag::FasterGreedyDagExtractor.extract(egraph, &roots);
+    let initial_result_cost = initial_result.dag_cost(egraph, &roots);
 
     for _i in 1..3 {
-        remove_with_loops(&mut vars, roots, config);
-        remove_high_cost(&mut vars, initial_result_cost, config);
-        remove_more_expensive_nodes(&mut vars, &initial_result, egraph, config);
+        remove_with_loops(&mut vars, &roots, config);
+        remove_high_cost(&mut vars, initial_result_cost, &roots, config);
         remove_more_expensive_subsumed_nodes(&mut vars, config);
-        remove_unreachable_classes(&mut vars, roots, config);
-        pull_up_with_single_parent(&mut vars, roots, config);
-        pull_up_costs(&mut vars, roots, config);
+        remove_unreachable_classes(&mut vars, &roots, config);
+        pull_up_with_single_parent(&mut vars, &roots, config);
+        pull_up_costs(&mut vars, &roots, config);
+        find_extra_roots(&mut vars, &mut roots, config);
+        remove_empty_classes(&mut vars, config);
     }
-
-    let mut empty = 0;
-    for class in vars.values() {
-        if class.members() == 0 {
-            empty += 1;
-        }
-    }
-    //All problems with empty classes finish in side the timeout - so I haven't implemented removing them yet.
-    log::info!("Empty classes: {empty}");
 
     for (classid, class) in &vars {
         if class.members() == 0 {
@@ -273,7 +283,7 @@ fn extract(egraph: &EGraph, roots: &[ClassId], config: &Config, timeout: u32) ->
         }
     }
 
-    for root in roots {
+    for root in &roots {
         model.set_col_lower(vars[root].active, 1.0);
     }
 
@@ -318,11 +328,14 @@ fn extract(egraph: &EGraph, roots: &[ClassId], config: &Config, timeout: u32) ->
         set_initial_solution(&vars, &mut model, &initial_result);
     }
 
-    prior_block(&mut model, &vars, config);
-
     if false {
         return initial_result;
     }
+
+    log::info!(
+        "Time spent before solving: {}ms",
+        simp_start_time.elapsed().as_millis()
+    );
 
     let start_time = SystemTime::now();
 
@@ -350,25 +363,22 @@ fn extract(egraph: &EGraph, roots: &[ClassId], config: &Config, timeout: u32) ->
             return ExtractionResult::default();
         }
 
+        let stopped_without_finishing = solution.raw().status() != coin_cbc::raw::Status::Finished;
+
         // Doesn't make allowance for getting cycles.
-        /*
-        if solution.raw().status() != coin_cbc::raw::Status::Finished {
+        if stopped_without_finishing {
             log::info!("CBC stopped before finishing");
 
-            if solution.raw().obj_value() > initial_result_cost.into_inner() {
+            if !config.return_improved_on_timeout
+                || solution.raw().obj_value() > initial_result_cost.into_inner()
+            {
                 log::info!(
-                    "Unfinished CBC solution is worse than greedy dag: {} > {}",
+                    "Unfinished CBC solution returned, solver: {}, initial: {}",
                     solution.raw().obj_value(),
                     initial_result_cost
                 );
                 return initial_result;
             }
-        }
-        */
-
-        if solution.raw().status() != coin_cbc::raw::Status::Finished {
-            log::info!("CBC stopped before finishing");
-            return initial_result;
         }
 
         let mut result = ExtractionResult::default();
@@ -402,21 +412,44 @@ fn extract(egraph: &EGraph, roots: &[ClassId], config: &Config, timeout: u32) ->
             }
         }
 
-        let cycles = find_cycles_in_result(&result, &vars, roots);
-        if cycles.is_empty() {
-            log::info!("Cost of solution {cost}");
-            log::info!("Initial result {}", initial_result_cost.into_inner());
-            log::info!("Cost of extraction {}", result.dag_cost(egraph, roots));
-            log::info!("Cost from solver {}", solution.raw().obj_value());
+        let cycles = find_cycles_in_result(&result, &vars, &roots);
 
+        log::info!("Cost of solution {cost}");
+        log::info!("Initial result {}", initial_result_cost.into_inner());
+        log::info!("Cost of extraction {}", result.dag_cost(egraph, &roots));
+        log::info!("Cost from solver {}", solution.raw().obj_value());
+
+        if stopped_without_finishing {
+            log::info!("Timed out");
+            if cycles.is_empty() {
+                // The reported cost of the solution sometimes differs to the dag cost, so we're
+                // a bit carefu..
+                let extraction_dag_cost = result.dag_cost(egraph, &roots);
+
+                // Not sure if this will ever fail..
+                result.check(egraph);
+                if extraction_dag_cost < initial_result_cost {
+                    log::info!(
+                        "Returning result of incomplete search saving: {}",
+                        initial_result_cost - extraction_dag_cost
+                    );
+                    return result;
+                } else {
+                    return initial_result;
+                }
+            } else {
+                log::info!("Found cycle in solution, but solver timed out");
+                return initial_result;
+            }
+        }
+
+        if cycles.is_empty() {
             assert!(cost <= initial_result_cost.into_inner() + EPSILON_ALLOWANCE);
-            assert!((result.dag_cost(egraph, roots) - cost).abs() < EPSILON_ALLOWANCE);
+            assert!((result.dag_cost(egraph, &roots) - cost).abs() < EPSILON_ALLOWANCE);
             assert!((cost - solution.raw().obj_value()).abs() < EPSILON_ALLOWANCE);
 
             return result;
         } else {
-            assert!(!config.prior_block_cycles);
-
             log::info!("Refining by blocking cycles: {}", cycles.len());
             for c in &cycles {
                 block_cycle(&mut model, c, &vars);
@@ -462,60 +495,6 @@ fn set_initial_solution(
         } else {
             model.set_col_initial_solution(class_vars.active, 0.0);
         }
-    }
-}
-
-/*
-If the cost of a node, including the full cost of all it's children, is less than the cost of just the other node's (excluding its children)
-Then discard the more expensive node.
-
-* The cheapest cost doesn't use the var[] cost, it uses the cost from the egraphs. This is worse, but having dag_cost already
-built, makes this super easy to implement.
-* This can reduce the number of valid extractions - it will drop nodes that have the same cost as other nodes.
-* This currently doesn't work if the egraph contains subgraphs that are infeasible, because it calls dag_cost on those cycles (which fails.)
-*/
-
-fn remove_more_expensive_nodes(
-    vars: &mut IndexMap<ClassId, ClassILP>,
-    initial_result: &ExtractionResult,
-    egraph: &EGraph,
-    config: &Config,
-) {
-    if config.remove_more_expensive_nodes {
-        let mut removed = 0;
-        for class in vars.values_mut() {
-            let children = class.as_nodes();
-            if children.len() <= 2 {
-                continue;
-            }
-
-            let (cheapest_node, cheapest_cost) = children
-                .iter()
-                .map(|node| {
-                    let cost = initial_result.dag_cost(
-                        egraph,
-                        node.children_classes
-                            .iter()
-                            .cloned()
-                            .collect::<Vec<_>>()
-                            .as_slice(),
-                    ) + egraph[&node.member].cost;
-                    (node, cost)
-                })
-                .min_by_key(|&(_, cost)| cost)
-                .unwrap();
-
-            removed += children
-                .iter()
-                .filter(|e| e.cost >= cheapest_cost && (cheapest_node.member != e.member))
-                .map(|e| class.remove_node(&e.member))
-                .count();
-        }
-
-        log::info!(
-            "Removed nodes that are not cheaper than another in the same class: {}",
-            removed
-        );
     }
 }
 
@@ -570,6 +549,106 @@ fn remove_unreachable_classes(
         let initial_size = vars.len();
         vars.retain(|class_id, _| reachable_classes.contains(class_id));
         log::info!("Unreachable classes: {}", initial_size - vars.len());
+    }
+}
+
+// Any node that has an empty class as a child, can't be selected, so remove the node,
+// if that makes another empty class, then remove its parents
+fn remove_empty_classes(vars: &mut IndexMap<ClassId, ClassILP>, config: &Config) {
+    if config.remove_empty_classes {
+        let mut empty_classes: std::collections::VecDeque<ClassId> = Default::default();
+        for (classid, detail) in vars.iter() {
+            if detail.members() == 0 {
+                empty_classes.push_back(classid.clone());
+            }
+        }
+
+        let mut removed_nodes = 0;
+        let fresh = IndexSet::<ClassId>::new();
+
+        let mut child_to_parents: IndexMap<ClassId, IndexSet<ClassId>> = IndexMap::new();
+
+        for (class_id, class_vars) in vars.iter() {
+            for kids in &class_vars.childrens_classes {
+                for child_class in kids {
+                    child_to_parents
+                        .entry(child_class.clone())
+                        .or_insert_with(IndexSet::new)
+                        .insert(class_id.clone());
+                }
+            }
+        }
+
+        let mut done = FxHashSet::<ClassId>::default();
+
+        while let Some(e) = empty_classes.pop_front() {
+            if !done.insert(e.clone()) {
+                continue;
+            }
+            let parents = child_to_parents.get(&e).unwrap_or(&fresh);
+            for parent in parents {
+                let mut to_remove = Vec::new();
+                for i in 0..vars[parent].childrens_classes.len() {
+                    if vars[parent].childrens_classes[i].contains(&e) {
+                        to_remove.push(i);
+                    }
+                }
+
+                for i in to_remove.iter().rev() {
+                    vars[parent].remove(*i);
+                    removed_nodes += 1;
+                }
+
+                if vars[parent].members() == 0 {
+                    empty_classes.push_back(parent.clone());
+                }
+            }
+        }
+
+        log::info!(
+            "Nodes removed that point to empty classes: {}",
+            removed_nodes
+        );
+    }
+}
+
+// Any class that is a child of each node in a root, is also a root.
+fn find_extra_roots(
+    vars: &mut IndexMap<ClassId, ClassILP>,
+    roots: &mut Vec<ClassId>,
+    config: &Config,
+) {
+    if config.find_extra_roots {
+        let mut extra = 0;
+        let mut i = 0;
+        // newly added roots will also be processed in one pass through.
+        while i < roots.len() {
+            let r = roots[i].clone();
+
+            let details = vars.get(&r).unwrap();
+            if details.childrens_classes.len() == 0 {
+                continue;
+            }
+
+            let mut intersection = details.childrens_classes[0].clone();
+
+            for childrens_classes in &details.childrens_classes[1..] {
+                intersection = intersection
+                    .intersection(childrens_classes)
+                    .cloned()
+                    .collect();
+            }
+
+            for r in &intersection {
+                if !roots.contains(r) {
+                    roots.push(r.clone());
+                    extra += 1;
+                }
+            }
+            i += 1;
+        }
+
+        log::info!("Extra roots discovered: {extra}");
     }
 }
 
@@ -725,20 +804,44 @@ fn pull_up_with_single_parent(
     }
 }
 
-// Remove any nodes that alone cost more than the whole best solution.
+// Remove any nodes that alone cost more than the total of a solution.
+// For example, if the lowest the sum of roots can be is 12, and we've found an approximate
+// solution already that is 15, then any non-root node that costs more than 3 can't be selected
+// in the optimal solution.
+
 fn remove_high_cost(
     vars: &mut IndexMap<ClassId, ClassILP>,
     initial_result_cost: NotNan<f64>,
+    roots: &[ClassId],
     config: &Config,
 ) {
     if config.remove_high_cost_nodes {
+        debug_assert_eq!(
+            roots.len(),
+            roots.iter().collect::<std::collections::HashSet<_>>().len(),
+            "All ClassId in roots must be unique"
+        );
+
+        let lowest_root_cost_sum: Cost = roots
+            .iter()
+            .filter_map(|root| vars[root].costs.iter().min())
+            .sum();
+
         let mut high_cost = 0;
 
-        for (_class_id, class_details) in vars.iter_mut() {
+        for (class_id, class_details) in vars.iter_mut() {
             let mut to_remove = std::collections::BTreeSet::new();
             for (node_idx, cost) in class_details.costs.iter().enumerate() {
                 // Without the allowance, this removed nodes that are needed for the optimal solution.
-                if cost > &(initial_result_cost + EPSILON_ALLOWANCE) {
+                let this_root: Cost = if roots.contains(class_id) {
+                    *class_details.costs.iter().min().unwrap()
+                } else {
+                    Cost::default()
+                };
+
+                if cost
+                    > &(initial_result_cost - lowest_root_cost_sum + this_root + EPSILON_ALLOWANCE)
+                {
                     to_remove.insert(node_idx);
                 }
             }
@@ -748,7 +851,7 @@ fn remove_high_cost(
                 high_cost += 1;
             }
         }
-        log::info!("Omitted high-cost nodes: {}", high_cost);
+        log::info!("Removed high-cost nodes: {}", high_cost);
     }
 }
 
@@ -834,13 +937,24 @@ fn block_cycle(model: &mut Model, cycle: &Vec<ClassId>, vars: &IndexMap<ClassId,
         let current_class_id = &cycle[i];
         let next_class_id = &cycle[(i + 1) % cycle.len()];
 
-        let blocking_var = model.add_binary();
-        blocking.push(blocking_var);
+        let mut this_level = Vec::default();
         for node in &vars[current_class_id].as_nodes() {
             if node.children_classes.contains(next_class_id) {
+                this_level.push(node.variable);
+            }
+        }
+
+        assert!(!this_level.is_empty());
+
+        if this_level.len() == 1 {
+            blocking.push(this_level[0]);
+        } else {
+            let blocking_var = model.add_binary();
+            blocking.push(blocking_var);
+            for n in this_level {
                 let row = model.add_row();
                 model.set_row_upper(row, 0.0);
-                model.set_weight(row, node.variable, 1.0);
+                model.set_weight(row, n, 1.0);
                 model.set_weight(row, blocking_var, -1.0);
             }
         }
@@ -930,69 +1044,12 @@ fn cycle_dfs(
     }
 }
 
-/*
-Blocks all the cycles by constraining levels associated with classes.
+mod test{
+    use crate::{ELABORATE_TESTING, generate_random_egraph, faster_ilp_cbc::extract, EPSILON_ALLOWANCE};
+    use super::Config;
+    use rand::Rng;
+    pub type Cost = ordered_float::NotNan<f64>;
 
-There is an integer variable for each class. If there is an active edge connecting two classes,
-then the level of the source class needs to be less than the level of the destination class.
-
-A nice thing about this is that later on we can read out feasible solutions from
-the ILP solver even on timeout. Currently all the work is thrown away on timeout.
-
-*/
-
-fn prior_block(model: &mut Model, vars: &IndexMap<ClassId, ClassILP>, config: &Config) {
-    if config.prior_block_cycles {
-        let mut levels: IndexMap<ClassId, Col> = Default::default();
-        for c in vars.keys() {
-            levels.insert(c.clone(), model.add_integer());
-        }
-
-        // If n.variable is true, opposite_col will be false and vice versa.
-        let mut opposite: IndexMap<Col, Col> = Default::default();
-        for c in vars.values() {
-            for n in c.as_nodes() {
-                let opposite_col = model.add_binary();
-                opposite.insert(n.variable, opposite_col);
-                let row = model.add_row();
-                model.set_row_equal(row, 1.0);
-                model.set_weight(row, opposite_col, 1.0);
-                model.set_weight(row, n.variable, 1.0);
-            }
-        }
-
-        for (class_id, c) in vars {
-            model.set_col_lower(*levels.get(class_id).unwrap(), 0.0);
-            model.set_col_upper(*levels.get(class_id).unwrap(), vars.len() as f64);
-
-            for n in c.as_nodes() {
-                if n.children_classes.contains(class_id) {
-                    // Self loop. disable this node.
-                    let row = model.add_row();
-                    model.set_weight(row, n.variable, 1.0);
-                    model.set_row_equal(row, 0.0);
-                    continue;
-                }
-
-                for cc in n.children_classes {
-                    assert!(*levels.get(class_id).unwrap() != *levels.get(&cc).unwrap());
-
-                    let row = model.add_row();
-                    model.set_row_upper(row, -1.0);
-                    model.set_weight(row, *levels.get(class_id).unwrap(), 1.0);
-                    model.set_weight(row, *levels.get(&cc).unwrap(), -1.0);
-
-                    // If n.variable is 0, then disable the contraint.
-                    model.set_weight(
-                        row,
-                        *opposite.get(&n.variable).unwrap(),
-                        -((vars.len() + 1) as f64),
-                    );
-                }
-            }
-        }
-    }
-}
 
 pub fn generate_random_config() -> Config {
     let mut rng = rand::thread_rng();
@@ -1001,13 +1058,13 @@ pub fn generate_random_config() -> Config {
         remove_self_loops: rng.gen(),
         remove_high_cost_nodes: rng.gen(),
         remove_more_expensive_subsumed_nodes: rng.gen(),
-        remove_more_expensive_nodes: false,
-        /// CURRENTLY BROKEN FOR INFEASIBLE SUBGRAPHS
         remove_unreachable_classes: rng.gen(),
         pull_up_single_parent: rng.gen(),
         take_intersection_of_children_in_class: rng.gen(),
         move_min_cost_of_members_to_class: rng.gen(),
-        prior_block_cycles: rng.gen(),
+        find_extra_roots: rng.gen(),
+        remove_empty_classes: rng.gen(),
+        return_improved_on_timeout: rng.gen(),
     }
 }
 
@@ -1017,17 +1074,17 @@ fn all_disabled() -> Config {
         remove_self_loops: false,
         remove_high_cost_nodes: false,
         remove_more_expensive_subsumed_nodes: false,
-        remove_more_expensive_nodes: false,
         remove_unreachable_classes: false,
         pull_up_single_parent: false,
         take_intersection_of_children_in_class: false,
         move_min_cost_of_members_to_class: false,
-        prior_block_cycles: false,
+        find_extra_roots: false,
+        remove_empty_classes: false,
+        return_improved_on_timeout: false,
     };
 }
 
 const CONFIGS_TO_TEST: i64 = 150;
-const ELABORATE_TESTING: bool = false;
 
 fn test_configs(config: &Vec<Config>, log_path: impl AsRef<std::path::Path>) {
     const RANDOM_EGRAPHS_TO_TEST: i64 = if ELABORATE_TESTING {
@@ -1069,7 +1126,7 @@ macro_rules! create_tests {
                 for _ in 0..CONFIGS_TO_TEST {
                     configs.push(generate_random_config());
                 }
-                test_configs(&configs, test_save_path(stringify!($name)));
+                test_configs(&configs, crate::test_save_path(stringify!($name)));
             }
         )*
     }
@@ -1080,3 +1137,4 @@ create_tests!(
     random0, random1, random2, random3, random4, random5, random6, random7, random8, random9,
     random10
 );
+}

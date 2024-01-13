@@ -1,4 +1,4 @@
-/* 
+/*
 Produces a dag-cost optimal extraction of an Egraph.
 
 This can take >10 hours to run on some egraphs, so there's the option to provide a timeout.
@@ -1044,79 +1044,80 @@ fn cycle_dfs(
     }
 }
 
-mod test{
-    use crate::{ELABORATE_TESTING, generate_random_egraph, faster_ilp_cbc::extract, EPSILON_ALLOWANCE};
+mod test {
     use super::Config;
+    use crate::{
+        faster_ilp_cbc::extract, generate_random_egraph, ELABORATE_TESTING, EPSILON_ALLOWANCE,
+    };
     use rand::Rng;
     pub type Cost = ordered_float::NotNan<f64>;
 
-
-pub fn generate_random_config() -> Config {
-    let mut rng = rand::thread_rng();
-    Config {
-        pull_up_costs: rng.gen(),
-        remove_self_loops: rng.gen(),
-        remove_high_cost_nodes: rng.gen(),
-        remove_more_expensive_subsumed_nodes: rng.gen(),
-        remove_unreachable_classes: rng.gen(),
-        pull_up_single_parent: rng.gen(),
-        take_intersection_of_children_in_class: rng.gen(),
-        move_min_cost_of_members_to_class: rng.gen(),
-        find_extra_roots: rng.gen(),
-        remove_empty_classes: rng.gen(),
-        return_improved_on_timeout: rng.gen(),
-    }
-}
-
-fn all_disabled() -> Config {
-    return Config {
-        pull_up_costs: false,
-        remove_self_loops: false,
-        remove_high_cost_nodes: false,
-        remove_more_expensive_subsumed_nodes: false,
-        remove_unreachable_classes: false,
-        pull_up_single_parent: false,
-        take_intersection_of_children_in_class: false,
-        move_min_cost_of_members_to_class: false,
-        find_extra_roots: false,
-        remove_empty_classes: false,
-        return_improved_on_timeout: false,
-    };
-}
-
-const CONFIGS_TO_TEST: i64 = 150;
-
-fn test_configs(config: &Vec<Config>, log_path: impl AsRef<std::path::Path>) {
-    const RANDOM_EGRAPHS_TO_TEST: i64 = if ELABORATE_TESTING {
-        1000000 / CONFIGS_TO_TEST
-    } else {
-        250 / CONFIGS_TO_TEST
-    };
-
-    for _ in 0..RANDOM_EGRAPHS_TO_TEST {
-        let egraph = generate_random_egraph();
-
-        if !log_path.as_ref().to_str().unwrap_or("").is_empty() {
-            egraph.to_json_file(&log_path).unwrap();
+    pub fn generate_random_config() -> Config {
+        let mut rng = rand::thread_rng();
+        Config {
+            pull_up_costs: rng.gen(),
+            remove_self_loops: rng.gen(),
+            remove_high_cost_nodes: rng.gen(),
+            remove_more_expensive_subsumed_nodes: rng.gen(),
+            remove_unreachable_classes: rng.gen(),
+            pull_up_single_parent: rng.gen(),
+            take_intersection_of_children_in_class: rng.gen(),
+            move_min_cost_of_members_to_class: rng.gen(),
+            find_extra_roots: rng.gen(),
+            remove_empty_classes: rng.gen(),
+            return_improved_on_timeout: rng.gen(),
         }
+    }
 
-        let mut results: Option<Cost> = None;
-        for c in config {
-            let extraction = extract(&egraph, &egraph.root_eclasses, c, u32::MAX);
-            extraction.check(&egraph);
-            let dag_cost = extraction.dag_cost(&egraph, &egraph.root_eclasses);
-            if results.is_some() {
-                assert!(
-                    (dag_cost.into_inner() - results.unwrap().into_inner()).abs()
-                        < EPSILON_ALLOWANCE
-                );
+    fn all_disabled() -> Config {
+        return Config {
+            pull_up_costs: false,
+            remove_self_loops: false,
+            remove_high_cost_nodes: false,
+            remove_more_expensive_subsumed_nodes: false,
+            remove_unreachable_classes: false,
+            pull_up_single_parent: false,
+            take_intersection_of_children_in_class: false,
+            move_min_cost_of_members_to_class: false,
+            find_extra_roots: false,
+            remove_empty_classes: false,
+            return_improved_on_timeout: false,
+        };
+    }
+
+    const CONFIGS_TO_TEST: i64 = 150;
+
+    fn test_configs(config: &Vec<Config>, log_path: impl AsRef<std::path::Path>) {
+        const RANDOM_EGRAPHS_TO_TEST: i64 = if ELABORATE_TESTING {
+            1000000 / CONFIGS_TO_TEST
+        } else {
+            250 / CONFIGS_TO_TEST
+        };
+
+        for _ in 0..RANDOM_EGRAPHS_TO_TEST {
+            let egraph = generate_random_egraph();
+
+            if !log_path.as_ref().to_str().unwrap_or("").is_empty() {
+                egraph.to_json_file(&log_path).unwrap();
             }
-            results = Some(dag_cost);
+
+            let mut results: Option<Cost> = None;
+            for c in config {
+                let extraction = extract(&egraph, &egraph.root_eclasses, c, u32::MAX);
+                extraction.check(&egraph);
+                let dag_cost = extraction.dag_cost(&egraph, &egraph.root_eclasses);
+                if results.is_some() {
+                    assert!(
+                        (dag_cost.into_inner() - results.unwrap().into_inner()).abs()
+                            < EPSILON_ALLOWANCE
+                    );
+                }
+                results = Some(dag_cost);
+            }
         }
     }
-}
 
-macro_rules! create_tests {
+    macro_rules! create_tests {
     ($($name:ident),*) => {
         $(
             #[test]
@@ -1132,9 +1133,9 @@ macro_rules! create_tests {
     }
 }
 
-// So the test runner uses more of my cores.
-create_tests!(
-    random0, random1, random2, random3, random4, random5, random6, random7, random8, random9,
-    random10
-);
+    // So the test runner uses more of my cores.
+    create_tests!(
+        random0, random1, random2, random3, random4, random5, random6, random7, random8, random9,
+        random10
+    );
 }

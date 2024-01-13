@@ -109,6 +109,11 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
                 use_for_bench: false, // takes >10 hours sometimes
             },
         ),
+        #[cfg(feature = "ilp-cbc")]
+        (
+            "ilp-cbc-timeout",
+            extract::ilp_cbc::CbcExtractorWithTimeout::<10>.boxed(),
+        ),
     ]
     .into_iter()
     .collect();

@@ -1,0 +1,16 @@
+(datatype Math (Add Math Math) (A) (B))
+
+(birewrite (Add a (Add b c)) (Add (Add a b) c))
+(rewrite (Add a b) (Add b a))
+
+; Tree extraction does not care about associativity or ordering
+; DAG extraction notices that balanced trees are much cheaper
+; Optimal tree is (let t1 (a + b) in let t2 = (t1 + t1) in (t2 + t2)
+; Which is cost 5 and proportional to the logarithm of the number of nodes
+(let A2 (Add (A) (A)))
+(let A4 (Add A2 A2))
+(let B2 (Add (B) (B)))
+(let B4 (Add B2 B2))
+(let t (Add A4 B4))
+
+(run 10)

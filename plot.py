@@ -75,10 +75,23 @@ def getSequence(js, e0, reference, ref_data):
 
     return e0_value
 
-#Assumes each extractor is run on the all the egraph benchmarks at the same time.
-#So given 500 egraphs, each will receive 1/500th of a second of that first second's
-#CPU time. Say 10 finish in less than 1/500th of a second, then for the 2nd second
-#of CPU time, each egraph will get 1/490th of a second of CPU time, and so on.
+# This assumes an extractor is run on the all the egraph benchmarks at the same time.
+# So given 500 egraphs, each will receive 1/500th of a second of that first second's
+# CPU time. Say 10 egraphs finish processing with their extractor with less than 
+# 1/500th of a second's CPU time, i.e. they have a runtime of less than 2ms. Then 
+# for the 2nd second of CPU time, each egraph will get 1/490th of a second of CPU time.
+# 
+# Continuing the example, if those 10 egraphs which were processed in the first 1/500th
+# of a second, improved on the cost versus the reference implementation by 20, then the 
+# graph will plot an improvemement of 20 at 1 second.
+# 
+# At 2 seconds, the improvement will be the sum of the improvements of all the extractors
+# which finished in less than 1/500th + 1/490th of a second, that is that finished with 
+# a total runtime of less than 4.04ms.
+#
+# This will continue until the timeout on the extractor is reached.
+
+
 def graph(js):
     reference = "faster-greedy-dag"
     if not any(j["extractor"] == reference for j in js):

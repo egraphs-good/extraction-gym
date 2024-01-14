@@ -42,7 +42,6 @@ fn main() {
             "faster-ilp-cbc-timeout",
             extract::faster_ilp_cbc::FasterCbcExtractorWithTimeout::<10>.boxed(),
         ),
-
     ]
     .into_iter()
     .collect();

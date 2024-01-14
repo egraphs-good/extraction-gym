@@ -498,7 +498,7 @@ fn set_initial_solution(
     }
 }
 
-/* If a node in a class has (a) lower cost than another in the same class, and (b) it's
+/* If a node in a class has (a) equal or higher cost compared to another in that same class, and (b) its
   children are a subset of the other's, then it can be removed.
 */
 fn remove_more_expensive_subsumed_nodes(vars: &mut IndexMap<ClassId, ClassILP>, config: &Config) {
@@ -508,32 +508,27 @@ fn remove_more_expensive_subsumed_nodes(vars: &mut IndexMap<ClassId, ClassILP>, 
             let mut children = class.as_nodes();
             children.sort_by_key(|e| (e.children_classes.len(), e.cost));
 
-            let mut to_remove: IndexSet<NodeId> = Default::default();
-
-            for i in 0..children.len() {
-                let node_a = &children[i];
-                if to_remove.contains(&node_a.member.clone()) {
-                    continue;
-                }
-
-                for j in (i + 1)..children.len() {
+            let mut i = 0;
+            while i < children.len() {
+                for j in ((i + 1)..children.len()).rev() {
                     let node_b = &children[j];
 
                     // This removes some extractions with the same cost.
-                    if node_a.cost <= node_b.cost
-                        && node_a.children_classes.is_subset(&node_b.children_classes)
+                    if children[i].cost <= node_b.cost
+                        && children[i]
+                            .children_classes
+                            .is_subset(&node_b.children_classes)
                     {
-                        to_remove.insert(node_b.member.clone());
+                        class.remove_node(&node_b.member.clone());
+                        children.remove(j);
+                        removed += 1;
                     }
                 }
+                i += 1;
             }
-            removed += to_remove
-                .iter()
-                .map(|node_id| class.remove_node(node_id))
-                .count();
         }
 
-        log::info!("Removed more expensive subsumed nodes: {}", removed);
+        log::info!("Removed more expensive subsumed nodes: {removed}");
     }
 }
 

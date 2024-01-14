@@ -31,6 +31,7 @@ pub struct Config {
     pub find_extra_roots: bool,
     pub remove_empty_classes: bool,
     pub return_improved_on_timeout: bool,
+    pub remove_single_zero_cost: bool,
 }
 
 impl Config {
@@ -47,6 +48,7 @@ impl Config {
             find_extra_roots: true,
             remove_empty_classes: true,
             return_improved_on_timeout: true,
+            remove_single_zero_cost: true,
         }
     }
 }
@@ -163,15 +165,11 @@ fn extract(
     roots.sort();
     roots.dedup();
 
-    let mut model = Model::default();
-
     let simp_start_time = std::time::Instant::now();
 
+    let mut model = Model::default();
     //silence verbose stdout output
     model.set_parameter("loglevel", "0");
-
-    let false_literal = model.add_binary();
-    model.set_col_upper(false_literal, 0.0);
 
     let n2c = |nid: &NodeId| egraph.nid_to_cid(nid);
 
@@ -203,6 +201,11 @@ fn extract(
     let initial_result = super::faster_greedy_dag::FasterGreedyDagExtractor.extract(egraph, &roots);
     let initial_result_cost = initial_result.dag_cost(egraph, &roots);
 
+    // For classes where we know the choice already, we set the nodes early.
+    let mut result = ExtractionResult::default();
+
+    //This could be much more efficient, but it only takes less than 5 seconds for all our benchmarks.
+    //The ILP solver takes the time.
     for _i in 1..3 {
         remove_with_loops(&mut vars, &roots, config);
         remove_high_cost(&mut vars, initial_result_cost, &roots, config);
@@ -210,6 +213,7 @@ fn extract(
         remove_unreachable_classes(&mut vars, &roots, config);
         pull_up_with_single_parent(&mut vars, &roots, config);
         pull_up_costs(&mut vars, &roots, config);
+        remove_single_zero_cost(&mut vars, &mut result, &roots, config);
         find_extra_roots(&mut vars, &mut roots, config);
         remove_empty_classes(&mut vars, config);
     }
@@ -224,7 +228,6 @@ fn extract(
             model.set_col_upper(class.active, 0.0);
             continue;
         }
-        assert!(class.active != false_literal);
 
         if class.members() == 1 && class.childrens_classes[0].is_empty() && class.costs[0] == 0.0 {
             continue;
@@ -365,7 +368,6 @@ fn extract(
 
         let stopped_without_finishing = solution.raw().status() != coin_cbc::raw::Status::Finished;
 
-        // Doesn't make allowance for getting cycles.
         if stopped_without_finishing {
             log::info!("CBC stopped before finishing");
 
@@ -380,8 +382,6 @@ fn extract(
                 return initial_result;
             }
         }
-
-        let mut result = ExtractionResult::default();
 
         let mut cost = 0.0;
         for (id, var) in &vars {
@@ -498,12 +498,101 @@ fn set_initial_solution(
     }
 }
 
+/* If a class has one node, that node is zero cost, and it has no children, then we
+can fill the answer into the extraction result without doing any more work. If it
+has children, we need to setup the dependencies.
+
+This is really like deleting empty classes, except there we delete the parent classes,
+and here we delete just children of nodes in the parent classes.
+*/
+fn remove_single_zero_cost(
+    vars: &mut IndexMap<ClassId, ClassILP>,
+    extraction_result: &mut ExtractionResult,
+    roots: &[ClassId],
+    config: &Config,
+) {
+    if config.remove_single_zero_cost {
+        let mut zero: FxHashSet<ClassId> = Default::default();
+        for (class_id, details) in &*vars {
+            if details.childrens_classes.len() == 1
+                && details.childrens_classes[0].is_empty()
+                && details.costs[0] == 0.0
+                && !roots.contains(&class_id.clone())
+            {
+                zero.insert(class_id.clone());
+            }
+        }
+
+        if zero.is_empty() {
+            return;
+        }
+
+        let mut removed = 0;
+        let mut extras = 0;
+        let fresh = IndexSet::<ClassId>::new();
+        let child_to_parents = child_to_parents(&vars);
+
+        // Remove all references to those in zero.
+        for e in &zero {
+            let parents = child_to_parents.get(e).unwrap_or(&fresh);
+            for parent in parents {
+                for i in (0..vars[parent].childrens_classes.len()).rev() {
+                    if vars[parent].childrens_classes[i].contains(e) {
+                        vars[parent].childrens_classes[i].remove(e);
+                        removed += 1;
+                    }
+                }
+
+                // Like with empty classes, we might have discovered a new candidate class.
+                // It's rare in our benchmarks so I haven't implemented it yet.
+                if vars[parent].childrens_classes.len() == 1
+                    && vars[parent].childrens_classes[0].is_empty()
+                    && vars[parent].costs[0] == 0.0
+                    && !roots.contains(&e.clone())
+                {
+                    extras += 1;
+                    // this should be called in a loop like we delete empty classes.
+                }
+            }
+        }
+        // Add into the extraction result
+        for e in &zero {
+            extraction_result.choose(e.clone(), vars[e].members[0].clone());
+        }
+
+        // Remove the classes themselves.
+        vars.retain(|class_id, _| !zero.contains(class_id));
+
+        log::info!(
+            "Zero cost & zero children removed: {} links removed: {removed}, extras:{extras}",
+            zero.len()
+        );
+    }
+}
+
+fn child_to_parents(vars: &IndexMap<ClassId, ClassILP>) -> IndexMap<ClassId, IndexSet<ClassId>> {
+    let mut child_to_parents: IndexMap<ClassId, IndexSet<ClassId>> = IndexMap::new();
+
+    for (class_id, class_vars) in vars.iter() {
+        for kids in &class_vars.childrens_classes {
+            for child_class in kids {
+                child_to_parents
+                    .entry(child_class.clone())
+                    .or_insert_with(IndexSet::new)
+                    .insert(class_id.clone());
+            }
+        }
+    }
+    child_to_parents
+}
+
 /* If a node in a class has (a) equal or higher cost compared to another in that same class, and (b) its
   children are a subset of the other's, then it can be removed.
 */
 fn remove_more_expensive_subsumed_nodes(vars: &mut IndexMap<ClassId, ClassILP>, config: &Config) {
     if config.remove_more_expensive_subsumed_nodes {
         let mut removed = 0;
+
         for class in vars.values_mut() {
             let mut children = class.as_nodes();
             children.sort_by_key(|e| (e.children_classes.len(), e.cost));
@@ -558,7 +647,7 @@ fn remove_empty_classes(vars: &mut IndexMap<ClassId, ClassILP>, config: &Config)
             }
         }
 
-        let mut removed_nodes = 0;
+        let mut removed = 0;
         let fresh = IndexSet::<ClassId>::new();
 
         let mut child_to_parents: IndexMap<ClassId, IndexSet<ClassId>> = IndexMap::new();
@@ -585,7 +674,7 @@ fn remove_empty_classes(vars: &mut IndexMap<ClassId, ClassILP>, config: &Config)
                 for i in (0..vars[parent].childrens_classes.len()).rev() {
                     if vars[parent].childrens_classes[i].contains(&e) {
                         vars[parent].remove(i);
-                        removed_nodes += 1;
+                        removed += 1;
                     }
                 }
 
@@ -595,10 +684,7 @@ fn remove_empty_classes(vars: &mut IndexMap<ClassId, ClassILP>, config: &Config)
             }
         }
 
-        log::info!(
-            "Nodes removed that point to empty classes: {}",
-            removed_nodes
-        );
+        log::info!("Nodes removed that point to empty classes: {}", removed);
     }
 }
 
@@ -1046,6 +1132,7 @@ mod test {
             find_extra_roots: rng.gen(),
             remove_empty_classes: rng.gen(),
             return_improved_on_timeout: rng.gen(),
+            remove_single_zero_cost: rng.gen(),
         }
     }
 
@@ -1062,6 +1149,7 @@ mod test {
             find_extra_roots: false,
             remove_empty_classes: false,
             return_improved_on_timeout: false,
+            remove_single_zero_cost: false,
         };
     }
 

@@ -582,16 +582,11 @@ fn remove_empty_classes(vars: &mut IndexMap<ClassId, ClassILP>, config: &Config)
             }
             let parents = child_to_parents.get(&e).unwrap_or(&fresh);
             for parent in parents {
-                let mut to_remove = Vec::new();
-                for i in 0..vars[parent].childrens_classes.len() {
+                for i in (0..vars[parent].childrens_classes.len()).rev() {
                     if vars[parent].childrens_classes[i].contains(&e) {
-                        to_remove.push(i);
+                        vars[parent].remove(i);
+                        removed_nodes += 1;
                     }
-                }
-
-                for i in to_remove.iter().rev() {
-                    vars[parent].remove(*i);
-                    removed_nodes += 1;
                 }
 
                 if vars[parent].members() == 0 {

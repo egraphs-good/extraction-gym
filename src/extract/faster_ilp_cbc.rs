@@ -817,12 +817,11 @@ fn remove_high_cost(
             .filter_map(|root| vars[root].costs.iter().min())
             .sum();
 
-        let mut high_cost = 0;
+        let mut removed = 0;
 
         for (class_id, class_details) in vars.iter_mut() {
-            let mut to_remove = std::collections::BTreeSet::new();
-            for (node_idx, cost) in class_details.costs.iter().enumerate() {
-                // Without the allowance, this removed nodes that are needed for the optimal solution.
+            for i in (0..class_details.costs.len()).rev() {
+                let cost = &class_details.costs[i];
                 let this_root: Cost = if roots.contains(class_id) {
                     *class_details.costs.iter().min().unwrap()
                 } else {
@@ -832,16 +831,12 @@ fn remove_high_cost(
                 if cost
                     > &(initial_result_cost - lowest_root_cost_sum + this_root + EPSILON_ALLOWANCE)
                 {
-                    to_remove.insert(node_idx);
+                    class_details.remove(i);
+                    removed += 1;
                 }
             }
-
-            for &index in to_remove.iter().rev() {
-                class_details.remove(index);
-                high_cost += 1;
-            }
         }
-        log::info!("Removed high-cost nodes: {}", high_cost);
+        log::info!("Removed high-cost nodes: {}", removed);
     }
 }
 
@@ -849,25 +844,20 @@ fn remove_high_cost(
 // or (b) any child pointing to the sole root class.
 fn remove_with_loops(vars: &mut IndexMap<ClassId, ClassILP>, roots: &[ClassId], config: &Config) {
     if config.remove_self_loops {
-        let mut self_loop = 0;
+        let mut removed = 0;
         for (class_id, class_details) in vars.iter_mut() {
-            let mut to_remove = std::collections::BTreeSet::new();
-            for (node_idx, children) in class_details.childrens_classes.iter().enumerate() {
-                if children
+            for i in (0..class_details.childrens_classes.len()).rev() {
+                if class_details.childrens_classes[i]
                     .iter()
                     .any(|cid| *cid == *class_id || (roots.len() == 1 && roots[0] == *cid))
                 {
-                    to_remove.insert(node_idx);
+                    class_details.remove(i);
+                    removed += 1;
                 }
-            }
-
-            for &index in to_remove.iter().rev() {
-                class_details.remove(index);
-                self_loop += 1;
             }
         }
 
-        log::info!("Omitted looping nodes: {}", self_loop);
+        log::info!("Omitted looping nodes: {}", removed);
     }
 }
 

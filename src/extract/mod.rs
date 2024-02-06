@@ -12,6 +12,9 @@ pub mod greedy_dag;
 #[cfg(feature = "ilp-cbc")]
 pub mod ilp_cbc;
 
+// Allowance for floating point values to be considered equal
+pub const EPSILON_ALLOWANCE: f64 = 0.00001;
+
 pub trait Extractor: Sync {
     fn extract(&self, egraph: &EGraph, roots: &[ClassId]) -> ExtractionResult;
 

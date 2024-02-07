@@ -15,36 +15,100 @@ use std::path::PathBuf;
 pub type Cost = NotNan<f64>;
 pub const INFINITY: Cost = unsafe { NotNan::new_unchecked(std::f64::INFINITY) };
 
-fn main() {
-    env_logger::init();
+#[derive(PartialEq, Eq)]
+enum Optimal {
+    Tree,
+    DAG,
+    Neither,
+}
 
-    let extractors: IndexMap<&str, Box<dyn Extractor>> = [
-        ("bottom-up", extract::bottom_up::BottomUpExtractor.boxed()),
+struct ExtractorDetail {
+    extractor: Box<dyn Extractor>,
+    optimal: Optimal,
+    use_for_bench: bool,
+}
+
+fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
+    let extractors: IndexMap<&'static str, ExtractorDetail> = [
         (
-            "faster-bottom-up",
-            extract::faster_bottom_up::FasterBottomUpExtractor.boxed(),
+            "bottom-up",
+            ExtractorDetail {
+                extractor: extract::bottom_up::BottomUpExtractor.boxed(),
+                optimal: Optimal::Tree,
+                use_for_bench: true,
+            },
         ),
         (
-            "greedy-dag",
-            extract::greedy_dag::GreedyDagExtractor.boxed(),
+            "faster-bottom-up",
+            ExtractorDetail {
+                extractor: extract::faster_bottom_up::FasterBottomUpExtractor.boxed(),
+                optimal: Optimal::Tree,
+                use_for_bench: true,
+            },
         ),
         (
             "faster-greedy-dag",
-            extract::faster_greedy_dag::FasterGreedyDagExtractor.boxed(),
+            ExtractorDetail {
+                extractor: extract::faster_greedy_dag::FasterGreedyDagExtractor.boxed(),
+                optimal: Optimal::Neither,
+                use_for_bench: true,
+            },
         ),
+        /*(
+            "global-greedy-dag",
+            ExtractorDetail {
+                extractor: extract::global_greedy_dag::GlobalGreedyDagExtractor.boxed(),
+                optimal: Optimal::Neither,
+                use_for_bench: true,
+            },
+        ),*/
         #[cfg(feature = "ilp-cbc")]
         (
             "ilp-cbc-timeout",
-            extract::ilp_cbc::CbcExtractorWithTimeout::<10>.boxed(),
+            ExtractorDetail {
+                extractor: extract::ilp_cbc::CbcExtractorWithTimeout::<10>.boxed(),
+                optimal: Optimal::DAG,
+                use_for_bench: true,
+            },
+        ),
+        #[cfg(feature = "ilp-cbc")]
+        (
+            "ilp-cbc",
+            ExtractorDetail {
+                extractor: extract::ilp_cbc::CbcExtractor.boxed(),
+                optimal: Optimal::DAG,
+                use_for_bench: false, // takes >10 hours sometimes
+            },
         ),
         #[cfg(feature = "ilp-cbc")]
         (
             "faster-ilp-cbc-timeout",
-            extract::faster_ilp_cbc::FasterCbcExtractorWithTimeout::<10>.boxed(),
+            ExtractorDetail {
+                extractor: extract::faster_ilp_cbc::FasterCbcExtractorWithTimeout::<10>.boxed(),
+                optimal: Optimal::DAG,
+                use_for_bench: true,
+            },
+        ),
+        #[cfg(feature = "ilp-cbc")]
+        (
+            "faster-ilp-cbc",
+            ExtractorDetail {
+                extractor: extract::faster_ilp_cbc::FasterCbcExtractor::<10>.boxed(),
+                optimal: Optimal::DAG,
+                use_for_bench: true,
+            },
         ),
     ]
     .into_iter()
     .collect();
+    return extractors;
+}
+
+fn main() {
+    env_logger::init();
+
+    let mut extractors = extractors();
+    extractors.retain(|_, ed| ed.use_for_bench);
 
     let mut args = pico_args::Arguments::from_env();
 
@@ -77,13 +141,13 @@ fn main() {
         .with_context(|| format!("Failed to parse {filename}"))
         .unwrap();
 
-    let extractor = extractors
+    let ed = extractors
         .get(extractor_name.as_str())
         .with_context(|| format!("Unknown extractor: {extractor_name}"))
         .unwrap();
 
     let start_time = std::time::Instant::now();
-    let result = extractor.extract(&egraph, &egraph.root_eclasses);
+    let result = ed.extractor.extract(&egraph, &egraph.root_eclasses);
     let us = start_time.elapsed().as_micros();
 
     result.check(&egraph);
@@ -104,3 +168,6 @@ fn main() {
     )
     .unwrap();
 }
+
+#[cfg(test)]
+mod test;

@@ -46,15 +46,14 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
                 use_for_bench: true,
             },
         ),
-        /*(
+        (
             "faster-greedy-dag",
             ExtractorDetail {
                 extractor: extract::faster_greedy_dag::FasterGreedyDagExtractor.boxed(),
                 optimal: Optimal::Neither,
                 use_for_bench: true,
             },
-        ),*/
-
+        ),
         /*(
             "global-greedy-dag",
             ExtractorDetail {
@@ -83,8 +82,21 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
         ),
         #[cfg(feature = "ilp-cbc")]
         (
-            "ilp-cbc-timeout",
-            extract::ilp_cbc::CbcExtractorWithTimeout::<10>.boxed(),
+            "faster-ilp-cbc-timeout",
+            ExtractorDetail {
+                extractor: extract::faster_ilp_cbc::FasterCbcExtractorWithTimeout::<10>.boxed(),
+                optimal: Optimal::DAG,
+                use_for_bench: true,
+            },
+        ),
+        #[cfg(feature = "ilp-cbc")]
+        (
+            "faster-ilp-cbc",
+            ExtractorDetail {
+                extractor: extract::faster_ilp_cbc::FasterCbcExtractor::<10>.boxed(),
+                optimal: Optimal::DAG,
+                use_for_bench: true,
+            },
         ),
     ]
     .into_iter()

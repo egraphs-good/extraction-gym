@@ -3,12 +3,47 @@ Produces a dag-cost optimal extraction of an Egraph.
 
 This can take >10 hours to run on some egraphs, so there's the option to provide a timeout.
 
-First, it simplifies the egraph by removing nodes that can't be selected in the optimal
-solution, and by collapsing other classes down. It then incrementally calls the COIN-OR CBC solver
-to find an extraction.
+To operate:
+1) It simplifies the egraph by removing nodes that can't be selected in the optimal
+solution, as well as collapsing other classes down. 
+2) It then sends the problem to the COIN-OR CBC solver to find an extraction (or timeout). 
+It allows the solver to generate solutions that contain cycles
+3) The solution from the solver is checked, and if the extraction contains a cycle, extra 
+constraints are added to block the cycle and the solver is called again.
 
-If the solver produces an extraction with a cycle, extra constraints are added to block
-the cycle and the solver is called again.
+In SAT solving, it's common to call a solver incrementally. Each time you call the SAT 
+solver with more clauses to the SAT solver (constraining the solution further), and 
+allowing the SAT solver to reuse its previous work.
+
+So there are two uses of "incremental", one is gradually sending more of the problem to the solver,
+and the other is the solver being able to re-use the previous work when it receives additional parts 
+of the problem. In the case here, we're just referring to sending extra pieces of the problem to 
+the solver. COIN-OR CBC doesn't provide an interface that allows us to call it and reuse what it 
+has discovered previously. 
+
+In the case of COIN-OR CBC, we're sending extra constraints each time we're solving, these
+extra constraints are prohibiting cycles that were found in the solutions that COIN-OR CBC
+previously produced.
+
+Obviously, we could add constraints to block all the cycles the first time we call COIN-OR CBC, 
+so we'd only need to call the solver once. However, for the problems in our test-set, lots of these
+constraints don't change the answer, they're removing cycles from high-cost extractions.  These
+extra constraints do slow down solving though - and for our test-set it gives a faster runtime when
+we incrementally add constraints that break cycles when they occur in the lowest cost extraction. 
+
+We've experimented with two ways to break cycles.
+
+One approach is by enforcing a topological sort on nodes. Each node has a level, and each edge 
+can only connect from a lower level to a higher level node.
+
+Another approach, is by explicity banning cycles. Say in an extraction that the solver generates 
+we find a cycle A->B->A. Say there are two edges, edgeAB, and edgeBA, which connect A->B, then B->A.
+Then any solution that contains both edgeAB, and edgeBA will contain a cycle.  So we add a constraint
+that at most one of these two edges can be active. If we check through the whole extraction for cycles, 
+and ban each cycle that we find, then try solving again, we'll get a new solution which, if it contains
+cycles, will not contain any of the cycles we've previously seen. We repeat this until timeout, or until
+we get an optimal solution without cycles.
+
 
 */
 
@@ -498,12 +533,18 @@ fn set_initial_solution(
     }
 }
 
-/* If a class has one node, that node is zero cost, and it has no children, then we
+/* If a class has one node, and that node is zero cost, and it has no children, then we
 can fill the answer into the extraction result without doing any more work. If it
 has children, we need to setup the dependencies.
 
+Intuitively, whenever we find a class that has a single node that is zero cost, our work
+is done, we can't do any better for that class, so we can select it. Additionally, we 
+don't care if any other node depends on this class, because this class is zero cost,
+we can ignore all references to it.
+
 This is really like deleting empty classes, except there we delete the parent classes,
 and here we delete just children of nodes in the parent classes.
+
 */
 fn remove_single_zero_cost(
     vars: &mut IndexMap<ClassId, ClassILP>,
@@ -587,7 +628,7 @@ fn child_to_parents(vars: &IndexMap<ClassId, ClassILP>) -> IndexMap<ClassId, Ind
 }
 
 /* If a node in a class has (a) equal or higher cost compared to another in that same class, and (b) its
-  children are a subset of the other's, then it can be removed.
+  children are a superset of the other's, then it can be removed.
 */
 fn remove_more_expensive_subsumed_nodes(vars: &mut IndexMap<ClassId, ClassILP>, config: &Config) {
     if config.remove_more_expensive_subsumed_nodes {

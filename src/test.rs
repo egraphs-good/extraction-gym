@@ -1,15 +1,21 @@
-/*
- * Checks that no extractors produce better results than the extractors that produce optimal results.
- * Checks that the extractions are valid.
- */
-
-use super::*;
-
 use crate::{extractors, Extractor, Optimal, EPSILON_ALLOWANCE};
 pub type Cost = NotNan<f64>;
 use egraph_serialize::{EGraph, Node, NodeId};
 use ordered_float::NotNan;
 use rand::Rng;
+
+// I want this to write to a tempfs file system, you'll
+// want to change the path in test_save_path to something
+// that works for you.
+pub const ELABORATE_TESTING: bool = false;
+
+pub fn test_save_path(name: &str) -> String {
+    return if ELABORATE_TESTING {
+        format!("/dev/shm/{}_egraph.json", name)
+    } else {
+        "".to_string()
+    };
+}
 
 // generates a float between 0 and 1
 fn generate_random_not_nan() -> NotNan<f64> {
@@ -94,6 +100,11 @@ pub fn generate_random_egraph() -> EGraph {
 
     egraph
 }
+
+/*
+ * Checks that no extractors produce better results than the extractors that produce optimal results.
+ * Checks that the extractions are valid.
+ */
 
 fn check_optimal_results<I: Iterator<Item = EGraph>>(egraphs: I) {
     let mut optimal_dag: Vec<Box<dyn Extractor>> = Default::default();

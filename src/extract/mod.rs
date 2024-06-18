@@ -13,6 +13,7 @@ pub mod global_greedy_dag;
 pub mod greedy_dag;
 #[cfg(feature = "ilp-cbc")]
 pub mod ilp_cbc;
+pub mod prio_queue;
 
 // Allowance for floating point values to be considered equal
 pub const EPSILON_ALLOWANCE: f64 = 0.00001;

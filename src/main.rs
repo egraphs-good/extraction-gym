@@ -4,6 +4,8 @@ pub use extract::*;
 
 use egraph_serialize::*;
 
+mod to_egraph_serialized;
+
 use indexmap::IndexMap;
 use ordered_float::NotNan;
 
@@ -128,6 +130,8 @@ fn main() {
         .unwrap()
         .unwrap_or_else(|| "out.json".into());
 
+    let pruned_filename: Option<PathBuf> = args.opt_value_from_str("--pruned").unwrap();
+
     let filename: String = args.free_from_str().unwrap();
 
     let rest = args.finish();
@@ -151,6 +155,12 @@ fn main() {
     let us = start_time.elapsed().as_micros();
 
     result.check(&egraph);
+
+    if let Some(pruned_filename) = pruned_filename {
+        let egraph = to_egraph_serialized::get_term(&egraph, &result);
+        egraph.to_json_file(pruned_filename.clone()).unwrap();
+        println!("Wrote pruned egraph to {}", pruned_filename.display());
+    }
 
     let tree = result.tree_cost(&egraph, &egraph.root_eclasses);
     let dag = result.dag_cost(&egraph, &egraph.root_eclasses);

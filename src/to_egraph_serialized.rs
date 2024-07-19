@@ -19,7 +19,14 @@ pub fn get_term(
         let node = &choices[cid];
         // add the node to the result egraph
         if !result_egraph.nodes.contains_key(node) {
-            result_egraph.add_node(node.clone(), egraph.nodes[node].clone());
+            let mut new_node = egraph.nodes[node].clone();
+            new_node.children = egraph.nodes[node]
+                .children
+                .iter()
+                .map(|child| choices[egraph.nid_to_cid(&child)].clone())
+                .collect();
+
+            result_egraph.add_node(node.clone(), new_node);
         }
     }
 

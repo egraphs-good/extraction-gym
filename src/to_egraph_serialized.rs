@@ -22,11 +22,13 @@ pub fn get_term(
             result_egraph.add_node(node.clone(), egraph.nodes[node].clone());
         }
     }
+
     // find number of eclasses in the original egraph
     let mut eclasses = std::collections::HashSet::new();
     for enode in egraph.nodes.values() {
         eclasses.insert(enode.eclass.clone());
     }
+    result_egraph.root_eclasses = egraph.root_eclasses.clone();
     println!("eclasses in original: {}", eclasses.len());
     println!("eclasses in result: {}", result.choices.len());
     println!("original egraph size: {}", egraph.nodes.len());

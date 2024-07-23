@@ -1151,11 +1151,12 @@ fn cycle_dfs(
     }
 }
 
+#[cfg(test)]
 mod test {
     use super::Config;
-    use crate::{
-        faster_ilp_cbc::extract, generate_random_egraph, ELABORATE_TESTING, EPSILON_ALLOWANCE,
-    };
+    use crate::test::{generate_random_egraph, ELABORATE_TESTING};
+
+    use crate::{faster_ilp_cbc::extract, EPSILON_ALLOWANCE};
     use rand::Rng;
     pub type Cost = ordered_float::NotNan<f64>;
 
@@ -1236,7 +1237,7 @@ mod test {
                 for _ in 0..CONFIGS_TO_TEST {
                     configs.push(generate_random_config());
                 }
-                test_configs(&configs, crate::test_save_path(stringify!($name)));
+                test_configs(&configs, crate::test::test_save_path(stringify!($name)));
             }
         )*
     }

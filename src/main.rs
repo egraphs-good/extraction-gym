@@ -93,7 +93,7 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
         (
             "faster-ilp-cbc",
             ExtractorDetail {
-                extractor: extract::faster_ilp_cbc::FasterCbcExtractor::<10>.boxed(),
+                extractor: extract::faster_ilp_cbc::FasterCbcExtractor.boxed(),
                 optimal: Optimal::DAG,
                 use_for_bench: true,
             },
@@ -170,4 +170,4 @@ fn main() {
 }
 
 #[cfg(test)]
-mod test;
+pub mod test;

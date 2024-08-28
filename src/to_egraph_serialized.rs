@@ -36,10 +36,6 @@ pub fn get_term(
         eclasses.insert(enode.eclass.clone());
     }
     result_egraph.root_eclasses = egraph.root_eclasses.clone();
-    println!("eclasses in original: {}", eclasses.len());
-    println!("eclasses in result: {}", result.choices.len());
-    println!("original egraph size: {}", egraph.nodes.len());
-    println!("result egraph size: {}", result_egraph.nodes.len());
     result_egraph
 }
 

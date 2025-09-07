@@ -11,6 +11,7 @@ pub mod faster_greedy_dag;
 pub mod faster_ilp_cbc;
 pub mod global_greedy_dag;
 pub mod greedy_dag;
+pub mod ilp;
 #[cfg(feature = "ilp-cbc")]
 pub mod ilp_cbc;
 pub mod prio_queue;

@@ -70,38 +70,90 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
                 use_for_bench: true,
             },
         ),*/
+        // #[cfg(feature = "ilp-cbc")]
+        // (
+        //     "ilp-cbc-timeout",
+        //     ExtractorDetail {
+        //         extractor: extract::ilp_cbc::CbcExtractorWithTimeout::<10>.boxed(),
+        //         optimal: Optimal::DAG,
+        //         use_for_bench: true,
+        //     },
+        // ),
+        // #[cfg(feature = "ilp-cbc")]
+        // (
+        //     "ilp-cbc",
+        //     ExtractorDetail {
+        //         extractor: extract::ilp_cbc::CbcExtractor.boxed(),
+        //         optimal: Optimal::DAG,
+        //         use_for_bench: false, // takes >10 hours sometimes
+        //     },
+        // ),
+        // #[cfg(feature = "ilp-cbc")]
+        // (
+        //     "faster-ilp-cbc-timeout",
+        //     ExtractorDetail {
+        //         extractor: extract::faster_ilp_cbc::FasterCbcExtractorWithTimeout::<10>.boxed(),
+        //         optimal: Optimal::DAG,
+        //         use_for_bench: true,
+        //     },
+        // ),
+        // #[cfg(feature = "ilp-cbc")]
+        // (
+        //     "faster-ilp-cbc",
+        //     ExtractorDetail {
+        //         extractor: extract::faster_ilp_cbc::FasterCbcExtractor.boxed(),
+        //         optimal: Optimal::DAG,
+        //         use_for_bench: true,
+        //     },
+        // ),
         #[cfg(feature = "ilp-cbc")]
         (
-            "ilp-cbc-timeout",
+            "ilp-coin-cbc",
             ExtractorDetail {
-                extractor: extract::ilp_cbc::CbcExtractorWithTimeout::<10>.boxed(),
+                extractor: extract::ilp::GoodExtractor {
+                    ilp_solver: extract::ilp::IlpSolver::CoinCbc,
+                    initial_solution: None,
+                }
+                .boxed(),
                 optimal: Optimal::DAG,
                 use_for_bench: true,
             },
         ),
-        #[cfg(feature = "ilp-cbc")]
+        #[cfg(feature = "ilp-highs")]
         (
-            "ilp-cbc",
+            "ilp-coin-highs",
             ExtractorDetail {
-                extractor: extract::ilp_cbc::CbcExtractor.boxed(),
-                optimal: Optimal::DAG,
-                use_for_bench: false, // takes >10 hours sometimes
-            },
-        ),
-        #[cfg(feature = "ilp-cbc")]
-        (
-            "faster-ilp-cbc-timeout",
-            ExtractorDetail {
-                extractor: extract::faster_ilp_cbc::FasterCbcExtractorWithTimeout::<10>.boxed(),
+                extractor: extract::ilp::GoodExtractor {
+                    ilp_solver: extract::ilp::IlpSolver::Highs,
+                    initial_solution: None,
+                }
+                .boxed(),
                 optimal: Optimal::DAG,
                 use_for_bench: true,
             },
         ),
-        #[cfg(feature = "ilp-cbc")]
+        #[cfg(feature = "ilp-microlp")]
         (
-            "faster-ilp-cbc",
+            "ilp-coin-highs",
             ExtractorDetail {
-                extractor: extract::faster_ilp_cbc::FasterCbcExtractor.boxed(),
+                extractor: extract::ilp::GoodExtractor {
+                    ilp_solver: extract::ilp::IlpSolver::MicroLp,
+                    initial_solution: None,
+                }
+                .boxed(),
+                optimal: Optimal::DAG,
+                use_for_bench: true,
+            },
+        ),
+        #[cfg(feature = "ilp-scip")]
+        (
+            "ilp-coin-highs",
+            ExtractorDetail {
+                extractor: extract::ilp::GoodExtractor {
+                    ilp_solver: extract::ilp::IlpSolver::Scip,
+                    initial_solution: None,
+                }
+                .boxed(),
                 optimal: Optimal::DAG,
                 use_for_bench: true,
             },
@@ -166,11 +218,11 @@ fn main() {
     log::info!("{filename:40}\t{extractor_name:10}\t{tree:5}\t{dag:5}\t{us:5}");
     writeln!(
         out_file,
-        r#"{{ 
+        r#"{{
     "name": "{filename}",
-    "extractor": "{extractor_name}", 
-    "tree": {tree}, 
-    "dag": {dag}, 
+    "extractor": "{extractor_name}",
+    "tree": {tree},
+    "dag": {dag},
     "micros": {us}
 }}"#
     )

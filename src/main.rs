@@ -30,46 +30,46 @@ struct ExtractorDetail {
 
 fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
     let extractors: IndexMap<&'static str, ExtractorDetail> = [
-        (
-            "bottom-up",
-            ExtractorDetail {
-                extractor: extract::bottom_up::BottomUpExtractor.boxed(),
-                optimal: Optimal::Tree,
-                use_for_bench: true,
-            },
-        ),
-        (
-            "faster-bottom-up",
-            ExtractorDetail {
-                extractor: extract::faster_bottom_up::FasterBottomUpExtractor.boxed(),
-                optimal: Optimal::Tree,
-                use_for_bench: true,
-            },
-        ),
-        (
-            "prio-queue",
-            ExtractorDetail {
-                extractor: extract::prio_queue::PrioQueueExtractor.boxed(),
-                optimal: Optimal::Tree,
-                use_for_bench: true,
-            },
-        ),
-        (
-            "faster-greedy-dag",
-            ExtractorDetail {
-                extractor: extract::faster_greedy_dag::FasterGreedyDagExtractor.boxed(),
-                optimal: Optimal::Neither,
-                use_for_bench: true,
-            },
-        ),
-        /*(
-            "global-greedy-dag",
-            ExtractorDetail {
-                extractor: extract::global_greedy_dag::GlobalGreedyDagExtractor.boxed(),
-                optimal: Optimal::Neither,
-                use_for_bench: true,
-            },
-        ),*/
+        // (
+        //     "bottom-up",
+        //     ExtractorDetail {
+        //         extractor: extract::bottom_up::BottomUpExtractor.boxed(),
+        //         optimal: Optimal::Tree,
+        //         use_for_bench: true,
+        //     },
+        // ),
+        // (
+        //     "faster-bottom-up",
+        //     ExtractorDetail {
+        //         extractor: extract::faster_bottom_up::FasterBottomUpExtractor.boxed(),
+        //         optimal: Optimal::Tree,
+        //         use_for_bench: true,
+        //     },
+        // ),
+        // (
+        //     "prio-queue",
+        //     ExtractorDetail {
+        //         extractor: extract::prio_queue::PrioQueueExtractor.boxed(),
+        //         optimal: Optimal::Tree,
+        //         use_for_bench: true,
+        //     },
+        // ),
+        // (
+        //     "faster-greedy-dag",
+        //     ExtractorDetail {
+        //         extractor: extract::faster_greedy_dag::FasterGreedyDagExtractor.boxed(),
+        //         optimal: Optimal::Neither,
+        //         use_for_bench: true,
+        //     },
+        // ),
+        // /*(
+        //     "global-greedy-dag",
+        //     ExtractorDetail {
+        //         extractor: extract::global_greedy_dag::GlobalGreedyDagExtractor.boxed(),
+        //         optimal: Optimal::Neither,
+        //         use_for_bench: true,
+        //     },
+        // ),*/
         // #[cfg(feature = "ilp-cbc")]
         // (
         //     "ilp-cbc-timeout",
@@ -106,55 +106,110 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
         //         use_for_bench: true,
         //     },
         // ),
-        #[cfg(feature = "ilp-cbc")]
+        // #[cfg(feature = "ilp-cbc")]
+        // (
+        //     "ilp-coin-cbc",
+        //     ExtractorDetail {
+        //         extractor: extract::ilp::GoodExtractor {
+        //             ilp_solver: extract::ilp::IlpSolver::CoinCbc,
+        //             initial_solution: None,
+        //         }
+        //         .boxed(),
+        //         optimal: Optimal::DAG,
+        //         use_for_bench: true,
+        //     },
+        // ),
+        // #[cfg(feature = "ilp-highs")]
+        // (
+        //     "ilp-highs",
+        //     ExtractorDetail {
+        //         extractor: extract::ilp::GoodExtractor {
+        //             ilp_solver: extract::ilp::IlpSolver::Highs,
+        //             initial_solution: None,
+        //         }
+        //         .boxed(),
+        //         optimal: Optimal::DAG,
+        //         use_for_bench: true,
+        //     },
+        // ),
+        // #[cfg(feature = "ilp-microlp")]
+        // (
+        //     "ilp-microlp",
+        //     ExtractorDetail {
+        //         extractor: extract::ilp::GoodExtractor {
+        //             ilp_solver: extract::ilp::IlpSolver::MicroLp,
+        //             initial_solution: None,
+        //         }
+        //         .boxed(),
+        //         optimal: Optimal::DAG,
+        //         use_for_bench: true, // No timeout support.
+        //     },
+        // ),
+        // #[cfg(feature = "ilp-scip")]
+        // (
+        //     "ilp-scip",
+        //     ExtractorDetail {
+        //         extractor: extract::ilp::GoodExtractor {
+        //             ilp_solver: extract::ilp::IlpSolver::Scip,
+        //             initial_solution: None,
+        //         }
+        //         .boxed(),
+        //         optimal: Optimal::DAG,
+        //         use_for_bench: true,
+        //     },
+        // ),
+        // #[cfg(feature = "ilp-scip")]
+        // (
+        //     "ilp-scip-greedy-dag-init",
+        //     ExtractorDetail {
+        //         extractor: extract::ilp::GoodExtractor {
+        //             ilp_solver: extract::ilp::IlpSolver::Scip,
+        //             initial_solution: Some(
+        //                 extract::faster_greedy_dag::FasterGreedyDagExtractor.boxed(),
+        //             ),
+        //         }
+        //         .boxed(),
+        //         optimal: Optimal::DAG,
+        //         use_for_bench: true,
+        //     },
+        // ),
         (
-            "ilp-coin-cbc",
+            "beam-1",
             ExtractorDetail {
-                extractor: extract::ilp::GoodExtractor {
-                    ilp_solver: extract::ilp::IlpSolver::CoinCbc,
-                    initial_solution: None,
-                }
-                .boxed(),
-                optimal: Optimal::DAG,
+                extractor: extract::beam::BeamExtractor { beam: 1 }.boxed(),
+                optimal: Optimal::Neither,
                 use_for_bench: true,
             },
         ),
-        #[cfg(feature = "ilp-highs")]
         (
-            "ilp-coin-highs",
+            "beam-2",
             ExtractorDetail {
-                extractor: extract::ilp::GoodExtractor {
-                    ilp_solver: extract::ilp::IlpSolver::Highs,
-                    initial_solution: None,
-                }
-                .boxed(),
-                optimal: Optimal::DAG,
+                extractor: extract::beam::BeamExtractor { beam: 2 }.boxed(),
+                optimal: Optimal::Neither,
                 use_for_bench: true,
             },
         ),
-        #[cfg(feature = "ilp-microlp")]
         (
-            "ilp-coin-highs",
+            "beam-4",
             ExtractorDetail {
-                extractor: extract::ilp::GoodExtractor {
-                    ilp_solver: extract::ilp::IlpSolver::MicroLp,
-                    initial_solution: None,
-                }
-                .boxed(),
-                optimal: Optimal::DAG,
+                extractor: extract::beam::BeamExtractor { beam: 4 }.boxed(),
+                optimal: Optimal::Neither,
                 use_for_bench: true,
             },
         ),
-        #[cfg(feature = "ilp-scip")]
         (
-            "ilp-coin-highs",
+            "beam-8",
             ExtractorDetail {
-                extractor: extract::ilp::GoodExtractor {
-                    ilp_solver: extract::ilp::IlpSolver::Scip,
-                    initial_solution: None,
-                }
-                .boxed(),
-                optimal: Optimal::DAG,
+                extractor: extract::beam::BeamExtractor { beam: 8 }.boxed(),
+                optimal: Optimal::Neither,
+                use_for_bench: true,
+            },
+        ),
+        (
+            "beam-16",
+            ExtractorDetail {
+                extractor: extract::beam::BeamExtractor { beam: 16 }.boxed(),
+                optimal: Optimal::Neither,
                 use_for_bench: true,
             },
         ),

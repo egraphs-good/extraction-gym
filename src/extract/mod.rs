@@ -4,6 +4,7 @@ use std::collections::HashMap;
 
 pub use crate::*;
 
+pub mod beam;
 pub mod bottom_up;
 pub mod faster_bottom_up;
 pub mod faster_greedy_dag;

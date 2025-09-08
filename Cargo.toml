@@ -7,10 +7,10 @@ version = "0.1.0"
 
 [features]
 default = ["ilp-cbc", "ilp-highs", "ilp-microlp", "ilp-scip"]
-ilp-cbc = ["coin_cbc", "good_lp/coin_cbc"]
+ilp-cbc = ["coin_cbc", "good_lp/coin_cbc"] # brew install cbc
 ilp-highs = ["good_lp/highs"]
 ilp-microlp = ["good_lp/microlp"]
-ilp-scip = ["good_lp/scip", "good_lp/scip_bundled"]
+ilp-scip = ["good_lp/scip"] # brew install scip
 
 [dependencies]
 env_logger = { version = "0.10.0", default-features = false }

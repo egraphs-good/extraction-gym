@@ -37,18 +37,26 @@ plt.ylabel("Time (seconds)")
 plt.yscale("log")
 plt.title("Extractor Time Comparison")
 plt.show()
-# %%
-df[df.extractor == 'ilp-scip']
 
 # %%
+
+# Find the minimum dag cost for each benchmark
+# Determine the benchmark identifier column
+min_dag_per_benchmark = df.groupby('name', dropna=False)['dag'].min().reset_index().rename(columns={'dag': 'min_dag'})
+df = df.merge(min_dag_per_benchmark, on='name', how='left')
+df['dag_ratio'] = df['dag'] / df['min_dag']
+df.head()
+
+# %%
+
 for extractor in extractors:
-    time = df[df.extractor == extractor].dag.to_numpy()
+    time = df[df.extractor == extractor].dag_ratio.to_numpy()
     time.sort()
     plt.plot(time, label=extractor)
 plt.legend()
 plt.xlabel("Run")
 plt.ylabel("DAG cost")
-plt.yscale("log")
+plt.ylim(0.99, 1.2)
 plt.title("Extractor DAG cost Comparison")
 plt.show()
 

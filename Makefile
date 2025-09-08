@@ -17,7 +17,7 @@ define run-extraction
 TARGETS += $(1:data/%=output/%)-$(2).json
 $(1:data/%=output/%)-$(2).json: $(1)
 	@mkdir -p $$(dir $$@)
-	$(PROGRAM) $$< --extractor=$(2) --out=$$@
+	timeout 15s $(PROGRAM) $$< --extractor=$(2) --out=$$@
 endef
 
 $(foreach ext,$(EXTRACTORS),\

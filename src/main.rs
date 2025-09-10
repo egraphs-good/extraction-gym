@@ -16,6 +16,7 @@ pub type Cost = NotNan<f64>;
 pub const INFINITY: Cost = unsafe { NotNan::new_unchecked(std::f64::INFINITY) };
 
 #[derive(PartialEq, Eq)]
+#[allow(dead_code)]
 enum Optimal {
     Tree,
     DAG,
@@ -24,28 +25,30 @@ enum Optimal {
 
 struct ExtractorDetail {
     extractor: Box<dyn Extractor>,
+
+    #[allow(dead_code)]
     optimal: Optimal,
     use_for_bench: bool,
 }
 
 fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
     let extractors: IndexMap<&'static str, ExtractorDetail> = [
-        // (
-        //     "bottom-up",
-        //     ExtractorDetail {
-        //         extractor: extract::bottom_up::BottomUpExtractor.boxed(),
-        //         optimal: Optimal::Tree,
-        //         use_for_bench: true,
-        //     },
-        // ),
-        // (
-        //     "faster-bottom-up",
-        //     ExtractorDetail {
-        //         extractor: extract::faster_bottom_up::FasterBottomUpExtractor.boxed(),
-        //         optimal: Optimal::Tree,
-        //         use_for_bench: true,
-        //     },
-        // ),
+        (
+            "bottom-up",
+            ExtractorDetail {
+                extractor: extract::bottom_up::BottomUpExtractor.boxed(),
+                optimal: Optimal::Tree,
+                use_for_bench: true,
+            },
+        ),
+        (
+            "faster-bottom-up",
+            ExtractorDetail {
+                extractor: extract::faster_bottom_up::FasterBottomUpExtractor.boxed(),
+                optimal: Optimal::Tree,
+                use_for_bench: true,
+            },
+        ),
         // (
         //     "prio-queue",
         //     ExtractorDetail {
@@ -54,14 +57,14 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
         //         use_for_bench: true,
         //     },
         // ),
-        // (
-        //     "faster-greedy-dag",
-        //     ExtractorDetail {
-        //         extractor: extract::faster_greedy_dag::FasterGreedyDagExtractor.boxed(),
-        //         optimal: Optimal::Neither,
-        //         use_for_bench: true,
-        //     },
-        // ),
+        (
+            "faster-greedy-dag",
+            ExtractorDetail {
+                extractor: extract::faster_greedy_dag::FasterGreedyDagExtractor.boxed(),
+                optimal: Optimal::Neither,
+                use_for_bench: true,
+            },
+        ),
         // /*(
         //     "global-greedy-dag",
         //     ExtractorDetail {
@@ -97,15 +100,15 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
         //         use_for_bench: true,
         //     },
         // ),
-        // #[cfg(feature = "ilp-cbc")]
-        // (
-        //     "faster-ilp-cbc",
-        //     ExtractorDetail {
-        //         extractor: extract::faster_ilp_cbc::FasterCbcExtractor.boxed(),
-        //         optimal: Optimal::DAG,
-        //         use_for_bench: true,
-        //     },
-        // ),
+        #[cfg(feature = "ilp-cbc")]
+        (
+            "faster-ilp-cbc",
+            ExtractorDetail {
+                extractor: extract::faster_ilp_cbc::FasterCbcExtractor.boxed(),
+                optimal: Optimal::DAG,
+                use_for_bench: true,
+            },
+        ),
         // #[cfg(feature = "ilp-cbc")]
         // (
         //     "ilp-coin-cbc",
@@ -189,30 +192,30 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
                 use_for_bench: true,
             },
         ),
-        (
-            "beam-4",
-            ExtractorDetail {
-                extractor: extract::beam::BeamExtractor { beam: 4 }.boxed(),
-                optimal: Optimal::Neither,
-                use_for_bench: true,
-            },
-        ),
-        (
-            "beam-8",
-            ExtractorDetail {
-                extractor: extract::beam::BeamExtractor { beam: 8 }.boxed(),
-                optimal: Optimal::Neither,
-                use_for_bench: true,
-            },
-        ),
-        (
-            "beam-16",
-            ExtractorDetail {
-                extractor: extract::beam::BeamExtractor { beam: 16 }.boxed(),
-                optimal: Optimal::Neither,
-                use_for_bench: true,
-            },
-        ),
+        // (
+        //     "beam-4",
+        //     ExtractorDetail {
+        //         extractor: extract::beam::BeamExtractor { beam: 4 }.boxed(),
+        //         optimal: Optimal::Neither,
+        //         use_for_bench: true,
+        //     },
+        // ),
+        // (
+        //     "beam-8",
+        //     ExtractorDetail {
+        //         extractor: extract::beam::BeamExtractor { beam: 8 }.boxed(),
+        //         optimal: Optimal::Neither,
+        //         use_for_bench: true,
+        //     },
+        // ),
+        // (
+        //     "beam-16",
+        //     ExtractorDetail {
+        //         extractor: extract::beam::BeamExtractor { beam: 16 }.boxed(),
+        //         optimal: Optimal::Neither,
+        //         use_for_bench: true,
+        //     },
+        // ),
     ]
     .into_iter()
     .collect();

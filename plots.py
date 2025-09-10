@@ -25,6 +25,8 @@ df.head()
 # %%
 extractors = df.extractor.unique().tolist()
 extractors
+# %%
+extractors = ['faster-ilp-cbc-timeout', 'bottom-up', 'faster-greedy-dag', 'beam-1', 'beam-2', 'beam-4', 'beam-8', 'beam-16']
 
 # %%
 for extractor in extractors:

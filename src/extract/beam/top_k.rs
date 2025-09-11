@@ -3,60 +3,49 @@ use arrayvec::ArrayVec;
 /// A simple data structure to keep the top-k unique elements seen so far.
 /// Orders elements by their `Ord` implementation, smallest first.
 #[derive(Clone, Debug)]
-pub struct TopK<T: Ord> {
-    k: usize,
-    data: Vec<T>,
-}
+pub struct TopK<T: Ord, const BEAM: usize>(ArrayVec<T, BEAM>);
 
-impl<T: Ord> TopK<T> {
-    pub fn new(k: usize) -> Self {
-        Self {
-            k,
-            data: Vec::with_capacity(k),
-        }
-    }
-
-    pub fn empty() -> Self {
-        Self { k: 0, data: vec![] }
+impl<T: Ord, const BEAM: usize> TopK<T, BEAM> {
+    pub fn new() -> Self {
+        Self(ArrayVec::new())
     }
 
     pub fn singleton(candidate: T) -> Self {
-        Self {
-            k: 1,
-            data: vec![candidate],
-        }
+        let mut result = Self::new();
+        result.0.push(candidate);
+        result
     }
 
     pub fn is_empty(&self) -> bool {
-        self.data.is_empty()
+        self.0.is_empty()
     }
 
     pub fn best(&self) -> Option<&T> {
-        self.data.first()
+        self.0.first()
     }
 
     pub fn cutoff(&self) -> Option<&T> {
-        self.data.get(self.k - 1)
+        self.0.get(BEAM - 1)
     }
 
     pub fn candidates(&self) -> &[T] {
-        &self.data
+        self.0.as_slice()
     }
 
     /// *Warning*: Caller is responsible for maintaining the ordering invariant.
     pub fn candidates_mut(&mut self) -> &mut [T] {
-        &mut self.data
+        self.0.as_mut_slice()
     }
 
     /// Consider a new candidate, return true if kept
     pub fn consider(&mut self, item: T) -> bool {
-        match self.data.binary_search(&item) {
+        match self.0.binary_search(&item) {
             Ok(_) => false, // Duplicate
-            Err(index) if index < self.k => {
-                if self.data.len() == self.k {
-                    self.data.pop();
+            Err(index) if index < BEAM => {
+                if self.0.len() == BEAM {
+                    self.0.pop();
                 }
-                self.data.insert(index, item);
+                self.0.insert(index, item);
                 true
             }
             Err(_) => false, // Too large
@@ -65,7 +54,8 @@ impl<T: Ord> TopK<T> {
 
     pub fn merge(&mut self, other: Self) -> bool {
         let mut changed = false;
-        for item in other.data {
+        // TODO: Merge sort
+        for item in other.0 {
             changed |= self.consider(item);
         }
         changed

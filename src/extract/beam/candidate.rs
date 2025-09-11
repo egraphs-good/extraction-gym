@@ -1,6 +1,5 @@
 use super::{ClassId, NodeId};
 use crate::{Cost, EPSILON_ALLOWANCE};
-use arrayvec::ArrayVec;
 use std::{cmp::Ord, cmp::Ordering, collections::HashMap, hash::Hash};
 
 /// A valid partial solution.

@@ -6,7 +6,7 @@ use good_lp::{
 };
 use std::time::Instant;
 
-const TIME_LIMIT: f64 = 10.0; // seconds
+const TIME_LIMIT: f64 = 10.0e6; // seconds
 
 /// Solver backend to use for ILP extraction.
 pub enum IlpSolver {

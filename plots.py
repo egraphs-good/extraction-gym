@@ -5,7 +5,7 @@ import pandas as pd
 import glob
 import json
 import os
-plt.rcParams["figure.figsize"] = (10,8)
+plt.rcParams["figure.figsize"] = (10, 8)
 plt.rcParams["figure.dpi"] = 120
 
 # %%
@@ -23,10 +23,17 @@ df = pd.DataFrame(data)
 df.head()
 
 # %%
+df['benchset'] = df['name'].astype('string').str.split('/').str.get(1)
+df.benchset.unique()
+
+# %%
 extractors = df.extractor.unique().tolist()
 extractors
 # %%
-extractors = ['faster-ilp-cbc-timeout', 'bottom-up', 'faster-greedy-dag', 'beam-1', 'beam-2', 'beam-4', 'beam-8', 'beam-16']
+extractors = ['bottom-up', 'faster-greedy-dag', 'beam-1', 'beam-1-new', 'beam-2', 'beam-4', 'beam-8', 'beam-16', 'beam-1a', 'faster-ilp-cbc-timeout']
+
+# Filter by extractors
+df = df[df.extractor.isin(extractors)]
 
 # %%
 for extractor in extractors:
@@ -41,25 +48,21 @@ plt.title("Extractor Time Comparison")
 plt.show()
 
 # %%
-
-# Find the minimum dag cost for each benchmark
-# Determine the benchmark identifier column
-min_dag_per_benchmark = df.groupby('name', dropna=False)['dag'].min().reset_index().rename(columns={'dag': 'min_dag'})
-df = df.merge(min_dag_per_benchmark, on='name', how='left')
-df['dag_ratio'] = df['dag'] / df['min_dag']
-df.head()
+df.groupby(['benchset', 'extractor']).dag.count().unstack().plot(kind='bar', logy=True)
 
 # %%
+# Create a grouped bar chart comparing beam methods against 'faster-ilp-cbc-timeout' baseline by benchset
+beam_methods = ['beam-1', 'beam-2', 'beam-4', 'beam-8', 'faster-greedy-dag']
+benchset = df.groupby(['benchset', 'extractor'])['dag'].sum().unstack()
 
-for extractor in extractors:
-    time = df[df.extractor == extractor].dag_ratio.to_numpy()
-    time.sort()
-    plt.plot(time, label=extractor)
-plt.legend()
-plt.xlabel("Run")
-plt.ylabel("DAG cost")
-plt.ylim(0.99, 1.2)
-plt.title("Extractor DAG cost Comparison")
+baseline = benchset['faster-ilp-cbc-timeout']
+speedup_vs_baseline = benchset[beam_methods].div(baseline, axis=0).replace([np.inf, -np.inf], np.nan)
+ax = speedup_vs_baseline.plot(kind='bar')
+plt.axhline(1.0, color='gray', linestyle='--', linewidth=1)
+plt.ylabel('DAG cost vs faster-ilp-cbc-timeout')
+plt.xlabel('Benchset')
+plt.title('Beam  vs faster-ilp-cbc-timeout (lower is better)')
+plt.legend(title='Extractor')
+plt.tight_layout()
+plt.ylim(0.0, 2.0)
 plt.show()
-
-# %%

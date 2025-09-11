@@ -41,14 +41,14 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
                 use_for_bench: true,
             },
         ),
-        (
-            "faster-bottom-up",
-            ExtractorDetail {
-                extractor: extract::faster_bottom_up::FasterBottomUpExtractor.boxed(),
-                optimal: Optimal::Tree,
-                use_for_bench: true,
-            },
-        ),
+        // (
+        //     "faster-bottom-up",
+        //     ExtractorDetail {
+        //         extractor: extract::faster_bottom_up::FasterBottomUpExtractor.boxed(),
+        //         optimal: Optimal::Tree,
+        //         use_for_bench: true,
+        //     },
+        // ),
         // (
         //     "prio-queue",
         //     ExtractorDetail {
@@ -57,14 +57,14 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
         //         use_for_bench: true,
         //     },
         // ),
-        (
-            "faster-greedy-dag",
-            ExtractorDetail {
-                extractor: extract::faster_greedy_dag::FasterGreedyDagExtractor.boxed(),
-                optimal: Optimal::Neither,
-                use_for_bench: true,
-            },
-        ),
+        // (
+        //     "faster-greedy-dag",
+        //     ExtractorDetail {
+        //         extractor: extract::faster_greedy_dag::FasterGreedyDagExtractor.boxed(),
+        //         optimal: Optimal::Neither,
+        //         use_for_bench: true,
+        //     },
+        // ),
         // /*(
         //     "global-greedy-dag",
         //     ExtractorDetail {
@@ -161,37 +161,22 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
         //         use_for_bench: true,
         //     },
         // ),
-        // #[cfg(feature = "ilp-scip")]
-        // (
-        //     "ilp-scip-greedy-dag-init",
-        //     ExtractorDetail {
-        //         extractor: extract::ilp::GoodExtractor {
-        //             ilp_solver: extract::ilp::IlpSolver::Scip,
-        //             initial_solution: Some(
-        //                 extract::faster_greedy_dag::FasterGreedyDagExtractor.boxed(),
-        //             ),
-        //         }
-        //         .boxed(),
-        //         optimal: Optimal::DAG,
-        //         use_for_bench: true,
-        //     },
-        // ),
         (
-            "beam-1",
+            "beam-1-new",
             ExtractorDetail {
                 extractor: extract::beam::BeamExtractor { beam: 1 }.boxed(),
                 optimal: Optimal::Neither,
                 use_for_bench: true,
             },
         ),
-        (
-            "beam-2",
-            ExtractorDetail {
-                extractor: extract::beam::BeamExtractor { beam: 2 }.boxed(),
-                optimal: Optimal::Neither,
-                use_for_bench: true,
-            },
-        ),
+        // (
+        //     "beam-2",
+        //     ExtractorDetail {
+        //         extractor: extract::beam::BeamExtractor { beam: 2 }.boxed(),
+        //         optimal: Optimal::Neither,
+        //         use_for_bench: true,
+        //     },
+        // ),
         // (
         //     "beam-4",
         //     ExtractorDetail {

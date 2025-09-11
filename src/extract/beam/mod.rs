@@ -102,9 +102,9 @@ where
             .expect("No candidate found for the given roots");
 
         let mut choices = IndexMap::new();
-        for (cid, (nid, _)) in solution.choices.iter() {
-            let cid = self.egraph.class_id(*cid).clone();
-            let nid = self.egraph.node_id(*nid).clone();
+        for (cid, nid) in solution.iter() {
+            let cid = self.egraph.class_id(cid).clone();
+            let nid = self.egraph.node_id(nid).clone();
             choices.insert(cid, nid);
         }
         ExtractionResult { choices }
@@ -208,7 +208,7 @@ where
         // Generate candidates and add this node
         let mut candidates = self.candidates(children, Some(cid));
         for candidate in candidates.candidates_mut() {
-            candidate.append(cid, nid, cost);
+            candidate.insert(cid, nid, cost);
         }
         candidates
     }

@@ -169,30 +169,30 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
                 use_for_bench: true,
             },
         ),
-        // (
-        //     "beam-2",
-        //     ExtractorDetail {
-        //         extractor: extract::beam::BeamExtractor { beam: 2 }.boxed(),
-        //         optimal: Optimal::Neither,
-        //         use_for_bench: true,
-        //     },
-        // ),
-        // (
-        //     "beam-4",
-        //     ExtractorDetail {
-        //         extractor: extract::beam::BeamExtractor { beam: 4 }.boxed(),
-        //         optimal: Optimal::Neither,
-        //         use_for_bench: true,
-        //     },
-        // ),
-        // (
-        //     "beam-8",
-        //     ExtractorDetail {
-        //         extractor: extract::beam::BeamExtractor { beam: 8 }.boxed(),
-        //         optimal: Optimal::Neither,
-        //         use_for_bench: true,
-        //     },
-        // ),
+        (
+            "beam-2",
+            ExtractorDetail {
+                extractor: extract::beam::BeamExtractor::<2>.boxed(),
+                optimal: Optimal::Neither,
+                use_for_bench: true,
+            },
+        ),
+        (
+            "beam-4",
+            ExtractorDetail {
+                extractor: extract::beam::BeamExtractor::<4>.boxed(),
+                optimal: Optimal::Neither,
+                use_for_bench: true,
+            },
+        ),
+        (
+            "beam-8",
+            ExtractorDetail {
+                extractor: extract::beam::BeamExtractor::<8>.boxed(),
+                optimal: Optimal::Neither,
+                use_for_bench: true,
+            },
+        ),
         // (
         //     "beam-16",
         //     ExtractorDetail {

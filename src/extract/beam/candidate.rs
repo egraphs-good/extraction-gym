@@ -1,21 +1,21 @@
 use super::{ClassId, NodeId};
 use crate::{Cost, EPSILON_ALLOWANCE};
-use std::{cmp::Ord, cmp::Ordering, collections::HashMap, hash::Hash};
+use std::{cmp::Ord, cmp::Ordering};
 
 /// A valid partial solution.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Candidate<U: Copy + Ord + Hash> {
-    pub choices: HashMap<ClassId<U>, (NodeId<U>, Cost)>,
+pub struct Candidate<U: Copy + Ord> {
+    pub choices: Vec<(ClassId<U>, NodeId<U>, Cost)>,
     cost: Cost,
 }
 
-impl<U: Copy + Ord + Hash> PartialOrd for Candidate<U> {
+impl<U: Copy + Ord> PartialOrd for Candidate<U> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl<U: Copy + Ord + Hash> Ord for Candidate<U> {
+impl<U: Copy + Ord> Ord for Candidate<U> {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         // First by cost, then by choices (to ensure uniqueness)
         match self.cost.cmp(&other.cost) {
@@ -25,40 +25,80 @@ impl<U: Copy + Ord + Hash> Ord for Candidate<U> {
     }
 }
 
-impl<U: Copy + Ord + Hash> Candidate<U> {
+impl<U: Copy + Ord> Candidate<U> {
     pub fn empty() -> Self {
         Self {
-            choices: HashMap::new(),
+            choices: Vec::new(),
             cost: 0.into(),
         }
     }
 
     pub fn leaf(cid: ClassId<U>, nid: NodeId<U>, cost: Cost) -> Self {
         Self {
-            choices: HashMap::from([(cid, (nid, cost))]),
+            choices: vec![(cid, nid, cost)],
             cost,
         }
     }
 
     pub fn contains(&self, cid: ClassId<U>) -> bool {
-        self.choices.contains_key(&cid)
+        self.choices.binary_search_by_key(&cid, |e| e.0).is_ok()
     }
 
-    pub fn append(&mut self, cid: ClassId<U>, nid: NodeId<U>, cost: Cost) {
-        debug_assert!(!self.contains(cid));
-        self.choices.insert(cid, (nid, cost));
-        self.cost += cost;
+    pub fn iter(&self) -> impl Iterator<Item = (ClassId<U>, NodeId<U>)> + '_ {
+        self.choices.iter().map(|(c, n, _)| (*c, *n))
+    }
 
+    pub fn insert(&mut self, cid: ClassId<U>, nid: NodeId<U>, cost: Cost) {
+        match self.choices.binary_search_by_key(&cid, |e| e.0) {
+            Ok(_) => panic!("Class already in candidate"),
+            Err(pos) => self.choices.insert(pos, (cid, nid, cost)),
+        }
+        self.cost += cost;
         debug_assert!(
-            (self.cost - self.choices.values().map(|(_, c)| *c).sum::<Cost>()).abs()
+            (self.cost - self.choices.iter().map(|(_, _, c)| *c).sum::<Cost>()).abs()
                 < EPSILON_ALLOWANCE
         );
     }
 
     pub fn merge(&self, other: &Self) -> Self {
-        let mut new = self.clone();
-        new.choices.extend(other.choices.clone());
-        new.cost = new.choices.values().map(|(_, cost)| *cost).sum();
-        new
+        let mut choices = Vec::with_capacity(self.choices.len() + other.choices.len());
+        let mut cost = 0.into();
+
+        let mut i = 0;
+        let mut j = 0;
+        while i < self.choices.len() && j < other.choices.len() {
+            match self.choices[i].0.cmp(&other.choices[j].0) {
+                Ordering::Less => {
+                    choices.push(self.choices[i]);
+                    cost += self.choices[i].2;
+                    i += 1;
+                }
+                Ordering::Greater => {
+                    choices.push(other.choices[j]);
+                    cost += other.choices[j].2;
+                    j += 1;
+                }
+                Ordering::Equal => {
+                    // Duplicate class, keep the one from self
+                    // TODO: Other strategy? Lowest cost?
+                    choices.push(self.choices[i]);
+                    cost += self.choices[i].2;
+                    i += 1;
+                    j += 1;
+                }
+            }
+        }
+        while i < self.choices.len() {
+            choices.push(self.choices[i]);
+            cost += self.choices[i].2;
+            i += 1;
+        }
+        while j < other.choices.len() {
+            choices.push(other.choices[j]);
+            cost += other.choices[j].2;
+            j += 1;
+        }
+
+        Self { choices, cost }
     }
 }

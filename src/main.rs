@@ -164,7 +164,7 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
         (
             "beam-1",
             ExtractorDetail {
-                extractor: extract::beam::BeamExtractor::<1>.boxed(),
+                extractor: extract::beam::BeamExtractor::<1> { parallel: false }.boxed(),
                 optimal: Optimal::Neither,
                 use_for_bench: true,
             },
@@ -172,7 +172,7 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
         (
             "beam-2",
             ExtractorDetail {
-                extractor: extract::beam::BeamExtractor::<2>.boxed(),
+                extractor: extract::beam::BeamExtractor::<2> { parallel: false }.boxed(),
                 optimal: Optimal::Neither,
                 use_for_bench: true,
             },
@@ -180,7 +180,7 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
         (
             "beam-4",
             ExtractorDetail {
-                extractor: extract::beam::BeamExtractor::<4>.boxed(),
+                extractor: extract::beam::BeamExtractor::<4> { parallel: false }.boxed(),
                 optimal: Optimal::Neither,
                 use_for_bench: true,
             },
@@ -188,19 +188,27 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
         (
             "beam-8",
             ExtractorDetail {
-                extractor: extract::beam::BeamExtractor::<8>.boxed(),
+                extractor: extract::beam::BeamExtractor::<8> { parallel: false }.boxed(),
                 optimal: Optimal::Neither,
                 use_for_bench: true,
             },
         ),
-        // (
-        //     "beam-16",
-        //     ExtractorDetail {
-        //         extractor: extract::beam::BeamExtractor { beam: 16 }.boxed(),
-        //         optimal: Optimal::Neither,
-        //         use_for_bench: true,
-        //     },
-        // ),
+        (
+            "beam-4-par",
+            ExtractorDetail {
+                extractor: extract::beam::BeamExtractor::<4> { parallel: true }.boxed(),
+                optimal: Optimal::Neither,
+                use_for_bench: true,
+            },
+        ),
+        (
+            "beam-8-par",
+            ExtractorDetail {
+                extractor: extract::beam::BeamExtractor::<8> { parallel: true }.boxed(),
+                optimal: Optimal::Neither,
+                use_for_bench: true,
+            },
+        ),
     ]
     .into_iter()
     .collect();

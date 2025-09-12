@@ -1,38 +1,45 @@
 //! Beam extraction implementation.
 mod candidate;
 mod egraph;
+mod memo_cell;
 mod top_k;
 
 use self::{
     candidate::Candidate,
     egraph::{ClassId, FastEgraph, NodeId, UInt},
+    memo_cell::MemoCell,
     top_k::TopK,
 };
-use crate::INFINITY;
 use crate::{
     extract::{ExtractionResult, Extractor},
     Cost,
 };
+use crate::{EPSILON_ALLOWANCE, INFINITY};
 use arrayvec::ArrayVec;
 use egraph_serialize::{ClassId as ExtClassId, EGraph as ExtEGraph, NodeId as ExtNodeId};
 use indexmap::IndexMap;
 use parking_lot::RwLock;
 use rand::seq::SliceRandom;
 use rayon::prelude::*;
-use std::fmt::Debug;
 use std::hash::Hash;
 use std::mem::swap;
 use std::ops::Range;
 use std::time::Instant;
+use std::{cell::RefCell, fmt::Debug};
 use std::{collections::HashSet, sync::atomic::AtomicBool};
 
-pub struct BeamExtractor<const BEAM: usize>;
+pub struct BeamExtractor<const BEAM: usize> {
+    pub parallel: bool,
+}
 
-type EGraph<U, const BEAM: usize> =
-    FastEgraph<U, ExtClassId, ExtNodeId, RwLock<TopK<Candidate<U>, BEAM>>>;
+type SerBeam<U, const BEAM: usize> = RefCell<TopK<Candidate<U>, BEAM>>;
+type ParBeam<U, const BEAM: usize> = RwLock<TopK<Candidate<U>, BEAM>>;
 
-struct BeamExtract<U: Copy + Ord + Hash, const BEAM: usize> {
-    egraph: EGraph<U, BEAM>,
+type EGraph<U, B> = FastEgraph<U, ExtClassId, ExtNodeId, B>;
+
+struct BeamExtract<U: Copy + Ord + Hash, B, const BEAM: usize> {
+    egraph: EGraph<U, B>,
+    _beam: [(); BEAM],
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
@@ -45,33 +52,84 @@ enum NodeStatus {
 impl<const BEAM: usize> Extractor for BeamExtractor<BEAM> {
     fn extract(&self, egraph: &ExtEGraph, roots: &[ExtClassId]) -> ExtractionResult {
         let start = Instant::now();
-        let result: ExtractionResult = if let Ok(egraph) = EGraph::<u16, BEAM>::try_from(egraph) {
-            log::info!(
-                "Using 16-bit indices. Fast egraph conversion in {:?}",
-                start.elapsed()
-            );
-            let mut extractor: BeamExtract<u16, BEAM> = BeamExtract { egraph };
-            extractor.iterate();
-            extractor.extract_solution(roots)
-        } else if let Ok(egraph) = EGraph::<u32, BEAM>::try_from(egraph) {
-            log::info!(
-                "Using 32-bit indices. Fast egraph conversion in {:?}",
-                start.elapsed()
-            );
-            let mut extractor: BeamExtract<u32, BEAM> = BeamExtract { egraph };
-            extractor.iterate();
-            extractor.extract_solution(roots)
-        } else if let Ok(egraph) = EGraph::<usize, BEAM>::try_from(egraph) {
-            log::info!(
-                "Using {}-bit indices. Fast egraph conversion in {:?}",
-                usize::BITS,
-                start.elapsed()
-            );
-            let mut extractor: BeamExtract<usize, BEAM> = BeamExtract { egraph };
-            extractor.iterate();
-            extractor.extract_solution(roots)
+        let result: ExtractionResult = if self.parallel {
+            // Parallel
+            if let Ok(egraph) = EGraph::<u16, ParBeam<u16, BEAM>>::try_from(egraph) {
+                log::info!(
+                    "Parallel. Using 16-bit indices. Fast egraph conversion in {:?}",
+                    start.elapsed()
+                );
+                let mut extractor: BeamExtract<u16, ParBeam<u16, BEAM>, BEAM> = BeamExtract {
+                    egraph,
+                    _beam: [(); BEAM],
+                };
+                extractor.iterate_par();
+                extractor.extract_solution(roots)
+            } else if let Ok(egraph) = EGraph::<u32, ParBeam<u32, BEAM>>::try_from(egraph) {
+                log::info!(
+                    "Parallel. Using 32-bit indices. Fast egraph conversion in {:?}",
+                    start.elapsed()
+                );
+                let mut extractor: BeamExtract<u32, ParBeam<u32, BEAM>, BEAM> = BeamExtract {
+                    egraph,
+                    _beam: [(); BEAM],
+                };
+                extractor.iterate_par();
+                extractor.extract_solution(roots)
+            } else if let Ok(egraph) = EGraph::<usize, ParBeam<usize, BEAM>>::try_from(egraph) {
+                log::info!(
+                    "Parallel. Using {}-bit indices. Fast egraph conversion in {:?}",
+                    usize::BITS,
+                    start.elapsed()
+                );
+                let mut extractor: BeamExtract<usize, ParBeam<usize, BEAM>, BEAM> = BeamExtract {
+                    egraph,
+                    _beam: [(); BEAM],
+                };
+                extractor.iterate_par();
+                extractor.extract_solution(roots)
+            } else {
+                panic!("EGraph too large for beam extraction");
+            }
         } else {
-            panic!("EGraph too large for beam extraction");
+            // Serial
+            if let Ok(egraph) = EGraph::<u16, SerBeam<u16, BEAM>>::try_from(egraph) {
+                log::info!(
+                    "Serial. Using 16-bit indices. Fast egraph conversion in {:?}",
+                    start.elapsed()
+                );
+                let mut extractor: BeamExtract<u16, SerBeam<u16, BEAM>, BEAM> = BeamExtract {
+                    egraph,
+                    _beam: [(); BEAM],
+                };
+                extractor.iterate_ser();
+                extractor.extract_solution(roots)
+            } else if let Ok(egraph) = EGraph::<u32, SerBeam<u32, BEAM>>::try_from(egraph) {
+                log::info!(
+                    "Serial. Using 32-bit indices. Fast egraph conversion in {:?}",
+                    start.elapsed()
+                );
+                let mut extractor: BeamExtract<u32, SerBeam<u32, BEAM>, BEAM> = BeamExtract {
+                    egraph,
+                    _beam: [(); BEAM],
+                };
+                extractor.iterate_ser();
+                extractor.extract_solution(roots)
+            } else if let Ok(egraph) = EGraph::<usize, SerBeam<usize, BEAM>>::try_from(egraph) {
+                log::info!(
+                    "Serial. Using {}-bit indices. Fast egraph conversion in {:?}",
+                    usize::BITS,
+                    start.elapsed()
+                );
+                let mut extractor: BeamExtract<usize, SerBeam<usize, BEAM>, BEAM> = BeamExtract {
+                    egraph,
+                    _beam: [(); BEAM],
+                };
+                extractor.iterate_ser();
+                extractor.extract_solution(roots)
+            } else {
+                panic!("EGraph too large for beam extraction");
+            }
         };
         let duration = start.elapsed();
         let cost = result.dag_cost(egraph, roots);
@@ -80,8 +138,9 @@ impl<const BEAM: usize> Extractor for BeamExtractor<BEAM> {
     }
 }
 
-impl<U: UInt, const BEAM: usize> BeamExtract<U, BEAM>
+impl<U: UInt, B, const BEAM: usize> BeamExtract<U, B, BEAM>
 where
+    B: MemoCell<TopK<Candidate<U>, BEAM>>,
     U: Send + Sync,
     <U as TryInto<usize>>::Error: Debug,
     <U as TryFrom<usize>>::Error: Debug,
@@ -109,7 +168,7 @@ where
         ExtractionResult { choices }
     }
 
-    fn iterate(&mut self) {
+    fn iterate_ser(&mut self) {
         let mut loop_counter = 0;
         let mut changed_global = true;
 
@@ -133,7 +192,63 @@ where
 
             while !workset.is_empty() {
                 let worklist: Vec<NodeId<U>> = workset.drain().collect();
-                log::info!("Beam extraction local workset {} nodes", worklist.len());
+                log::debug!("Beam extraction local workset {} nodes", worklist.len());
+                let changed_any = AtomicBool::new(false);
+
+                worklist.iter().for_each(|&nid| {
+                    match self.recompute_node(nid) {
+                        NodeStatus::NotReady => {
+                            // Presumably the non-ready child is already in the worklist.
+                            // When it becomes ready, it will re-trigger this node as a parent.
+                            // If not, then the node was cyclic.
+                        }
+                        NodeStatus::Unchanged => {}
+                        NodeStatus::Updated => {
+                            changed_any.store(true, std::sync::atomic::Ordering::SeqCst);
+                            let cid = self.egraph.node_class(nid);
+                            let parents = self.egraph.parents(cid);
+                            next_workset.write().extend(parents.iter().copied());
+                        }
+                    }
+                });
+
+                swap(&mut workset, &mut next_workset.write());
+
+                if changed_any.load(std::sync::atomic::Ordering::SeqCst) {
+                    changed_global = true;
+                }
+            }
+        }
+    }
+
+    fn iterate_par(&mut self)
+    where
+        B: Send + Sync,
+    {
+        let mut loop_counter = 0;
+        let mut changed_global = true;
+
+        // Start with leaf nodes as initial workset
+        let mut workset: HashSet<NodeId<U>> = self
+            .egraph
+            .all_nodes()
+            .filter(|&nid| self.egraph.children(nid).is_empty())
+            .collect();
+        let next_workset = RwLock::new(HashSet::new());
+
+        while changed_global {
+            loop_counter += 1;
+            log::info!("Beam extraction global iteration {}", loop_counter);
+            changed_global = false;
+
+            if workset.is_empty() {
+                // Add all nodes for 2nd and subsequent iterations.
+                workset.extend(self.egraph.all_nodes());
+            }
+
+            while !workset.is_empty() {
+                let worklist: Vec<NodeId<U>> = workset.drain().collect();
+                log::debug!("Beam extraction local workset {} nodes", worklist.len());
                 let changed_any = AtomicBool::new(false);
 
                 worklist.par_iter().for_each(|&nid| {
@@ -160,11 +275,6 @@ where
                 }
             }
         }
-
-        // Assert stability
-        // for nid in self.egraph.nodes.keys() {
-        //     assert_ne!(self.recompute_node(nid), NodeStatus::Updated);
-        // }
     }
 
     fn recompute_node(&self, nid: NodeId<U>) -> NodeStatus {
@@ -205,7 +315,7 @@ where
     fn node_candidates(&self, nid: NodeId<U>, cutoff: Cost) -> TopK<Candidate<U>, BEAM> {
         let cid = self.egraph.node_class(nid);
         let cost = self.egraph.cost(nid);
-        if cost >= cutoff {
+        if cost > cutoff + EPSILON_ALLOWANCE {
             return TopK::new(); // Can't improve on cutoff
         }
         let children = self.egraph.children(nid);
@@ -222,7 +332,7 @@ where
         // Generate candidates and add this node
         // TODO: Fix cutoff value
         let mut candidates =
-            self.candidates(children, Some(cid), /* cutoff - cost */ INFINITY);
+            self.candidates(children, Some(cid), INFINITY /*  cutoff - cost */);
         for candidate in candidates.candidates_mut() {
             candidate.insert(cid, nid, cost);
         }
@@ -247,13 +357,13 @@ where
             };
             lower_bound += self.egraph.min_cost(cid);
         }
-        if lower_bound >= cutoff {
+        if lower_bound > cutoff + EPSILON_ALLOWANCE {
             return TopK::new(); // Can't improve on cutoff
         }
 
         // Randomly permute roots to avoid bias
-        let mut roots = roots.to_vec();
-        roots.shuffle(&mut rand::thread_rng());
+        // let mut roots = roots.to_vec();
+        // roots.shuffle(&mut rand::thread_rng());
 
         // Create a snapshot of the root beams to avoid locking issues
         // let root_beams = roots
@@ -305,7 +415,7 @@ where
                                 .filter(|&cid| !candidate.contains(cid))
                                 .map(|cid| self.egraph.min_cost(cid))
                                 .sum();
-                            if candidate.cost() + lower_bound >= cutoff {
+                            if candidate.cost() + lower_bound > cutoff + EPSILON_ALLOWANCE {
                                 continue;
                             }
                             new_candidates.consider(candidate);

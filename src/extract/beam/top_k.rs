@@ -61,3 +61,9 @@ impl<T: Ord, const BEAM: usize> TopK<T, BEAM> {
         changed
     }
 }
+
+impl<T: Ord, const BEAM: usize> Default for TopK<T, BEAM> {
+    fn default() -> Self {
+        Self::new()
+    }
+}

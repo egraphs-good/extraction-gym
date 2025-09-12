@@ -9,11 +9,9 @@ use self::{
     top_k::TopK,
 };
 use crate::extract::{ExtractionResult, Extractor};
-use egraph_serialize::{
-    ClassId as ExtClassId, EGraph as ExtEGraph, Node as ExtNode, NodeId as ExtNodeId,
-};
+use egraph_serialize::{ClassId as ExtClassId, EGraph as ExtEGraph, NodeId as ExtNodeId};
 use indexmap::IndexMap;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::mem::swap;
@@ -22,11 +20,10 @@ use std::time::Instant;
 
 pub struct BeamExtractor<const BEAM: usize>;
 
-type EGraph<U> = FastEgraph<U, ExtClassId, ExtNodeId>;
+type EGraph<U, const BEAM: usize> = FastEgraph<U, ExtClassId, ExtNodeId, TopK<Candidate<U>, BEAM>>;
 
 struct BeamExtract<U: Copy + Ord + Hash, const BEAM: usize> {
-    egraph: EGraph<U>,
-    memo: HashMap<ClassId<U>, TopK<Candidate<U>, BEAM>>,
+    egraph: EGraph<U, BEAM>,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
@@ -39,39 +36,29 @@ enum NodeStatus {
 impl<const BEAM: usize> Extractor for BeamExtractor<BEAM> {
     fn extract(&self, egraph: &ExtEGraph, roots: &[ExtClassId]) -> ExtractionResult {
         let start = Instant::now();
-        let result: ExtractionResult = if let Ok(egraph) = FastEgraph::<u16, _, _>::try_from(egraph)
-        {
+        let result: ExtractionResult = if let Ok(egraph) = EGraph::<u16, BEAM>::try_from(egraph) {
             log::info!(
                 "Using 16-bit indices. Fast egraph conversion in {:?}",
                 start.elapsed()
             );
-            let mut extractor: BeamExtract<u16, BEAM> = BeamExtract {
-                egraph,
-                memo: HashMap::default(),
-            };
+            let mut extractor: BeamExtract<u16, BEAM> = BeamExtract { egraph };
             extractor.iterate();
             extractor.extract_solution(roots)
-        } else if let Ok(egraph) = FastEgraph::<u32, _, _>::try_from(egraph) {
+        } else if let Ok(egraph) = EGraph::<u32, BEAM>::try_from(egraph) {
             log::info!(
                 "Using 32-bit indices. Fast egraph conversion in {:?}",
                 start.elapsed()
             );
-            let mut extractor: BeamExtract<u32, BEAM> = BeamExtract {
-                egraph,
-                memo: HashMap::default(),
-            };
+            let mut extractor: BeamExtract<u32, BEAM> = BeamExtract { egraph };
             extractor.iterate();
             extractor.extract_solution(roots)
-        } else if let Ok(egraph) = FastEgraph::<usize, _, _>::try_from(egraph) {
+        } else if let Ok(egraph) = EGraph::<usize, BEAM>::try_from(egraph) {
             log::info!(
                 "Using {}-bit indices. Fast egraph conversion in {:?}",
                 usize::BITS,
                 start.elapsed()
             );
-            let mut extractor: BeamExtract<usize, BEAM> = BeamExtract {
-                egraph,
-                memo: HashMap::default(),
-            };
+            let mut extractor: BeamExtract<usize, BEAM> = BeamExtract { egraph };
             extractor.iterate();
             extractor.extract_solution(roots)
         } else {
@@ -116,7 +103,6 @@ where
         let mut changed = true;
         while changed {
             loop_counter += 1;
-            dbg!(loop_counter);
             log::info!("Beam extraction iteration {}", loop_counter);
             changed = false;
 
@@ -124,13 +110,7 @@ where
             let mut worklist: HashSet<NodeId<U>> = self
                 .egraph
                 .all_nodes()
-                .filter_map(|nid| {
-                    if self.egraph.children(nid).is_empty() {
-                        Some(nid.clone())
-                    } else {
-                        None
-                    }
-                })
+                .filter(|&nid| self.egraph.children(nid).is_empty())
                 .collect();
             let mut next_worklist = HashSet::new();
 
@@ -168,7 +148,7 @@ where
             .egraph
             .children(nid)
             .iter()
-            .all(|child_cid| self.memo.contains_key(child_cid));
+            .all(|&child_cid| !self.egraph.memo(child_cid).is_empty());
         if !ready {
             return NodeStatus::NotReady;
         }
@@ -178,11 +158,7 @@ where
 
         // Insert candidate into memo, return true if changed
         let cid = self.egraph.node_class(nid);
-        let updated = self
-            .memo
-            .entry(cid)
-            .or_insert_with(|| TopK::new())
-            .merge(candidates);
+        let updated = self.egraph.memo_mut(cid).merge(candidates);
 
         if updated {
             NodeStatus::Updated
@@ -219,18 +195,15 @@ where
         ban: Option<ClassId<U>>,
     ) -> TopK<Candidate<U>, BEAM> {
         // Make sure all roots have candidates
-        if !roots
-            .iter()
-            .all(|cid| self.memo.get(cid).and_then(|top| top.best()).is_some())
-        {
+        if !roots.iter().all(|&cid| !self.egraph.memo(cid).is_empty()) {
             return TopK::new();
         }
 
         // Generate candidates
         let mut candidates = TopK::singleton(Candidate::empty());
-        for rid in roots {
+        for &rid in roots {
             let mut new_candidates = TopK::new();
-            for candidate in self.memo[rid].candidates() {
+            for candidate in self.egraph.memo(rid).candidates() {
                 if let Some(ban) = ban {
                     if candidate.contains(ban) {
                         // Banned (e.g. this would create a cycle)
@@ -238,7 +211,10 @@ where
                     }
                 }
                 for existing in candidates.candidates() {
-                    new_candidates.consider(existing.merge(candidate));
+                    if let Some(candidate) = existing.merge(candidate, |nid| self.egraph.cost(nid))
+                    {
+                        new_candidates.consider(candidate);
+                    }
                 }
             }
             if new_candidates.is_empty() {

@@ -91,15 +91,15 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
         //         use_for_bench: false, // takes >10 hours sometimes
         //     },
         // ),
-        // #[cfg(feature = "ilp-cbc")]
-        // (
-        //     "faster-ilp-cbc-timeout",
-        //     ExtractorDetail {
-        //         extractor: extract::faster_ilp_cbc::FasterCbcExtractorWithTimeout::<10>.boxed(),
-        //         optimal: Optimal::DAG,
-        //         use_for_bench: true,
-        //     },
-        // ),
+        #[cfg(feature = "ilp-cbc")]
+        (
+            "faster-ilp-cbc-timeout",
+            ExtractorDetail {
+                extractor: extract::faster_ilp_cbc::FasterCbcExtractorWithTimeout::<10>.boxed(),
+                optimal: Optimal::DAG,
+                use_for_bench: true,
+            },
+        ),
         // #[cfg(feature = "ilp-cbc")]
         // (
         //     "faster-ilp-cbc",
@@ -162,7 +162,7 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
         //     },
         // ),
         (
-            "beam-1-new",
+            "beam-1",
             ExtractorDetail {
                 extractor: extract::beam::BeamExtractor::<1>.boxed(),
                 optimal: Optimal::Neither,

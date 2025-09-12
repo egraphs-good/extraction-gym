@@ -20,11 +20,14 @@ impl UInt for usize {}
 /// # Type Parameters
 ///
 /// - `U`: The unsigned integer type used for indexing (e.g., `u16`, `u32`, `usize`).
-/// - `C`: The type of data associated with each e-class.
-/// - `N`: The type of data associated with each node.
+/// - `C`: The type of foreign class key associated with each e-class.
+/// - `N`: The type of foreign node key associated with each node.
+/// - `M`: The type of memoization data associated with each e-class.
+///
 #[derive(Clone, Debug)]
-pub struct FastEgraph<U, C, N> {
+pub struct FastEgraph<U, C, N, M> {
     class_ids: Vec<C>,
+    memo: Vec<M>,
     nodes_start: Vec<NodeId<U>>,
 
     node_ids: Vec<N>,
@@ -43,7 +46,7 @@ pub struct NodeId<U>(U);
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct ClassId<U>(U);
 
-impl<U: UInt, C, N> FastEgraph<U, C, N>
+impl<U: UInt, C, N, M> FastEgraph<U, C, N, M>
 where
     <U as TryInto<usize>>::Error: Debug,
     <U as TryFrom<usize>>::Error: Debug,
@@ -57,6 +60,16 @@ where
     pub fn node_id(&self, node: NodeId<U>) -> &N {
         let node: usize = node.0.try_into().unwrap();
         &self.node_ids[node]
+    }
+
+    pub fn memo(&self, class: ClassId<U>) -> &M {
+        let class: usize = class.0.try_into().unwrap();
+        &self.memo[class]
+    }
+
+    pub fn memo_mut(&mut self, class: ClassId<U>) -> &mut M {
+        let class: usize = class.0.try_into().unwrap();
+        &mut self.memo[class]
     }
 
     pub fn from_class_id(&self, class: &C) -> Option<ClassId<U>>
@@ -118,9 +131,10 @@ where
     }
 }
 
-impl<U: UInt> TryFrom<&egraph_serialize::EGraph>
-    for FastEgraph<U, egraph_serialize::ClassId, egraph_serialize::NodeId>
+impl<U: UInt, M> TryFrom<&egraph_serialize::EGraph>
+    for FastEgraph<U, egraph_serialize::ClassId, egraph_serialize::NodeId, M>
 where
+    M: Default + Clone,
     <U as TryInto<usize>>::Error: Debug,
     <U as TryFrom<usize>>::Error: Debug,
     Range<U>: Iterator<Item = U> + ExactSizeIterator + DoubleEndedIterator + Clone + Debug,
@@ -149,6 +163,7 @@ where
 
         let mut result = Self {
             class_ids: Vec::with_capacity(num_classes),
+            memo: vec![M::default(); num_classes],
             nodes_start: Vec::with_capacity(num_classes + 1),
             node_ids: Vec::with_capacity(num_nodes),
             node_cost: Vec::with_capacity(num_nodes),

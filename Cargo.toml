@@ -29,6 +29,8 @@ serde_json = "1.0"
 rpds = "1.1.0"
 good_lp = "1.14.0"
 arrayvec = "0.7.6"
+parking_lot = "0.12.4"
+rayon = "1.11.0"
 
 [dependencies.egraph-serialize]
 git = "https://github.com/egraphs-good/egraph-serialize"

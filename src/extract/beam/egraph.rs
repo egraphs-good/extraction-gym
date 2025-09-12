@@ -142,7 +142,7 @@ where
 impl<U: UInt, M> TryFrom<&egraph_serialize::EGraph>
     for FastEgraph<U, egraph_serialize::ClassId, egraph_serialize::NodeId, M>
 where
-    M: Default + Clone,
+    M: Default,
     <U as TryInto<usize>>::Error: Debug,
     <U as TryFrom<usize>>::Error: Debug,
     Range<U>: Iterator<Item = U> + ExactSizeIterator + DoubleEndedIterator + Clone + Debug,
@@ -166,12 +166,12 @@ where
             || U::try_from(num_nodes + 10).is_err()
             || U::try_from(num_total_children + 10).is_err()
         {
-            return Err(format!("Type U is too small to hold the e-graph data").into());
+            return Err("Type U is too small to hold the e-graph data".into());
         }
 
         let mut result = Self {
             class_ids: Vec::with_capacity(num_classes),
-            memo: vec![M::default(); num_classes],
+            memo: (0..num_classes).map(|_| M::default()).collect(),
             min_cost: Vec::with_capacity(num_classes),
             nodes_start: Vec::with_capacity(num_classes + 1),
             node_ids: Vec::with_capacity(num_nodes),

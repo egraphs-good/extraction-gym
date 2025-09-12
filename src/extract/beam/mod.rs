@@ -16,17 +16,20 @@ use crate::{
 use arrayvec::ArrayVec;
 use egraph_serialize::{ClassId as ExtClassId, EGraph as ExtEGraph, NodeId as ExtNodeId};
 use indexmap::IndexMap;
+use parking_lot::RwLock;
 use rand::seq::SliceRandom;
-use std::collections::HashSet;
+use rayon::prelude::*;
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::mem::swap;
 use std::ops::Range;
 use std::time::Instant;
+use std::{collections::HashSet, sync::atomic::AtomicBool};
 
 pub struct BeamExtractor<const BEAM: usize>;
 
-type EGraph<U, const BEAM: usize> = FastEgraph<U, ExtClassId, ExtNodeId, TopK<Candidate<U>, BEAM>>;
+type EGraph<U, const BEAM: usize> =
+    FastEgraph<U, ExtClassId, ExtNodeId, RwLock<TopK<Candidate<U>, BEAM>>>;
 
 struct BeamExtract<U: Copy + Ord + Hash, const BEAM: usize> {
     egraph: EGraph<U, BEAM>,
@@ -79,6 +82,7 @@ impl<const BEAM: usize> Extractor for BeamExtractor<BEAM> {
 
 impl<U: UInt, const BEAM: usize> BeamExtract<U, BEAM>
 where
+    U: Send + Sync,
     <U as TryInto<usize>>::Error: Debug,
     <U as TryFrom<usize>>::Error: Debug,
     Range<U>: Iterator<Item = U> + ExactSizeIterator + DoubleEndedIterator + Clone + Debug,
@@ -107,25 +111,32 @@ where
 
     fn iterate(&mut self) {
         let mut loop_counter = 0;
-        // Process the worklist until stable
-        let mut changed = true;
-        while changed {
+        let mut changed_global = true;
+
+        // Start with leaf nodes as initial workset
+        let mut workset: HashSet<NodeId<U>> = self
+            .egraph
+            .all_nodes()
+            .filter(|&nid| self.egraph.children(nid).is_empty())
+            .collect();
+        let next_workset = RwLock::new(HashSet::new());
+
+        while changed_global {
             loop_counter += 1;
-            log::info!("Beam extraction iteration {}", loop_counter);
-            changed = false;
+            log::info!("Beam extraction global iteration {}", loop_counter);
+            changed_global = false;
 
-            // Start with leaf nodes
-            let mut worklist: HashSet<NodeId<U>> = self
-                .egraph
-                .all_nodes()
-                .filter(|&nid| self.egraph.children(nid).is_empty())
-                .collect();
-            let mut next_worklist = HashSet::new();
+            if workset.is_empty() {
+                // Add all nodes for 2nd and subsequent iterations.
+                workset.extend(self.egraph.all_nodes());
+            }
 
-            while !worklist.is_empty() {
-                // TODO: Parallelize this loop
-                // Note: This requires locking the egraph memo structure.
-                for nid in worklist.drain() {
+            while !workset.is_empty() {
+                let worklist: Vec<NodeId<U>> = workset.drain().collect();
+                log::info!("Beam extraction local workset {} nodes", worklist.len());
+                let changed_any = AtomicBool::new(false);
+
+                worklist.par_iter().for_each(|&nid| {
                     match self.recompute_node(nid) {
                         NodeStatus::NotReady => {
                             // Presumably the non-ready child is already in the worklist.
@@ -134,15 +145,19 @@ where
                         }
                         NodeStatus::Unchanged => {}
                         NodeStatus::Updated => {
-                            changed = true;
+                            changed_any.store(true, std::sync::atomic::Ordering::SeqCst);
                             let cid = self.egraph.node_class(nid);
                             let parents = self.egraph.parents(cid);
-                            // dbg!(nid, cid, parents);
-                            next_worklist.extend(parents.iter().copied());
+                            next_workset.write().extend(parents.iter().copied());
                         }
                     }
+                });
+
+                swap(&mut workset, &mut next_workset.write());
+
+                if changed_any.load(std::sync::atomic::Ordering::SeqCst) {
+                    changed_global = true;
                 }
-                swap(&mut worklist, &mut next_worklist);
             }
         }
 
@@ -152,13 +167,13 @@ where
         // }
     }
 
-    fn recompute_node(&mut self, nid: NodeId<U>) -> NodeStatus {
+    fn recompute_node(&self, nid: NodeId<U>) -> NodeStatus {
         // Check if all children are ready
         let ready = self
             .egraph
             .children(nid)
             .iter()
-            .all(|&child_cid| !self.egraph.memo(child_cid).is_empty());
+            .all(|&child_cid| !self.egraph.memo(child_cid).read().is_empty());
         if !ready {
             return NodeStatus::NotReady;
         }
@@ -168,6 +183,7 @@ where
         let cutoff = self
             .egraph
             .memo(cid)
+            .read()
             .cutoff()
             .map_or(INFINITY, |c| c.cost());
 
@@ -175,7 +191,7 @@ where
         let candidates = self.node_candidates(nid, cutoff);
 
         // Insert candidate into memo, return true if changed
-        let updated = self.egraph.memo_mut(cid).merge(candidates);
+        let updated = self.egraph.memo(cid).write().merge(candidates);
 
         if updated {
             NodeStatus::Updated
@@ -205,7 +221,8 @@ where
 
         // Generate candidates and add this node
         // TODO: Fix cutoff value
-        let mut candidates = self.candidates(children, Some(cid), INFINITY);
+        let mut candidates =
+            self.candidates(children, Some(cid), /* cutoff - cost */ INFINITY);
         for candidate in candidates.candidates_mut() {
             candidate.insert(cid, nid, cost);
         }
@@ -225,7 +242,7 @@ where
         // Make sure all roots have candidates and compute lower bound cost
         let mut lower_bound = Cost::default();
         for &cid in roots {
-            if self.egraph.memo(cid).is_empty() {
+            if self.egraph.memo(cid).read().is_empty() {
                 return TopK::new(); // No candidates for this root
             };
             lower_bound += self.egraph.min_cost(cid);
@@ -238,8 +255,16 @@ where
         let mut roots = roots.to_vec();
         roots.shuffle(&mut rand::thread_rng());
 
+        // Create a snapshot of the root beams to avoid locking issues
+        // let root_beams = roots
+        //     .iter()
+        //     .map(|&cid| (cid, self.egraph.memo(cid).read().clone()))
+        //     .collect::<Vec<_>>();
+        // TODO: Benchmark against locking inside the loop.
+
         // Generate candidates
         let mut candidates = TopK::singleton(Candidate::empty());
+        //        for (i, (cid, root_beam)) in root_beams.into_iter().enumerate() {
         for (i, &cid) in roots.iter().enumerate() {
             let remaining_roots = &roots[i + 1..];
 
@@ -257,10 +282,9 @@ where
 
             // Complete the partial solutions.
             if !partials.is_empty() {
-                let root_beam = self.egraph.memo(cid);
                 lower_bound -= self.egraph.min_cost(cid);
-
-                for candidate in root_beam.candidates() {
+                //for candidate in root_beam.candidates() {
+                for candidate in self.egraph.memo(cid).read().candidates() {
                     if let Some(ban) = ban {
                         if candidate.contains(ban) {
                             // Banned (e.g. this would create a cycle)

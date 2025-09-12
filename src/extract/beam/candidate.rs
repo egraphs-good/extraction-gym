@@ -1,5 +1,5 @@
 use super::{ClassId, NodeId};
-use crate::Cost;
+use crate::{Cost, EPSILON_ALLOWANCE};
 use std::cmp::{Ord, Ordering};
 
 /// A valid partial solution.
@@ -17,10 +17,12 @@ impl<U: Copy + Ord> PartialOrd for Candidate<U> {
 
 impl<U: Copy + Ord> Ord for Candidate<U> {
     fn cmp(&self, other: &Self) -> Ordering {
-        // First by cost, then by choices (to ensure uniqueness)
-        match self.cost.cmp(&other.cost) {
-            Ordering::Equal => self.choices.iter().cmp(other.choices.iter()),
-            ord => ord,
+        if (self.cost - other.cost).abs() < EPSILON_ALLOWANCE {
+            // Costs are effectively equal, compare by choices to ensure uniqueness
+            self.choices.cmp(&other.choices)
+        } else {
+            // Costs differ, compare by cost
+            self.cost.cmp(&other.cost)
         }
     }
 }
@@ -46,6 +48,10 @@ impl<U: Copy + Ord> Candidate<U> {
 
     pub fn iter(&self) -> impl Iterator<Item = (ClassId<U>, NodeId<U>)> + '_ {
         self.choices.iter().copied()
+    }
+
+    pub fn cost(&self) -> Cost {
+        self.cost
     }
 
     pub fn insert(&mut self, cid: ClassId<U>, nid: NodeId<U>, cost: Cost) {

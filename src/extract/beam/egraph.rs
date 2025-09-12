@@ -1,6 +1,8 @@
 use ordered_float::NotNan;
 use std::{fmt::Debug, hash::Hash, ops::Range};
 
+use crate::{Cost, INFINITY};
+
 pub trait UInt: Copy + Ord + TryInto<usize> + TryFrom<usize> + Hash + Debug
 where
     <Self as TryInto<usize>>::Error: Debug,
@@ -28,6 +30,7 @@ impl UInt for usize {}
 pub struct FastEgraph<U, C, N, M> {
     class_ids: Vec<C>,
     memo: Vec<M>,
+    min_cost: Vec<Cost>,
     nodes_start: Vec<NodeId<U>>,
 
     node_ids: Vec<N>,
@@ -103,6 +106,11 @@ where
         ClassId(U::try_from(class).unwrap())
     }
 
+    pub fn min_cost(&self, class: ClassId<U>) -> Cost {
+        let class: usize = class.0.try_into().unwrap();
+        self.min_cost[class]
+    }
+
     pub fn nodes(&self, class: ClassId<U>) -> impl Iterator<Item = NodeId<U>> {
         let class: usize = class.0.try_into().unwrap();
         let start = self.nodes_start[class].0;
@@ -164,6 +172,7 @@ where
         let mut result = Self {
             class_ids: Vec::with_capacity(num_classes),
             memo: vec![M::default(); num_classes],
+            min_cost: Vec::with_capacity(num_classes),
             nodes_start: Vec::with_capacity(num_classes + 1),
             node_ids: Vec::with_capacity(num_nodes),
             node_cost: Vec::with_capacity(num_nodes),
@@ -215,6 +224,16 @@ where
         result
             .children_start
             .push(U::try_from(result.children.len()).unwrap());
+
+        // Compute min costs
+        for class in result.classes() {
+            let min_cost = result
+                .nodes(class)
+                .map(|nid| result.cost(nid))
+                .min()
+                .unwrap_or(INFINITY);
+            result.min_cost.push(min_cost);
+        }
 
         // Compute parents
         let mut parents_map = vec![Vec::new(); num_classes];

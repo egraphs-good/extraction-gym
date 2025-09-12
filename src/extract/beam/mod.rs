@@ -8,9 +8,15 @@ use self::{
     egraph::{ClassId, FastEgraph, NodeId, UInt},
     top_k::TopK,
 };
-use crate::extract::{ExtractionResult, Extractor};
+use crate::INFINITY;
+use crate::{
+    extract::{ExtractionResult, Extractor},
+    Cost,
+};
+use arrayvec::ArrayVec;
 use egraph_serialize::{ClassId as ExtClassId, EGraph as ExtEGraph, NodeId as ExtNodeId};
 use indexmap::IndexMap;
+use rand::seq::SliceRandom;
 use std::collections::HashSet;
 use std::fmt::Debug;
 use std::hash::Hash;
@@ -78,12 +84,14 @@ where
     Range<U>: Iterator<Item = U> + ExactSizeIterator + DoubleEndedIterator + Clone + Debug,
 {
     fn extract_solution(&self, roots: &[ExtClassId]) -> ExtractionResult {
-        let roots = roots
+        let mut roots = roots
             .iter()
             .map(|ext_cid| self.egraph.from_class_id(ext_cid).unwrap())
             .collect::<Vec<_>>();
+        roots.sort();
+        roots.dedup();
 
-        let candidates = self.candidates(&roots, None);
+        let candidates = self.candidates(&roots, None, INFINITY);
         let solution = candidates
             .best()
             .expect("No candidate found for the given roots");
@@ -115,6 +123,8 @@ where
             let mut next_worklist = HashSet::new();
 
             while !worklist.is_empty() {
+                // TODO: Parallelize this loop
+                // Note: This requires locking the egraph memo structure.
                 for nid in worklist.drain() {
                     match self.recompute_node(nid) {
                         NodeStatus::NotReady => {
@@ -153,11 +163,18 @@ where
             return NodeStatus::NotReady;
         }
 
+        // Compute cutoff cost for node
+        let cid = self.egraph.node_class(nid);
+        let cutoff = self
+            .egraph
+            .memo(cid)
+            .cutoff()
+            .map_or(INFINITY, |c| c.cost());
+
         // Generate candidates by combining top-k from children
-        let candidates = self.node_candidates(nid);
+        let candidates = self.node_candidates(nid, cutoff);
 
         // Insert candidate into memo, return true if changed
-        let cid = self.egraph.node_class(nid);
         let updated = self.egraph.memo_mut(cid).merge(candidates);
 
         if updated {
@@ -167,9 +184,14 @@ where
         }
     }
 
-    fn node_candidates(&self, nid: NodeId<U>) -> TopK<Candidate<U>, BEAM> {
+    /// Generate candidates that include the given node.
+    /// Cuts off candidates that cannot improve on the given cutoff cost.
+    fn node_candidates(&self, nid: NodeId<U>, cutoff: Cost) -> TopK<Candidate<U>, BEAM> {
         let cid = self.egraph.node_class(nid);
         let cost = self.egraph.cost(nid);
+        if cost >= cutoff {
+            return TopK::new(); // Can't improve on cutoff
+        }
         let children = self.egraph.children(nid);
         if children.is_empty() {
             return TopK::singleton(Candidate::leaf(cid, nid, cost));
@@ -182,43 +204,93 @@ where
         }
 
         // Generate candidates and add this node
-        let mut candidates = self.candidates(children, Some(cid));
+        // TODO: Fix cutoff value
+        let mut candidates = self.candidates(children, Some(cid), INFINITY);
         for candidate in candidates.candidates_mut() {
             candidate.insert(cid, nid, cost);
         }
         candidates
     }
 
+    /// Generate candidates for the given roots, optionally banning one class (to avoid cycles).
+    /// Cuts off candidates that cannot improve on the given cutoff cost.
+    ///
+    /// Assumes roots are distinct.
     fn candidates(
         &self,
         roots: &[ClassId<U>],
         ban: Option<ClassId<U>>,
+        cutoff: Cost,
     ) -> TopK<Candidate<U>, BEAM> {
-        // Make sure all roots have candidates
-        if !roots.iter().all(|&cid| !self.egraph.memo(cid).is_empty()) {
-            return TopK::new();
+        // Make sure all roots have candidates and compute lower bound cost
+        let mut lower_bound = Cost::default();
+        for &cid in roots {
+            if self.egraph.memo(cid).is_empty() {
+                return TopK::new(); // No candidates for this root
+            };
+            lower_bound += self.egraph.min_cost(cid);
         }
+        if lower_bound >= cutoff {
+            return TopK::new(); // Can't improve on cutoff
+        }
+
+        // Randomly permute roots to avoid bias
+        let mut roots = roots.to_vec();
+        roots.shuffle(&mut rand::thread_rng());
 
         // Generate candidates
         let mut candidates = TopK::singleton(Candidate::empty());
-        for &rid in roots {
+        for (i, &cid) in roots.iter().enumerate() {
+            let remaining_roots = &roots[i + 1..];
+
+            // Sort existing solutions in partial ones and ones that already contain this root.
+            let mut partials = ArrayVec::<_, BEAM>::new();
             let mut new_candidates = TopK::new();
-            for candidate in self.egraph.memo(rid).candidates() {
-                if let Some(ban) = ban {
-                    if candidate.contains(ban) {
-                        // Banned (e.g. this would create a cycle)
-                        continue;
-                    }
+            for candidate in candidates.into_iter() {
+                if candidate.contains(cid) {
+                    // Already contains this root
+                    new_candidates.consider(candidate);
+                } else {
+                    partials.push(candidate);
                 }
-                for existing in candidates.candidates() {
-                    if let Some(candidate) = existing.merge(candidate, |nid| self.egraph.cost(nid))
-                    {
-                        new_candidates.consider(candidate);
+            }
+
+            // Complete the partial solutions.
+            if !partials.is_empty() {
+                let root_beam = self.egraph.memo(cid);
+                lower_bound -= self.egraph.min_cost(cid);
+
+                for candidate in root_beam.candidates() {
+                    if let Some(ban) = ban {
+                        if candidate.contains(ban) {
+                            // Banned (e.g. this would create a cycle)
+                            continue;
+                        }
+                    }
+                    for partial in &partials {
+                        if let Some(candidate) =
+                            partial.merge(candidate, |nid| self.egraph.cost(nid))
+                        {
+                            let cutoff = new_candidates
+                                .cutoff()
+                                .map_or(INFINITY, |c| c.cost())
+                                .min(cutoff);
+                            let lower_bound: Cost = remaining_roots
+                                .iter()
+                                .copied()
+                                .filter(|&cid| !candidate.contains(cid))
+                                .map(|cid| self.egraph.min_cost(cid))
+                                .sum();
+                            if candidate.cost() + lower_bound >= cutoff {
+                                continue;
+                            }
+                            new_candidates.consider(candidate);
+                        }
                     }
                 }
             }
             if new_candidates.is_empty() {
-                return TopK::new(); // No valid candidates
+                return TopK::new(); // No candidates left
             }
             candidates = new_candidates;
         }

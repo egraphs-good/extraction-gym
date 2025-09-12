@@ -67,3 +67,12 @@ impl<T: Ord, const BEAM: usize> Default for TopK<T, BEAM> {
         Self::new()
     }
 }
+
+impl<T: Ord, const BEAM: usize> IntoIterator for TopK<T, BEAM> {
+    type Item = T;
+    type IntoIter = arrayvec::IntoIter<T, BEAM>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}

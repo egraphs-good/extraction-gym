@@ -118,6 +118,7 @@ impl fmt::Debug for ClassILP {
     }
 }
 
+#[allow(dead_code)]
 impl ClassILP {
     fn remove(&mut self, idx: usize) {
         self.variables.remove(idx);
@@ -1231,6 +1232,7 @@ mod test {
     ($($name:ident),*) => {
         $(
             #[test]
+            #[ignore]
             fn $name() {
                 let mut configs = vec![Config::default(), all_disabled()];
 

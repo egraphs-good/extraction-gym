@@ -6,12 +6,16 @@ version = "0.1.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-ilp-cbc = ["coin_cbc"]
+default = ["ilp-cbc", "ilp-highs", "ilp-microlp", "ilp-scip"]
+ilp-cbc = ["coin_cbc", "good_lp/coin_cbc"] # brew install cbc
+ilp-highs = ["good_lp/highs"]
+ilp-microlp = ["good_lp/microlp"]
+ilp-scip = ["good_lp/scip"] # brew install scip
 
 [dependencies]
 env_logger = { version = "0.10.0", default-features = false }
 indexmap = "2.0.0"
-log = "0.4.19"
+log = "0.4.20"
 ordered-float = "3"
 pico-args = { version = "0.5.0", features = ["eq-separator"] }
 rand = "0.8.5"
@@ -23,6 +27,11 @@ rustc-hash = "1.1.0"
 serde_json = "1.0"
 
 rpds = "1.1.0"
+good_lp = "1.14.0"
+arrayvec = "0.7.6"
+parking_lot = "0.12.4"
+rayon = "1.11.0"
+
 [dependencies.egraph-serialize]
 git = "https://github.com/egraphs-good/egraph-serialize"
 rev = "951b829a434f4008c7b45ba4ac0da1037d2da90"

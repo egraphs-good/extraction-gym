@@ -16,6 +16,7 @@ pub type Cost = NotNan<f64>;
 pub const INFINITY: Cost = unsafe { NotNan::new_unchecked(std::f64::INFINITY) };
 
 #[derive(PartialEq, Eq)]
+#[allow(dead_code)]
 enum Optimal {
     Tree,
     DAG,
@@ -24,6 +25,8 @@ enum Optimal {
 
 struct ExtractorDetail {
     extractor: Box<dyn Extractor>,
+
+    #[allow(dead_code)]
     optimal: Optimal,
     use_for_bench: bool,
 }
@@ -38,56 +41,56 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
                 use_for_bench: true,
             },
         ),
-        (
-            "faster-bottom-up",
-            ExtractorDetail {
-                extractor: extract::faster_bottom_up::FasterBottomUpExtractor.boxed(),
-                optimal: Optimal::Tree,
-                use_for_bench: true,
-            },
-        ),
-        (
-            "prio-queue",
-            ExtractorDetail {
-                extractor: extract::prio_queue::PrioQueueExtractor.boxed(),
-                optimal: Optimal::Tree,
-                use_for_bench: true,
-            },
-        ),
-        (
-            "faster-greedy-dag",
-            ExtractorDetail {
-                extractor: extract::faster_greedy_dag::FasterGreedyDagExtractor.boxed(),
-                optimal: Optimal::Neither,
-                use_for_bench: true,
-            },
-        ),
-        /*(
-            "global-greedy-dag",
-            ExtractorDetail {
-                extractor: extract::global_greedy_dag::GlobalGreedyDagExtractor.boxed(),
-                optimal: Optimal::Neither,
-                use_for_bench: true,
-            },
-        ),*/
-        #[cfg(feature = "ilp-cbc")]
-        (
-            "ilp-cbc-timeout",
-            ExtractorDetail {
-                extractor: extract::ilp_cbc::CbcExtractorWithTimeout::<10>.boxed(),
-                optimal: Optimal::DAG,
-                use_for_bench: true,
-            },
-        ),
-        #[cfg(feature = "ilp-cbc")]
-        (
-            "ilp-cbc",
-            ExtractorDetail {
-                extractor: extract::ilp_cbc::CbcExtractor.boxed(),
-                optimal: Optimal::DAG,
-                use_for_bench: false, // takes >10 hours sometimes
-            },
-        ),
+        // (
+        //     "faster-bottom-up",
+        //     ExtractorDetail {
+        //         extractor: extract::faster_bottom_up::FasterBottomUpExtractor.boxed(),
+        //         optimal: Optimal::Tree,
+        //         use_for_bench: true,
+        //     },
+        // ),
+        // (
+        //     "prio-queue",
+        //     ExtractorDetail {
+        //         extractor: extract::prio_queue::PrioQueueExtractor.boxed(),
+        //         optimal: Optimal::Tree,
+        //         use_for_bench: true,
+        //     },
+        // ),
+        // (
+        //     "faster-greedy-dag",
+        //     ExtractorDetail {
+        //         extractor: extract::faster_greedy_dag::FasterGreedyDagExtractor.boxed(),
+        //         optimal: Optimal::Neither,
+        //         use_for_bench: true,
+        //     },
+        // ),
+        // /*(
+        //     "global-greedy-dag",
+        //     ExtractorDetail {
+        //         extractor: extract::global_greedy_dag::GlobalGreedyDagExtractor.boxed(),
+        //         optimal: Optimal::Neither,
+        //         use_for_bench: true,
+        //     },
+        // ),*/
+        // #[cfg(feature = "ilp-cbc")]
+        // (
+        //     "ilp-cbc-timeout",
+        //     ExtractorDetail {
+        //         extractor: extract::ilp_cbc::CbcExtractorWithTimeout::<10>.boxed(),
+        //         optimal: Optimal::DAG,
+        //         use_for_bench: true,
+        //     },
+        // ),
+        // #[cfg(feature = "ilp-cbc")]
+        // (
+        //     "ilp-cbc",
+        //     ExtractorDetail {
+        //         extractor: extract::ilp_cbc::CbcExtractor.boxed(),
+        //         optimal: Optimal::DAG,
+        //         use_for_bench: false, // takes >10 hours sometimes
+        //     },
+        // ),
         #[cfg(feature = "ilp-cbc")]
         (
             "faster-ilp-cbc-timeout",
@@ -97,12 +100,112 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
                 use_for_bench: true,
             },
         ),
-        #[cfg(feature = "ilp-cbc")]
+        // #[cfg(feature = "ilp-cbc")]
+        // (
+        //     "faster-ilp-cbc",
+        //     ExtractorDetail {
+        //         extractor: extract::faster_ilp_cbc::FasterCbcExtractor.boxed(),
+        //         optimal: Optimal::DAG,
+        //         use_for_bench: true,
+        //     },
+        // ),
+        // #[cfg(feature = "ilp-cbc")]
+        // (
+        //     "ilp-coin-cbc",
+        //     ExtractorDetail {
+        //         extractor: extract::ilp::GoodExtractor {
+        //             ilp_solver: extract::ilp::IlpSolver::CoinCbc,
+        //             initial_solution: None,
+        //         }
+        //         .boxed(),
+        //         optimal: Optimal::DAG,
+        //         use_for_bench: true,
+        //     },
+        // ),
+        // #[cfg(feature = "ilp-highs")]
+        // (
+        //     "ilp-highs",
+        //     ExtractorDetail {
+        //         extractor: extract::ilp::GoodExtractor {
+        //             ilp_solver: extract::ilp::IlpSolver::Highs,
+        //             initial_solution: None,
+        //         }
+        //         .boxed(),
+        //         optimal: Optimal::DAG,
+        //         use_for_bench: true,
+        //     },
+        // ),
+        // #[cfg(feature = "ilp-microlp")]
+        // (
+        //     "ilp-microlp",
+        //     ExtractorDetail {
+        //         extractor: extract::ilp::GoodExtractor {
+        //             ilp_solver: extract::ilp::IlpSolver::MicroLp,
+        //             initial_solution: None,
+        //         }
+        //         .boxed(),
+        //         optimal: Optimal::DAG,
+        //         use_for_bench: true, // No timeout support.
+        //     },
+        // ),
+        // #[cfg(feature = "ilp-scip")]
+        // (
+        //     "ilp-scip",
+        //     ExtractorDetail {
+        //         extractor: extract::ilp::GoodExtractor {
+        //             ilp_solver: extract::ilp::IlpSolver::Scip,
+        //             initial_solution: None,
+        //         }
+        //         .boxed(),
+        //         optimal: Optimal::DAG,
+        //         use_for_bench: true,
+        //     },
+        // ),
         (
-            "faster-ilp-cbc",
+            "beam-1",
             ExtractorDetail {
-                extractor: extract::faster_ilp_cbc::FasterCbcExtractor.boxed(),
-                optimal: Optimal::DAG,
+                extractor: extract::beam::BeamExtractor::<1> { parallel: false }.boxed(),
+                optimal: Optimal::Neither,
+                use_for_bench: true,
+            },
+        ),
+        (
+            "beam-2",
+            ExtractorDetail {
+                extractor: extract::beam::BeamExtractor::<2> { parallel: false }.boxed(),
+                optimal: Optimal::Neither,
+                use_for_bench: true,
+            },
+        ),
+        (
+            "beam-4",
+            ExtractorDetail {
+                extractor: extract::beam::BeamExtractor::<4> { parallel: false }.boxed(),
+                optimal: Optimal::Neither,
+                use_for_bench: true,
+            },
+        ),
+        (
+            "beam-8",
+            ExtractorDetail {
+                extractor: extract::beam::BeamExtractor::<8> { parallel: false }.boxed(),
+                optimal: Optimal::Neither,
+                use_for_bench: true,
+            },
+        ),
+        (
+            "beam-4-par",
+            ExtractorDetail {
+                extractor: extract::beam::BeamExtractor::<4> { parallel: true }.boxed(),
+                optimal: Optimal::Neither,
+                use_for_bench: true,
+            },
+        ),
+        (
+            "beam-8-par",
+            ExtractorDetail {
+                extractor: extract::beam::BeamExtractor::<8> { parallel: true }.boxed(),
+                optimal: Optimal::Neither,
                 use_for_bench: true,
             },
         ),
@@ -166,11 +269,11 @@ fn main() {
     log::info!("{filename:40}\t{extractor_name:10}\t{tree:5}\t{dag:5}\t{us:5}");
     writeln!(
         out_file,
-        r#"{{ 
+        r#"{{
     "name": "{filename}",
-    "extractor": "{extractor_name}", 
-    "tree": {tree}, 
-    "dag": {dag}, 
+    "extractor": "{extractor_name}",
+    "tree": {tree},
+    "dag": {dag},
     "micros": {us}
 }}"#
     )

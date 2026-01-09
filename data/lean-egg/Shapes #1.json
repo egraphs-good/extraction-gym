@@ -1,0 +1,173 @@
+{
+  "nodes": {
+    "0.0": {
+      "op": "*",
+      "children": [],
+      "eclass": "0",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "7.0": {
+      "op": "const",
+      "children": [
+        "6.0"
+      ],
+      "eclass": "7",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "7.1": {
+      "op": "app",
+      "children": [
+        "11.0",
+        "7.0"
+      ],
+      "eclass": "7",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "7.2": {
+      "op": "=",
+      "children": [
+        "2.0",
+        "2.0"
+      ],
+      "eclass": "7",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "7.3": {
+      "op": "=",
+      "children": [
+        "3.0",
+        "3.0"
+      ],
+      "eclass": "7",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "7.4": {
+      "op": "=",
+      "children": [
+        "7.0",
+        "7.0"
+      ],
+      "eclass": "7",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "7.5": {
+      "op": "=",
+      "children": [
+        "10.0",
+        "10.0"
+      ],
+      "eclass": "7",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "7.6": {
+      "op": "=",
+      "children": [
+        "11.0",
+        "11.0"
+      ],
+      "eclass": "7",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "7.7": {
+      "op": "=",
+      "children": [
+        "17.0",
+        "17.0"
+      ],
+      "eclass": "7",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "3.0": {
+      "op": "◇",
+      "children": [
+        "0.0",
+        "2.0"
+      ],
+      "eclass": "3",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "11.0": {
+      "op": "app",
+      "children": [
+        "10.0",
+        "7.0"
+      ],
+      "eclass": "11",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "10.0": {
+      "op": "const",
+      "children": [
+        "9.0"
+      ],
+      "eclass": "10",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "6.0": {
+      "op": "True",
+      "children": [],
+      "eclass": "6",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "17.0": {
+      "op": "◇",
+      "children": [
+        "0.0",
+        "7.0"
+      ],
+      "eclass": "17",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "2.0": {
+      "op": "const",
+      "children": [
+        "1.0"
+      ],
+      "eclass": "2",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "9.0": {
+      "op": "And",
+      "children": [],
+      "eclass": "9",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "1.0": {
+      "op": "Bool.true",
+      "children": [],
+      "eclass": "1",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "8.0": {
+      "op": "fact",
+      "children": [
+        "7.0"
+      ],
+      "eclass": "8",
+      "cost": 1.0,
+      "subsumed": false
+    }
+  },
+  "root_eclasses": [
+    "3",
+    "3"
+  ],
+  "class_data": {}
+}

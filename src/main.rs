@@ -18,12 +18,14 @@ pub const INFINITY: Cost = unsafe { NotNan::new_unchecked(f64::INFINITY) };
 #[derive(PartialEq, Eq)]
 enum Optimal {
     Tree,
+    #[cfg(feature = "ilp-cbc")]
     Dag,
     Neither,
 }
 
 struct ExtractorDetail {
     extractor: Box<dyn Extractor>,
+    #[cfg_attr(not(test), allow(dead_code))]
     optimal: Optimal,
     use_for_bench: bool,
 }

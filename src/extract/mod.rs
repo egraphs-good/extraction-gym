@@ -82,7 +82,7 @@ impl ExtractionResult {
         }
 
         // No cycles
-        assert!(self.find_cycles(&egraph, &egraph.root_eclasses).is_empty());
+        assert!(self.find_cycles(egraph, &egraph.root_eclasses).is_empty());
 
         // Nodes should match the class they are selected into.
         for (cid, nid) in &self.choices {

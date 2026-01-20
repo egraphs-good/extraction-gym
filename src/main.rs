@@ -13,12 +13,12 @@ use std::io::Write;
 use std::path::PathBuf;
 
 pub type Cost = NotNan<f64>;
-pub const INFINITY: Cost = unsafe { NotNan::new_unchecked(std::f64::INFINITY) };
+pub const INFINITY: Cost = unsafe { NotNan::new_unchecked(f64::INFINITY) };
 
 #[derive(PartialEq, Eq)]
 enum Optimal {
     Tree,
-    DAG,
+    Dag,
     Neither,
 }
 
@@ -75,7 +75,7 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
             "ilp-cbc-timeout",
             ExtractorDetail {
                 extractor: extract::ilp_cbc::CbcExtractorWithTimeout::<10>.boxed(),
-                optimal: Optimal::DAG,
+                optimal: Optimal::Dag,
                 use_for_bench: true,
             },
         ),
@@ -84,7 +84,7 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
             "ilp-cbc",
             ExtractorDetail {
                 extractor: extract::ilp_cbc::CbcExtractor.boxed(),
-                optimal: Optimal::DAG,
+                optimal: Optimal::Dag,
                 use_for_bench: false, // takes >10 hours sometimes
             },
         ),
@@ -93,7 +93,7 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
             "faster-ilp-cbc-timeout",
             ExtractorDetail {
                 extractor: extract::faster_ilp_cbc::FasterCbcExtractorWithTimeout::<10>.boxed(),
-                optimal: Optimal::DAG,
+                optimal: Optimal::Dag,
                 use_for_bench: true,
             },
         ),
@@ -102,14 +102,14 @@ fn extractors() -> IndexMap<&'static str, ExtractorDetail> {
             "faster-ilp-cbc",
             ExtractorDetail {
                 extractor: extract::faster_ilp_cbc::FasterCbcExtractor.boxed(),
-                optimal: Optimal::DAG,
+                optimal: Optimal::Dag,
                 use_for_bench: true,
             },
         ),
     ]
     .into_iter()
     .collect();
-    return extractors;
+    extractors
 }
 
 fn main() {

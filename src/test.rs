@@ -10,11 +10,11 @@ use rand::Rng;
 pub const ELABORATE_TESTING: bool = false;
 
 pub fn test_save_path(name: &str) -> String {
-    return if ELABORATE_TESTING {
+    if ELABORATE_TESTING {
         format!("/dev/shm/{}_egraph.json", name)
     } else {
         "".to_string()
-    };
+    }
 }
 
 // generates a float between 0 and 1
@@ -38,12 +38,12 @@ pub fn generate_random_egraph() -> EGraph {
     let get_semi_random_cost = |nodes: &Vec<Node>| -> Cost {
         let mut rng = rand::thread_rng();
 
-        if nodes.len() > 0 && rng.gen_bool(0.1) {
-            return nodes[rng.gen_range(0..nodes.len())].cost;
+        if !nodes.is_empty() && rng.gen_bool(0.1) {
+            nodes[rng.gen_range(0..nodes.len())].cost
         } else if rng.gen_bool(0.05) {
-            return Cost::default();
+            Cost::default()
         } else {
-            return generate_random_not_nan() * 100.0;
+            generate_random_not_nan() * 100.0
         }
     };
 
@@ -56,7 +56,7 @@ pub fn generate_random_egraph() -> EGraph {
 
         nodes.push(Node {
             op: "operation".to_string(),
-            children: children,
+            children,
             eclass: eclass.to_string().clone().into(),
             cost: get_semi_random_cost(&nodes),
         });
@@ -83,8 +83,8 @@ pub fn generate_random_egraph() -> EGraph {
 
     let mut egraph = EGraph::default();
 
-    for i in 0..nodes.len() {
-        egraph.add_node(id2nid(i), nodes[i].clone());
+    for (i, node) in nodes.iter().enumerate() {
+        egraph.add_node(id2nid(i), node.clone());
     }
 
     // Set roots
@@ -113,7 +113,7 @@ fn check_optimal_results<I: Iterator<Item = EGraph>>(egraphs: I) {
 
     for (_, ed) in extractors().into_iter() {
         match ed.optimal {
-            Optimal::DAG => optimal_dag.push(ed.extractor),
+            Optimal::Dag => optimal_dag.push(ed.extractor),
             Optimal::Tree => optimal_tree.push(ed.extractor),
             Optimal::Neither => others.push(ed.extractor),
         }
@@ -201,6 +201,7 @@ fn run_on_test_egraphs() {
 
 #[test]
 #[should_panic]
+#[allow(clippy::assertions_on_constants)]
 fn check_assert_enabled() {
     assert!(false);
 }
@@ -210,7 +211,7 @@ macro_rules! create_optimal_check_tests {
         $(
             #[test]
             fn $name() {
-                let optimal_dag_found = extractors().into_iter().any(|(_, ed)| ed.optimal == Optimal::DAG);
+                let optimal_dag_found = extractors().into_iter().any(|(_, ed)| ed.optimal == Optimal::Dag);
                 let iterations = if optimal_dag_found { 100 } else { 10000 };
                 let egraphs = (0..iterations).map(|_| generate_random_egraph());
                 check_optimal_results(egraphs);

@@ -10,11 +10,11 @@ use rand::Rng;
 pub const ELABORATE_TESTING: bool = false;
 
 pub fn test_save_path(name: &str) -> String {
-    return if ELABORATE_TESTING {
+    if ELABORATE_TESTING {
         format!("/dev/shm/{}_egraph.json", name)
     } else {
         "".to_string()
-    };
+    }
 }
 
 // generates a float between 0 and 1
@@ -38,12 +38,12 @@ pub fn generate_random_egraph() -> EGraph {
     let get_semi_random_cost = |nodes: &Vec<Node>| -> Cost {
         let mut rng = rand::thread_rng();
 
-        if nodes.len() > 0 && rng.gen_bool(0.1) {
-            return nodes[rng.gen_range(0..nodes.len())].cost;
+        if !nodes.is_empty() && rng.gen_bool(0.1) {
+            nodes[rng.gen_range(0..nodes.len())].cost
         } else if rng.gen_bool(0.05) {
-            return Cost::default();
+            Cost::default()
         } else {
-            return generate_random_not_nan() * 100.0;
+            generate_random_not_nan() * 100.0
         }
     };
 
@@ -56,7 +56,7 @@ pub fn generate_random_egraph() -> EGraph {
 
         nodes.push(Node {
             op: "operation".to_string(),
-            children: children,
+            children,
             eclass: eclass.to_string().clone().into(),
             cost: get_semi_random_cost(&nodes),
         });
@@ -83,8 +83,8 @@ pub fn generate_random_egraph() -> EGraph {
 
     let mut egraph = EGraph::default();
 
-    for i in 0..nodes.len() {
-        egraph.add_node(id2nid(i), nodes[i].clone());
+    for (i, node) in nodes.iter().enumerate() {
+        egraph.add_node(id2nid(i), node.clone());
     }
 
     // Set roots
@@ -106,42 +106,65 @@ pub fn generate_random_egraph() -> EGraph {
  * Checks that the extractions are valid.
  */
 
+#[cfg(feature = "ilp-cbc")]
+fn check_dag_optimal(
+    egraph: &EGraph,
+    optimal_dag: &[Box<dyn Extractor>],
+    others: &[Box<dyn Extractor>],
+    optimal_tree_cost: Option<Cost>,
+) {
+    let mut optimal_dag_cost: Option<Cost> = None;
+
+    for e in optimal_dag {
+        let extract = e.extract(egraph, &egraph.root_eclasses);
+        extract.check(egraph);
+        let dag_cost = extract.dag_cost(egraph, &egraph.root_eclasses);
+        let tree_cost = extract.tree_cost(egraph, &egraph.root_eclasses);
+        if optimal_dag_cost.is_none() {
+            optimal_dag_cost = Some(dag_cost);
+            continue;
+        }
+
+        assert!(
+            (dag_cost.into_inner() - optimal_dag_cost.unwrap().into_inner()).abs()
+                < EPSILON_ALLOWANCE
+        );
+
+        assert!(
+            tree_cost.into_inner() + EPSILON_ALLOWANCE > optimal_dag_cost.unwrap().into_inner()
+        );
+    }
+
+    if let (Some(dag_cost), Some(tree_cost)) = (optimal_dag_cost, optimal_tree_cost) {
+        assert!(dag_cost < tree_cost + EPSILON_ALLOWANCE);
+    }
+
+    if let Some(optimal_dag_cost) = optimal_dag_cost {
+        for e in others {
+            let extract = e.extract(egraph, &egraph.root_eclasses);
+            let dag_cost = extract.dag_cost(egraph, &egraph.root_eclasses);
+            // The optimal dag should be <= any extractor's dag cost
+            assert!(optimal_dag_cost <= dag_cost + EPSILON_ALLOWANCE);
+        }
+    }
+}
+
 fn check_optimal_results<I: Iterator<Item = EGraph>>(egraphs: I) {
+    #[cfg(feature = "ilp-cbc")]
     let mut optimal_dag: Vec<Box<dyn Extractor>> = Default::default();
     let mut optimal_tree: Vec<Box<dyn Extractor>> = Default::default();
     let mut others: Vec<Box<dyn Extractor>> = Default::default();
 
     for (_, ed) in extractors().into_iter() {
         match ed.optimal {
-            Optimal::DAG => optimal_dag.push(ed.extractor),
+            #[cfg(feature = "ilp-cbc")]
+            Optimal::Dag => optimal_dag.push(ed.extractor),
             Optimal::Tree => optimal_tree.push(ed.extractor),
             Optimal::Neither => others.push(ed.extractor),
         }
     }
 
     for egraph in egraphs {
-        let mut optimal_dag_cost: Option<Cost> = None;
-
-        for e in &optimal_dag {
-            let extract = e.extract(&egraph, &egraph.root_eclasses);
-            extract.check(&egraph);
-            let dag_cost = extract.dag_cost(&egraph, &egraph.root_eclasses);
-            let tree_cost = extract.tree_cost(&egraph, &egraph.root_eclasses);
-            if optimal_dag_cost.is_none() {
-                optimal_dag_cost = Some(dag_cost);
-                continue;
-            }
-
-            assert!(
-                (dag_cost.into_inner() - optimal_dag_cost.unwrap().into_inner()).abs()
-                    < EPSILON_ALLOWANCE
-            );
-
-            assert!(
-                tree_cost.into_inner() + EPSILON_ALLOWANCE > optimal_dag_cost.unwrap().into_inner()
-            );
-        }
-
         let mut optimal_tree_cost: Option<Cost> = None;
 
         for e in &optimal_tree {
@@ -159,26 +182,19 @@ fn check_optimal_results<I: Iterator<Item = EGraph>>(egraphs: I) {
             );
         }
 
-        if optimal_dag_cost.is_some() && optimal_tree_cost.is_some() {
-            assert!(optimal_dag_cost.unwrap() < optimal_tree_cost.unwrap() + EPSILON_ALLOWANCE);
-        }
-
         for e in &others {
             let extract = e.extract(&egraph, &egraph.root_eclasses);
             extract.check(&egraph);
             let tree_cost = extract.tree_cost(&egraph, &egraph.root_eclasses);
-            let dag_cost = extract.dag_cost(&egraph, &egraph.root_eclasses);
 
             // The optimal tree cost should be <= any extractor's tree cost.
-            if optimal_tree_cost.is_some() {
-                assert!(optimal_tree_cost.unwrap() <= tree_cost + EPSILON_ALLOWANCE);
-            }
-
-            if optimal_dag_cost.is_some() {
-                // The optimal dag should be less <= any extractor's dag cost
-                assert!(optimal_dag_cost.unwrap() <= dag_cost + EPSILON_ALLOWANCE);
+            if let Some(optimal_tree_cost) = optimal_tree_cost {
+                assert!(optimal_tree_cost <= tree_cost + EPSILON_ALLOWANCE);
             }
         }
+
+        #[cfg(feature = "ilp-cbc")]
+        check_dag_optimal(&egraph, &optimal_dag, &others, optimal_tree_cost);
     }
 }
 
@@ -201,6 +217,7 @@ fn run_on_test_egraphs() {
 
 #[test]
 #[should_panic]
+#[allow(clippy::assertions_on_constants)]
 fn check_assert_enabled() {
     assert!(false);
 }
@@ -210,8 +227,8 @@ macro_rules! create_optimal_check_tests {
         $(
             #[test]
             fn $name() {
-                let optimal_dag_found = extractors().into_iter().any(|(_, ed)| ed.optimal == Optimal::DAG);
-                let iterations = if optimal_dag_found { 100 } else { 10000 };
+                // Fewer iterations when ilp-cbc is enabled since it's slow
+                let iterations = if cfg!(feature = "ilp-cbc") { 100 } else { 10000 };
                 let egraphs = (0..iterations).map(|_| generate_random_egraph());
                 check_optimal_results(egraphs);
             }

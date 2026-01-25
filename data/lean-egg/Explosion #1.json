@@ -1,0 +1,126 @@
+{
+  "nodes": {
+    "0.0": {
+      "op": "Bool.true",
+      "children": [],
+      "eclass": "0",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "7.0": {
+      "op": "const",
+      "children": [
+        "6.0"
+      ],
+      "eclass": "7",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "3.0": {
+      "op": "True",
+      "children": [],
+      "eclass": "3",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "6.0": {
+      "op": "And",
+      "children": [],
+      "eclass": "6",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "5.0": {
+      "op": "fact",
+      "children": [
+        "4.0"
+      ],
+      "eclass": "5",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "1.0": {
+      "op": "const",
+      "children": [
+        "0.0"
+      ],
+      "eclass": "1",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "8.0": {
+      "op": "app",
+      "children": [
+        "7.0",
+        "4.0"
+      ],
+      "eclass": "8",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "4.0": {
+      "op": "const",
+      "children": [
+        "3.0"
+      ],
+      "eclass": "4",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "4.1": {
+      "op": "app",
+      "children": [
+        "8.0",
+        "4.0"
+      ],
+      "eclass": "4",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "4.2": {
+      "op": "=",
+      "children": [
+        "1.0",
+        "1.0"
+      ],
+      "eclass": "4",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "4.3": {
+      "op": "=",
+      "children": [
+        "4.0",
+        "4.0"
+      ],
+      "eclass": "4",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "4.4": {
+      "op": "=",
+      "children": [
+        "7.0",
+        "7.0"
+      ],
+      "eclass": "4",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "4.5": {
+      "op": "=",
+      "children": [
+        "8.0",
+        "8.0"
+      ],
+      "eclass": "4",
+      "cost": 1.0,
+      "subsumed": false
+    }
+  },
+  "root_eclasses": [
+    "1",
+    "1"
+  ],
+  "class_data": {}
+}

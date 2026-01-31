@@ -22,8 +22,8 @@ endef
 
 $(foreach ext,$(EXTRACTORS),\
 	$(foreach data,$(DATA),\
-        $(eval $(call run-extraction,$(data),$(ext)))\
-    )\
+		$(eval $(call run-extraction,$(data),$(ext)))\
+	)\
 )
 
 .PHONY: bench

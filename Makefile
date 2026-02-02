@@ -20,10 +20,12 @@ $(1:data/%=output/%)-$(2).json: $(1)
 	$(PROGRAM) $$< --extractor=$(2) --out=$$@
 endef
 
-$(foreach ext,$(EXTRACTORS),\
-	$(foreach data,$(DATA),\
-        $(eval $(call run-extraction,$(data),$(ext)))\
-    )\
+$(eval \
+	$(foreach ext,$(EXTRACTORS),\
+		$(foreach data,$(DATA),\
+			$(call run-extraction,$(data),$(ext))\
+		)\
+	)\
 )
 
 .PHONY: bench

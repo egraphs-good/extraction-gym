@@ -1,0 +1,2580 @@
+{
+  "nodes": {
+    "0.0": {
+      "op": "And",
+      "children": [],
+      "eclass": "0",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "25.0": {
+      "op": "1",
+      "children": [],
+      "eclass": "25",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "390.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "295.0"
+      ],
+      "eclass": "390",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "415.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "414.0"
+      ],
+      "eclass": "415",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "75.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "74.0"
+      ],
+      "eclass": "75",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "37.0": {
+      "op": "app",
+      "children": [
+        "36.0",
+        "23.0"
+      ],
+      "eclass": "37",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "276.0": {
+      "op": "app",
+      "children": [
+        "150.0",
+        "49.0"
+      ],
+      "eclass": "276",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "62.0": {
+      "op": "const",
+      "children": [
+        "61.0",
+        "20.0"
+      ],
+      "eclass": "62",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "364.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "363.0"
+      ],
+      "eclass": "364",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "150.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "11.0"
+      ],
+      "eclass": "150",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "24.0": {
+      "op": "app",
+      "children": [
+        "21.0",
+        "23.0"
+      ],
+      "eclass": "24",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "414.0": {
+      "op": "app",
+      "children": [
+        "10.0",
+        "177.0"
+      ],
+      "eclass": "414",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "49.0": {
+      "op": "app",
+      "children": [
+        "4.0",
+        "6.0"
+      ],
+      "eclass": "49",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "49.1": {
+      "op": "app",
+      "children": [
+        "7.0",
+        "3.0"
+      ],
+      "eclass": "49",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "74.0": {
+      "op": "app",
+      "children": [
+        "53.0",
+        "72.0"
+      ],
+      "eclass": "74",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "74.1": {
+      "op": "app",
+      "children": [
+        "73.0",
+        "52.0"
+      ],
+      "eclass": "74",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "11.0": {
+      "op": "app",
+      "children": [
+        "4.0",
+        "9.0"
+      ],
+      "eclass": "11",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "11.1": {
+      "op": "app",
+      "children": [
+        "10.0",
+        "3.0"
+      ],
+      "eclass": "11",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "36.0": {
+      "op": "const",
+      "children": [
+        "35.0",
+        "20.0",
+        "20.0",
+        "20.0"
+      ],
+      "eclass": "36",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "61.0": {
+      "op": "Add.add",
+      "children": [],
+      "eclass": "61",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "363.0": {
+      "op": "app",
+      "children": [
+        "7.0",
+        "177.0"
+      ],
+      "eclass": "363",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "86.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "18.0"
+      ],
+      "eclass": "86",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "388.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "387.0"
+      ],
+      "eclass": "388",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "23.0": {
+      "op": "const",
+      "children": [
+        "22.0"
+      ],
+      "eclass": "23",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "325.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "244.0"
+      ],
+      "eclass": "325",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "48.0": {
+      "op": "const",
+      "children": [
+        "47.0"
+      ],
+      "eclass": "48",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "438.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "437.0"
+      ],
+      "eclass": "438",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "73.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "72.0"
+      ],
+      "eclass": "73",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "10.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "9.0"
+      ],
+      "eclass": "10",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "161.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "13.0"
+      ],
+      "eclass": "161",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "35.0": {
+      "op": "HAdd.hAdd",
+      "children": [],
+      "eclass": "35",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "337.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "282.0"
+      ],
+      "eclass": "337",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "425.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "424.0"
+      ],
+      "eclass": "425",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "299.0": {
+      "op": "app",
+      "children": [
+        "150.0",
+        "9.0"
+      ],
+      "eclass": "299",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "85.0": {
+      "op": "fact",
+      "children": [
+        "18.0"
+      ],
+      "eclass": "85",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "22.0": {
+      "op": "Nat",
+      "children": [],
+      "eclass": "22",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "236.0": {
+      "op": "app",
+      "children": [
+        "161.0",
+        "3.0"
+      ],
+      "eclass": "236",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "387.0": {
+      "op": "app",
+      "children": [
+        "178.0",
+        "177.0"
+      ],
+      "eclass": "387",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "47.0": {
+      "op": "Nat.succ",
+      "children": [],
+      "eclass": "47",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "72.0": {
+      "op": "bvar",
+      "children": [
+        "71.0"
+      ],
+      "eclass": "72",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "9.0": {
+      "op": "fvar",
+      "children": [
+        "8.0"
+      ],
+      "eclass": "9",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "437.0": {
+      "op": "app",
+      "children": [
+        "154.0",
+        "49.0"
+      ],
+      "eclass": "437",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "399.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "310.0"
+      ],
+      "eclass": "399",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "424.0": {
+      "op": "app",
+      "children": [
+        "154.0",
+        "6.0"
+      ],
+      "eclass": "424",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "21.0": {
+      "op": "const",
+      "children": [
+        "19.0",
+        "20.0"
+      ],
+      "eclass": "21",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "411.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "410.0"
+      ],
+      "eclass": "411",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "46.0": {
+      "op": "const",
+      "children": [
+        "69.0"
+      ],
+      "eclass": "46",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "46.1": {
+      "op": "app",
+      "children": [
+        "39.0",
+        "45.0"
+      ],
+      "eclass": "46",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "46.2": {
+      "op": "app",
+      "children": [
+        "63.0",
+        "67.0"
+      ],
+      "eclass": "46",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "71.0": {
+      "op": "2",
+      "children": [],
+      "eclass": "71",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "8.0": {
+      "op": "4535",
+      "children": [],
+      "eclass": "8",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "159.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "55.0"
+      ],
+      "eclass": "159",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "247.0": {
+      "op": "app",
+      "children": [
+        "150.0",
+        "18.0"
+      ],
+      "eclass": "247",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "310.0": {
+      "op": "app",
+      "children": [
+        "10.0",
+        "9.0"
+      ],
+      "eclass": "310",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "20.0": {
+      "op": "0",
+      "children": [],
+      "eclass": "20",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "45.0": {
+      "op": "inst",
+      "children": [
+        "44.0"
+      ],
+      "eclass": "45",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "410.0": {
+      "op": "app",
+      "children": [
+        "10.0",
+        "13.0"
+      ],
+      "eclass": "410",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "7.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "6.0"
+      ],
+      "eclass": "7",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "372.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "371.0"
+      ],
+      "eclass": "372",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "32.0": {
+      "op": "inst",
+      "children": [
+        "31.0"
+      ],
+      "eclass": "32",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "19.0": {
+      "op": "OfNat.ofNat",
+      "children": [],
+      "eclass": "19",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "170.0": {
+      "op": "app",
+      "children": [
+        "4.0",
+        "170.0"
+      ],
+      "eclass": "170",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "170.1": {
+      "op": "app",
+      "children": [
+        "7.0",
+        "18.0"
+      ],
+      "eclass": "170",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "170.2": {
+      "op": "app",
+      "children": [
+        "86.0",
+        "49.0"
+      ],
+      "eclass": "170",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "170.3": {
+      "op": "app",
+      "children": [
+        "86.0",
+        "170.0"
+      ],
+      "eclass": "170",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "170.4": {
+      "op": "app",
+      "children": [
+        "154.0",
+        "18.0"
+      ],
+      "eclass": "170",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "170.5": {
+      "op": "app",
+      "children": [
+        "227.0",
+        "18.0"
+      ],
+      "eclass": "170",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "170.6": {
+      "op": "app",
+      "children": [
+        "332.0",
+        "3.0"
+      ],
+      "eclass": "170",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "170.7": {
+      "op": "app",
+      "children": [
+        "425.0",
+        "11.0"
+      ],
+      "eclass": "170",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "170.8": {
+      "op": "app",
+      "children": [
+        "434.0",
+        "6.0"
+      ],
+      "eclass": "170",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "170.9": {
+      "op": "app",
+      "children": [
+        "438.0",
+        "9.0"
+      ],
+      "eclass": "170",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "384.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "383.0"
+      ],
+      "eclass": "384",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "44.0": {
+      "op": "app",
+      "children": [
+        "43.0",
+        "23.0"
+      ],
+      "eclass": "44",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "69.0": {
+      "op": "Nat.add",
+      "children": [],
+      "eclass": "69",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "6.0": {
+      "op": "fvar",
+      "children": [
+        "5.0"
+      ],
+      "eclass": "6",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "371.0": {
+      "op": "app",
+      "children": [
+        "178.0",
+        "9.0"
+      ],
+      "eclass": "371",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "434.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "433.0"
+      ],
+      "eclass": "434",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "396.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "76.0"
+      ],
+      "eclass": "396",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "31.0": {
+      "op": "app",
+      "children": [
+        "30.0",
+        "26.0"
+      ],
+      "eclass": "31",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "56.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "54.0"
+      ],
+      "eclass": "56",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "421.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "420.0"
+      ],
+      "eclass": "421",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "295.0": {
+      "op": "app",
+      "children": [
+        "56.0",
+        "72.0"
+      ],
+      "eclass": "295",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "446.0": {
+      "op": "Nat.zero",
+      "children": [],
+      "eclass": "446",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.0": {
+      "op": "const",
+      "children": [
+        "17.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.1": {
+      "op": "app",
+      "children": [
+        "4.0",
+        "18.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.2": {
+      "op": "app",
+      "children": [
+        "4.0",
+        "177.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.3": {
+      "op": "app",
+      "children": [
+        "7.0",
+        "11.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.4": {
+      "op": "app",
+      "children": [
+        "7.0",
+        "13.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.5": {
+      "op": "app",
+      "children": [
+        "7.0",
+        "236.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.6": {
+      "op": "app",
+      "children": [
+        "7.0",
+        "244.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.7": {
+      "op": "app",
+      "children": [
+        "7.0",
+        "247.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.8": {
+      "op": "app",
+      "children": [
+        "10.0",
+        "49.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.9": {
+      "op": "app",
+      "children": [
+        "10.0",
+        "170.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.10": {
+      "op": "app",
+      "children": [
+        "10.0",
+        "282.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.11": {
+      "op": "app",
+      "children": [
+        "86.0",
+        "3.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.12": {
+      "op": "app",
+      "children": [
+        "86.0",
+        "18.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.13": {
+      "op": "app",
+      "children": [
+        "86.0",
+        "177.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.14": {
+      "op": "app",
+      "children": [
+        "150.0",
+        "6.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.15": {
+      "op": "app",
+      "children": [
+        "150.0",
+        "170.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.16": {
+      "op": "app",
+      "children": [
+        "154.0",
+        "9.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.17": {
+      "op": "app",
+      "children": [
+        "154.0",
+        "13.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.18": {
+      "op": "app",
+      "children": [
+        "154.0",
+        "236.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.19": {
+      "op": "app",
+      "children": [
+        "161.0",
+        "6.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.20": {
+      "op": "app",
+      "children": [
+        "161.0",
+        "49.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.21": {
+      "op": "app",
+      "children": [
+        "161.0",
+        "170.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.22": {
+      "op": "app",
+      "children": [
+        "178.0",
+        "3.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.23": {
+      "op": "app",
+      "children": [
+        "178.0",
+        "18.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.24": {
+      "op": "app",
+      "children": [
+        "178.0",
+        "276.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.25": {
+      "op": "app",
+      "children": [
+        "227.0",
+        "9.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.26": {
+      "op": "app",
+      "children": [
+        "325.0",
+        "6.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.27": {
+      "op": "app",
+      "children": [
+        "332.0",
+        "11.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.28": {
+      "op": "app",
+      "children": [
+        "337.0",
+        "11.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.29": {
+      "op": "app",
+      "children": [
+        "343.0",
+        "6.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.30": {
+      "op": "app",
+      "children": [
+        "356.0",
+        "6.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.31": {
+      "op": "app",
+      "children": [
+        "364.0",
+        "11.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.32": {
+      "op": "app",
+      "children": [
+        "368.0",
+        "11.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.33": {
+      "op": "app",
+      "children": [
+        "372.0",
+        "49.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.34": {
+      "op": "app",
+      "children": [
+        "372.0",
+        "170.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.35": {
+      "op": "app",
+      "children": [
+        "380.0",
+        "9.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.36": {
+      "op": "app",
+      "children": [
+        "384.0",
+        "49.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.37": {
+      "op": "app",
+      "children": [
+        "388.0",
+        "3.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.38": {
+      "op": "app",
+      "children": [
+        "421.0",
+        "13.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.39": {
+      "op": "∀",
+      "children": [
+        "51.0",
+        "18.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.40": {
+      "op": "=",
+      "children": [
+        "1.0",
+        "1.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.41": {
+      "op": "=",
+      "children": [
+        "3.0",
+        "3.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.42": {
+      "op": "=",
+      "children": [
+        "4.0",
+        "4.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.43": {
+      "op": "=",
+      "children": [
+        "6.0",
+        "6.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.44": {
+      "op": "=",
+      "children": [
+        "7.0",
+        "7.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.45": {
+      "op": "=",
+      "children": [
+        "9.0",
+        "9.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.46": {
+      "op": "=",
+      "children": [
+        "10.0",
+        "10.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.47": {
+      "op": "=",
+      "children": [
+        "11.0",
+        "11.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.48": {
+      "op": "=",
+      "children": [
+        "13.0",
+        "13.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.49": {
+      "op": "=",
+      "children": [
+        "18.0",
+        "18.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.50": {
+      "op": "=",
+      "children": [
+        "21.0",
+        "21.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.51": {
+      "op": "=",
+      "children": [
+        "23.0",
+        "23.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.52": {
+      "op": "=",
+      "children": [
+        "24.0",
+        "24.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.53": {
+      "op": "=",
+      "children": [
+        "26.0",
+        "26.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.54": {
+      "op": "=",
+      "children": [
+        "27.0",
+        "27.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.55": {
+      "op": "=",
+      "children": [
+        "29.0",
+        "29.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.56": {
+      "op": "=",
+      "children": [
+        "30.0",
+        "30.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.57": {
+      "op": "=",
+      "children": [
+        "31.0",
+        "31.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.58": {
+      "op": "=",
+      "children": [
+        "32.0",
+        "32.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.59": {
+      "op": "=",
+      "children": [
+        "36.0",
+        "36.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.60": {
+      "op": "=",
+      "children": [
+        "37.0",
+        "37.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.61": {
+      "op": "=",
+      "children": [
+        "38.0",
+        "38.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.62": {
+      "op": "=",
+      "children": [
+        "39.0",
+        "39.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.63": {
+      "op": "=",
+      "children": [
+        "41.0",
+        "41.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.64": {
+      "op": "=",
+      "children": [
+        "42.0",
+        "42.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.65": {
+      "op": "=",
+      "children": [
+        "43.0",
+        "43.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.66": {
+      "op": "=",
+      "children": [
+        "44.0",
+        "44.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.67": {
+      "op": "=",
+      "children": [
+        "45.0",
+        "45.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.68": {
+      "op": "=",
+      "children": [
+        "46.0",
+        "46.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.69": {
+      "op": "=",
+      "children": [
+        "48.0",
+        "48.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.70": {
+      "op": "=",
+      "children": [
+        "49.0",
+        "49.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.71": {
+      "op": "=",
+      "children": [
+        "51.0",
+        "51.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.72": {
+      "op": "=",
+      "children": [
+        "52.0",
+        "52.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.73": {
+      "op": "=",
+      "children": [
+        "53.0",
+        "53.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.74": {
+      "op": "=",
+      "children": [
+        "54.0",
+        "54.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.75": {
+      "op": "=",
+      "children": [
+        "55.0",
+        "55.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.76": {
+      "op": "=",
+      "children": [
+        "56.0",
+        "56.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.77": {
+      "op": "=",
+      "children": [
+        "62.0",
+        "62.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.78": {
+      "op": "=",
+      "children": [
+        "63.0",
+        "63.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.79": {
+      "op": "=",
+      "children": [
+        "65.0",
+        "65.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.80": {
+      "op": "=",
+      "children": [
+        "66.0",
+        "66.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.81": {
+      "op": "=",
+      "children": [
+        "67.0",
+        "67.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.82": {
+      "op": "=",
+      "children": [
+        "72.0",
+        "72.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.83": {
+      "op": "=",
+      "children": [
+        "73.0",
+        "73.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.84": {
+      "op": "=",
+      "children": [
+        "74.0",
+        "74.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.85": {
+      "op": "=",
+      "children": [
+        "75.0",
+        "75.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.86": {
+      "op": "=",
+      "children": [
+        "76.0",
+        "76.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.87": {
+      "op": "=",
+      "children": [
+        "86.0",
+        "86.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.88": {
+      "op": "=",
+      "children": [
+        "150.0",
+        "150.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.89": {
+      "op": "=",
+      "children": [
+        "154.0",
+        "154.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.90": {
+      "op": "=",
+      "children": [
+        "159.0",
+        "159.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.91": {
+      "op": "=",
+      "children": [
+        "161.0",
+        "161.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.92": {
+      "op": "=",
+      "children": [
+        "170.0",
+        "170.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.93": {
+      "op": "=",
+      "children": [
+        "177.0",
+        "177.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.94": {
+      "op": "=",
+      "children": [
+        "178.0",
+        "178.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.95": {
+      "op": "=",
+      "children": [
+        "193.0",
+        "193.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "383.0": {
+      "op": "app",
+      "children": [
+        "178.0",
+        "13.0"
+      ],
+      "eclass": "383",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "43.0": {
+      "op": "app",
+      "children": [
+        "42.0",
+        "23.0"
+      ],
+      "eclass": "43",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "282.0": {
+      "op": "app",
+      "children": [
+        "86.0",
+        "6.0"
+      ],
+      "eclass": "282",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "433.0": {
+      "op": "app",
+      "children": [
+        "154.0",
+        "11.0"
+      ],
+      "eclass": "433",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "5.0": {
+      "op": "4536",
+      "children": [],
+      "eclass": "5",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "244.0": {
+      "op": "app",
+      "children": [
+        "4.0",
+        "13.0"
+      ],
+      "eclass": "244",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "30.0": {
+      "op": "app",
+      "children": [
+        "29.0",
+        "23.0"
+      ],
+      "eclass": "30",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "332.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "331.0"
+      ],
+      "eclass": "332",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "420.0": {
+      "op": "app",
+      "children": [
+        "4.0",
+        "49.0"
+      ],
+      "eclass": "420",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "55.0": {
+      "op": "app",
+      "children": [
+        "53.0",
+        "54.0"
+      ],
+      "eclass": "55",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "55.1": {
+      "op": "app",
+      "children": [
+        "56.0",
+        "52.0"
+      ],
+      "eclass": "55",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "55.2": {
+      "op": "app",
+      "children": [
+        "56.0",
+        "55.0"
+      ],
+      "eclass": "55",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "55.3": {
+      "op": "app",
+      "children": [
+        "159.0",
+        "54.0"
+      ],
+      "eclass": "55",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "17.0": {
+      "op": "True",
+      "children": [],
+      "eclass": "17",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "42.0": {
+      "op": "app",
+      "children": [
+        "41.0",
+        "23.0"
+      ],
+      "eclass": "42",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "193.0": {
+      "op": "const",
+      "children": [
+        "446.0"
+      ],
+      "eclass": "193",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "193.1": {
+      "op": "lit",
+      "children": [
+        "20.0"
+      ],
+      "eclass": "193",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "407.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "406.0"
+      ],
+      "eclass": "407",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "67.0": {
+      "op": "inst",
+      "children": [
+        "66.0"
+      ],
+      "eclass": "67",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "4.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "3.0"
+      ],
+      "eclass": "4",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "29.0": {
+      "op": "const",
+      "children": [
+        "28.0",
+        "20.0"
+      ],
+      "eclass": "29",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "331.0": {
+      "op": "app",
+      "children": [
+        "154.0",
+        "177.0"
+      ],
+      "eclass": "331",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "54.0": {
+      "op": "bvar",
+      "children": [
+        "20.0"
+      ],
+      "eclass": "54",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "54.1": {
+      "op": "app",
+      "children": [
+        "56.0",
+        "54.0"
+      ],
+      "eclass": "54",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "356.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "236.0"
+      ],
+      "eclass": "356",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "293.0": {
+      "op": "app",
+      "children": [
+        "73.0",
+        "54.0"
+      ],
+      "eclass": "293",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "444.0": {
+      "op": "app",
+      "children": [
+        "46.0",
+        "193.0"
+      ],
+      "eclass": "444",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "41.0": {
+      "op": "const",
+      "children": [
+        "40.0",
+        "20.0",
+        "20.0",
+        "20.0"
+      ],
+      "eclass": "41",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "343.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "342.0"
+      ],
+      "eclass": "343",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "406.0": {
+      "op": "app",
+      "children": [
+        "10.0",
+        "11.0"
+      ],
+      "eclass": "406",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "66.0": {
+      "op": "app",
+      "children": [
+        "65.0",
+        "23.0"
+      ],
+      "eclass": "66",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "3.0": {
+      "op": "fvar",
+      "children": [
+        "2.0"
+      ],
+      "eclass": "3",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "3.1": {
+      "op": "app",
+      "children": [
+        "4.0",
+        "3.0"
+      ],
+      "eclass": "3",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "154.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "49.0"
+      ],
+      "eclass": "154",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "368.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "367.0"
+      ],
+      "eclass": "368",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "28.0": {
+      "op": "OfNat",
+      "children": [],
+      "eclass": "28",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "393.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "293.0"
+      ],
+      "eclass": "393",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "53.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "52.0"
+      ],
+      "eclass": "53",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "380.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "379.0"
+      ],
+      "eclass": "380",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "40.0": {
+      "op": "HAdd",
+      "children": [],
+      "eclass": "40",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "342.0": {
+      "op": "app",
+      "children": [
+        "86.0",
+        "11.0"
+      ],
+      "eclass": "342",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "65.0": {
+      "op": "const",
+      "children": [
+        "64.0",
+        "20.0"
+      ],
+      "eclass": "65",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "367.0": {
+      "op": "app",
+      "children": [
+        "178.0",
+        "6.0"
+      ],
+      "eclass": "367",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "2.0": {
+      "op": "4537",
+      "children": [],
+      "eclass": "2",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "27.0": {
+      "op": "app",
+      "children": [
+        "24.0",
+        "26.0"
+      ],
+      "eclass": "27",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "178.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "177.0"
+      ],
+      "eclass": "178",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "52.0": {
+      "op": "bvar",
+      "children": [
+        "25.0"
+      ],
+      "eclass": "52",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "379.0": {
+      "op": "app",
+      "children": [
+        "178.0",
+        "49.0"
+      ],
+      "eclass": "379",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "39.0": {
+      "op": "app",
+      "children": [
+        "38.0",
+        "23.0"
+      ],
+      "eclass": "39",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "64.0": {
+      "op": "Add",
+      "children": [],
+      "eclass": "64",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "1.0": {
+      "op": "const",
+      "children": [
+        "0.0"
+      ],
+      "eclass": "1",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "26.0": {
+      "op": "app",
+      "children": [
+        "27.0",
+        "32.0"
+      ],
+      "eclass": "26",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "26.1": {
+      "op": "app",
+      "children": [
+        "48.0",
+        "193.0"
+      ],
+      "eclass": "26",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "26.2": {
+      "op": "app",
+      "children": [
+        "444.0",
+        "26.0"
+      ],
+      "eclass": "26",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "26.3": {
+      "op": "lit",
+      "children": [
+        "25.0"
+      ],
+      "eclass": "26",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "177.0": {
+      "op": "app",
+      "children": [
+        "7.0",
+        "9.0"
+      ],
+      "eclass": "177",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "177.1": {
+      "op": "app",
+      "children": [
+        "10.0",
+        "6.0"
+      ],
+      "eclass": "177",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "51.0": {
+      "op": "sort",
+      "children": [
+        "20.0"
+      ],
+      "eclass": "51",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "76.0": {
+      "op": "app",
+      "children": [
+        "53.0",
+        "293.0"
+      ],
+      "eclass": "76",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "76.1": {
+      "op": "app",
+      "children": [
+        "53.0",
+        "295.0"
+      ],
+      "eclass": "76",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "76.2": {
+      "op": "app",
+      "children": [
+        "56.0",
+        "74.0"
+      ],
+      "eclass": "76",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "76.3": {
+      "op": "app",
+      "children": [
+        "56.0",
+        "76.0"
+      ],
+      "eclass": "76",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "76.4": {
+      "op": "app",
+      "children": [
+        "73.0",
+        "55.0"
+      ],
+      "eclass": "76",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "76.5": {
+      "op": "app",
+      "children": [
+        "75.0",
+        "54.0"
+      ],
+      "eclass": "76",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "76.6": {
+      "op": "app",
+      "children": [
+        "159.0",
+        "72.0"
+      ],
+      "eclass": "76",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "76.7": {
+      "op": "app",
+      "children": [
+        "390.0",
+        "52.0"
+      ],
+      "eclass": "76",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "76.8": {
+      "op": "app",
+      "children": [
+        "393.0",
+        "52.0"
+      ],
+      "eclass": "76",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "76.9": {
+      "op": "app",
+      "children": [
+        "396.0",
+        "54.0"
+      ],
+      "eclass": "76",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "13.0": {
+      "op": "app",
+      "children": [
+        "7.0",
+        "299.0"
+      ],
+      "eclass": "13",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "13.1": {
+      "op": "app",
+      "children": [
+        "10.0",
+        "18.0"
+      ],
+      "eclass": "13",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "13.2": {
+      "op": "app",
+      "children": [
+        "86.0",
+        "9.0"
+      ],
+      "eclass": "13",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "13.3": {
+      "op": "app",
+      "children": [
+        "86.0",
+        "13.0"
+      ],
+      "eclass": "13",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "13.4": {
+      "op": "app",
+      "children": [
+        "150.0",
+        "177.0"
+      ],
+      "eclass": "13",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "13.5": {
+      "op": "app",
+      "children": [
+        "154.0",
+        "310.0"
+      ],
+      "eclass": "13",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "13.6": {
+      "op": "app",
+      "children": [
+        "161.0",
+        "18.0"
+      ],
+      "eclass": "13",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "13.7": {
+      "op": "app",
+      "children": [
+        "178.0",
+        "11.0"
+      ],
+      "eclass": "13",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "13.8": {
+      "op": "app",
+      "children": [
+        "372.0",
+        "3.0"
+      ],
+      "eclass": "13",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "13.9": {
+      "op": "app",
+      "children": [
+        "399.0",
+        "49.0"
+      ],
+      "eclass": "13",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "13.10": {
+      "op": "app",
+      "children": [
+        "399.0",
+        "170.0"
+      ],
+      "eclass": "13",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "13.11": {
+      "op": "app",
+      "children": [
+        "407.0",
+        "6.0"
+      ],
+      "eclass": "13",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "13.12": {
+      "op": "app",
+      "children": [
+        "411.0",
+        "49.0"
+      ],
+      "eclass": "13",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "13.13": {
+      "op": "app",
+      "children": [
+        "415.0",
+        "3.0"
+      ],
+      "eclass": "13",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "227.0": {
+      "op": "app",
+      "children": [
+        "1.0",
+        "170.0"
+      ],
+      "eclass": "227",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "38.0": {
+      "op": "app",
+      "children": [
+        "37.0",
+        "23.0"
+      ],
+      "eclass": "38",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "63.0": {
+      "op": "app",
+      "children": [
+        "62.0",
+        "23.0"
+      ],
+      "eclass": "63",
+      "cost": 1.0,
+      "subsumed": false
+    }
+  },
+  "root_eclasses": [
+    "16",
+    "18"
+  ],
+  "class_data": {}
+}
